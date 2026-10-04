@@ -318,14 +318,11 @@ renderer.setAnimationLoop((t) => {
     const inter = interference(myVtx, dMe, air);
     let level = 0, info = null;
     const src = inter.source && inter.level > 0.1 ? others.get(inter.source) : null;
-    if (src) {                                                                         // render the interfering pilot's nose camera into the second feed
+    if (src) {                                                                         // another pilot's transmitter near my box: only a few pixels twitch (100 mW at most)
       level = inter.level; info = { level, name: snapNames.get(inter.source) || "?", ch: CHANNELS[src.vtx.ch] || "?", mw: src.vtx.mw };
       const m = src.mesh;
-      camB.position.copy(m.position).addScaledVector(new THREE.Vector3(0, 0, 1).applyQuaternion(m.quaternion), 0.31).addScaledVector(new THREE.Vector3(0, 1, 0).applyQuaternion(m.quaternion), 0.03);
-      camB.quaternion.copy(m.quaternion).multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI));
-      renderer.setRenderTarget(feedB); renderer.render(scene, camB); renderer.setRenderTarget(null);
     }
-    fpvPass.uniforms.noise.value = Math.max(1 - q, level * 0.35); fpvPass.uniforms.interf.value = level; fpvPass.uniforms.tFeedB.value = feedB.texture;
+    fpvPass.uniforms.noise.value = Math.max(1 - q, level * 0.06); fpvPass.uniforms.interf.value = level; fpvPass.uniforms.tFeedB.value = feedB.texture;
     fpvPass.uniforms.time.value = t / 1000; fpvPass.uniforms.aspect.value = innerWidth / innerHeight; fpvPass.uniforms.texel.value = [1 / (innerWidth * renderer.getPixelRatio()), 1 / (innerHeight * renderer.getPixelRatio())];
     hud.vtx(q, info); fpvPass.enabled = true; composer.render();
   } else { hud.vtx(null); renderer.render(scene, camera); }

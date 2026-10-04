@@ -18,13 +18,15 @@ export const FpvShader = {
       // a touch of sharpening while the link is good (unsharp mask), fading out as the signal degrades
       vec3 bl = 0.25 * (texture2D(tDiffuse, uv + vec2(texel.x, 0.0)).rgb + texture2D(tDiffuse, uv - vec2(texel.x, 0.0)).rgb + texture2D(tDiffuse, uv + vec2(0.0, texel.y)).rgb + texture2D(tDiffuse, uv - vec2(0.0, texel.y)).rgb);
       c += (c - bl) * 0.45 * (1.0 - n);
-      if (interf > 0.01) {                                                                    // another pilot's feed rolls through mine
-        float bar = step(fract(uv.y * 0.9 - time * 0.45), 0.25 + 0.7 * interf);
-        float wB = clamp(bar * smoothstep(0.08, 0.45, interf) + smoothstep(0.85, 1.0, interf), 0.0, 1.0);
-        vec2 uvB = vec2(uv.x + 0.012 * sin(uv.y * 40.0 + time * 9.0) * interf, fract(uv.y + time * 0.25 * interf));
-        vec3 cB = vec3(texture2D(tFeedB, uvB + vec2(ca, 0.0)).r, texture2D(tFeedB, uvB).g, texture2D(tFeedB, uvB - vec2(ca, 0.0)).b);
-        c = mix(c, cB, wB);
-        c += 0.10 * interf * sin(uv.y * 30.0 + time * 25.0);                                  // hum bars
+      if (interf > 0.01) {                                                                    // a neighbour at 100 mW max: a few pixels twitch, short glitch lines, nothing more
+        vec2 blk = floor(vUv * vec2(aspect * 200.0, 200.0));
+        float tw = hash(blk + floor(time * 16.0));
+        float hit = step(tw, 0.0035 * interf + 0.002 * interf * interf);                         // rare small blocks
+        vec2 off = (vec2(hash(blk + 3.1), hash(blk + 7.7)) - 0.5) * 0.008 * hit;
+        c = mix(c, vec3(texture2D(tDiffuse, uv + off).r, texture2D(tDiffuse, uv + off * 1.6).g, texture2D(tDiffuse, uv - off).b), hit);
+        c += hit * (hash(blk + 11.3) - 0.5) * 0.18;                                             // the twitching pixels flash a little
+        float gl = step(0.9993 - 0.002 * interf, hash(vec2(line * 0.13, floor(time * 9.0))));  // an occasional thin torn line
+        c = mix(c, texture2D(tDiffuse, uv + vec2((hash(vec2(line, 5.0)) - 0.5) * 0.03, 0.0)).rgb, gl);
       }
       float l = dot(c, vec3(0.299, 0.587, 0.114));
       c = mix(vec3(l), c, 0.97 - 0.55 * n);                                                    // washed-out colour
