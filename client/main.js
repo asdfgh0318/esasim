@@ -3,7 +3,7 @@ import { Client } from "@colyseus/sdk";
 import { buildField } from "./field.js";
 import { Plane } from "../shared/flight.js";
 import { Streamer } from "../shared/streamer.js";
-import { planeParams } from "../shared/planes/index.js";
+import { toParams } from "../shared/workshop.js";
 import { FIELD, pitX } from "../shared/rules.js";
 import { windAt } from "../shared/wind.js";
 import { RadioInput } from "./input/radio.js";
@@ -11,6 +11,7 @@ import { mountRadioUI } from "./input/radioUI.js";
 import { StreamerView } from "./streamerView.js";
 import { CameraRig } from "./camera.js";
 import { mountHud } from "./hud.js";
+import { loadBuild, saveBuild, mountWorkshop } from "./workshop.js";
 import { createPlane, setTint, spinProp, PLANE_TYPES, PLANE_NAMES } from "./planeModel.js";
 
 const params = new URLSearchParams(location.search);
@@ -25,29 +26,36 @@ document.body.append(renderer.domElement);
 addEventListener("resize", () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
 
 const COLORS = [0xd23b3b, 0x3b6bd2, 0x2aa84a, 0xe0b000, 0x9b4bd0, 0x22b8c4, 0xe07a30];   // pilot colours by start box (tail and spinner)
-const planeType = PLANE_TYPES.includes(params.get("plane")) ? params.get("plane") : "spitfire";
-const simParams = planeParams(planeType);
+const build = loadBuild();
+if (PLANE_TYPES.includes(params.get("plane"))) build.plane = params.get("plane");
+const planeType = build.plane;
+const simParams = toParams(build);                       // the pilot's workshop build; the server validates it (ESA §3, §6)
 
 // ---- state ----
 const sim = new Plane(simParams);
 let me = { id: null, pit: 3 };
 let phase = "lobby", snapNames = new Map(), online = false;
-const myMesh = createPlane(planeType, COLORS[me.pit]); scene.add(myMesh);
+const myMesh = createPlane(planeType, COLORS[me.pit], { spanMm: build.spanMm }); scene.add(myMesh);
 const others = new Map(), views = new Map();   // id -> { mesh, pos, quat } / StreamerView
 const localStreamer = new Streamer({ seed: 9 }); // offline only
 const rig = new CameraRig(camera);
 const radio = new RadioInput(), updateRadioUI = mountRadioUI(radio);
 const keys = new Set();
 let room = null, landedAt = -1, kbThrottle = 0;
+// Flight recorder (ESA §4.19: protests are decided by vote, so a replay is the evidence): snapshots and events of the last fight.
+let rec = [], recT0 = 0, replay = null, recPhase = "";
 
 const hud = mountHud({
   ready: (v) => room?.send("ready", v), addBot: () => room?.send("addBot"), removeBots: () => room?.send("removeBots"), start: () => room?.send("start"),
-  plane: (t) => { const u = new URLSearchParams(location.search); u.set("plane", t); location.search = u.toString(); },
+  plane: (t) => { saveBuild({ ...build, plane: t }); const u = new URLSearchParams(location.search); u.set("plane", t); location.search = u.toString(); },
+  workshop: () => workshop.toggle(),
+  replay: () => (replay ? stopReplay() : startReplay()), saveReplay: () => saveReplay(),
 }, { types: PLANE_TYPES, names: PLANE_NAMES, current: planeType });
+const workshop = mountWorkshop(PLANE_TYPES, PLANE_NAMES, build);
 
 function home() {                                  // plane back in the pilot's hand at the start box (ESA §4.4, §4.6)
   sim.pos.set(pitX(me.pit), 1.4, FIELD.pilotLineZ); sim.vel.set(0, 0, 0); sim.quat.identity(); sim.omega.set(0, 0, 0);
-  sim.held = true; sim.onGround = false; sim.input.throttle = 0; kbThrottle = 0; landedAt = -1;
+  sim.held = true; sim.onGround = false; sim.input.throttle = 0; kbThrottle = 0; landedAt = -1; sim.refuel();
   localStreamer.reset([sim.pos.x, sim.pos.y, sim.pos.z + simParams.tailZ]);
 }
 home();
@@ -58,9 +66,38 @@ addEventListener("keydown", (e) => {
 });
 addEventListener("keyup", (e) => keys.delete(e.code));
 
+// ---- recorder and replay ----
+const pendingEvents = [];
+function record(snap) {
+  const ph = snap.fight.phase;
+  if (ph === "flight" && recPhase !== "flight" && recPhase !== "ended") { rec = []; recT0 = performance.now(); }   // a new flight starts: forget the last one
+  if (ph === "flight" || ph === "ended") { if (rec.length % 1 === 0) rec.push({ t: performance.now() - recT0, snap, events: pendingEvents.splice(0) }); }
+  else pendingEvents.length = 0;
+  recPhase = ph;
+}
+function startReplay() {
+  if (!rec.length) return;
+  replay = { i: 0, t0: performance.now() }; myMesh.visible = false;
+  for (const [, o] of others) scene.remove(o.mesh); others.clear();
+  for (const [, v] of views) v.dispose(); views.clear();
+  hud.toast("Replay"); hud.replayBar(true, true);
+}
+function stopReplay() {
+  replay = null; myMesh.visible = true;
+  for (const [, o] of others) scene.remove(o.mesh); others.clear();
+  for (const [, v] of views) v.dispose(); views.clear();
+  hud.replayBar(phase === "results" && rec.length > 0, false);
+}
+function saveReplay() {
+  const blob = new Blob([JSON.stringify({ game: "ESASIM", rules: "ESA 2024", frames: rec.map((r) => ({ t: Math.round(r.t), fight: r.snap.fight, series: r.snap.series, planes: r.snap.planes, events: r.events })) })], { type: "application/json" });
+  const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(blob), download: `esasim-replay-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-")}.json` });
+  a.click(); URL.revokeObjectURL(a.href);
+}
+
 // ---- network ----
 const nm = (id) => snapNames.get(id) || "?";
-function onEvent(e) {
+function onEvent(e, fromReplay = false) {
+  if (replay && !fromReplay) return;
   const mine = e.id === me.id;
   if (e.type === "cut") hud.toast(`${nm(e.id)} cut ${nm(e.victim)}'s streamer  +${e.pts}`, mine ? "good" : e.victim === me.id ? "bad" : "");
   else if (e.type === "safety") hud.toast(`${nm(e.id)} crossed the safety line  ${e.pts}`, "bad");
@@ -72,19 +109,22 @@ function onEvent(e) {
   else if (e.type === "phase" && e.phase === "flight") hud.toast("FLIGHT!", "good");
   else if (e.type === "phase" && e.phase === "ended") hud.toast("Flight over: land now", "");
 }
-function onSnap(snap) {
+function onSnap(snap, fromReplay = false) {
+  if (replay && !fromReplay) return;
+  if (!fromReplay) record(snap);
   phase = snap.fight.phase;
   snapNames = new Map(snap.fight.pilots.map((p) => [p.id, p.name]));
   hud.update(snap, me.id);
+  if (!replay) hud.replayBar(phase === "results" && rec.length > 0, false);
   const seen = new Set();
   for (const p of snap.planes) {
     seen.add(p.id);
     let v = views.get(p.id);
     if (!v) { v = new StreamerView(scene, COLORS[p.pit % 7]); views.set(p.id, v); }
     v.update(p.streamer);
-    if (p.id === me.id) continue;
+    if (p.id === me.id && !fromReplay) { if (others.has(me.id)) { scene.remove(others.get(me.id).mesh); others.delete(me.id); } continue; }
     let o = others.get(p.id);
-    if (!o) { o = { mesh: createPlane(p.plane, COLORS[p.pit % 7]), pos: new THREE.Vector3(...p.pos), quat: new THREE.Quaternion(), air: false }; o.mesh.position.copy(o.pos); scene.add(o.mesh); others.set(p.id, o); }
+    if (!o) { o = { mesh: createPlane(p.plane, COLORS[p.pit % 7], { spanMm: p.spanMm }), pos: new THREE.Vector3(...p.pos), quat: new THREE.Quaternion(), air: false }; o.mesh.position.copy(o.pos); scene.add(o.mesh); others.set(p.id, o); }
     o.pos.set(...p.pos); o.air = p.airborne;
     const z = new THREE.Vector3(...p.fwd), x = new THREE.Vector3(...p.right), y = new THREE.Vector3().crossVectors(z, x);
     o.quat.setFromRotationMatrix(new THREE.Matrix4().makeBasis(x, y, z));
@@ -92,10 +132,10 @@ function onSnap(snap) {
   for (const [id, o] of others) if (!seen.has(id)) { scene.remove(o.mesh); others.delete(id); }
   for (const [id, v] of views) if (!seen.has(id)) { v.dispose(); views.delete(id); }
 }
-new Client(`ws://${params.get("server") || location.hostname}:2567`).joinOrCreate("combat", { name: params.get("name") || "Pilot", plane: planeType }).then((r) => {
+new Client(`ws://${params.get("server") || location.hostname}:2567`).joinOrCreate("combat", { name: params.get("name") || "Pilot", plane: planeType, build }).then((r) => {
   room = r; online = true;
   r.onMessage("you", (y) => { me = y; rig.setPit(y.pit); setTint(myMesh, COLORS[y.pit % 7]); if (sim.held) home(); });
-  r.onMessage("snap", onSnap); r.onMessage("events", (ev) => ev.forEach(onEvent));
+  r.onMessage("snap", (sn) => onSnap(sn)); r.onMessage("events", (ev) => { if (!replay) pendingEvents.push(...ev); ev.forEach((e) => onEvent(e)); });
   r.onMessage("restart", () => { home(); hud.toast("New fight"); });
   if (params.get("bots")) for (let i = 0; i < Number(params.get("bots")); i++) r.send("addBot");   // debug helpers for screenshots/tests
   if (params.has("autostart")) setTimeout(() => { r.send("ready", true); r.send("start"); }, 500);
@@ -106,6 +146,11 @@ const STEP = 1 / 240;
 let last = performance.now(), acc = 0, sent = 0;
 renderer.setAnimationLoop((t) => {
   const frame = Math.min((t - last) / 1000, 0.1); last = t; acc += frame;
+  if (replay) {
+    const rt = t - replay.t0;
+    while (replay.i < rec.length && rec[replay.i].t <= rt) { const r = rec[replay.i++]; onSnap(r.snap, true); r.events.forEach((e) => onEvent(e, true)); }
+    if (replay.i >= rec.length && rt > (rec[rec.length - 1]?.t ?? 0) + 2000) stopReplay();
+  }
   const k = (c) => (keys.has(c) ? 1 : 0);
   if (radio.poll()) Object.assign(sim.input, radio.channels);
   else {
@@ -129,7 +174,7 @@ renderer.setAnimationLoop((t) => {
   }
   if (params.has("top")) { camera.position.set(0, 90, 15); camera.lookAt(0, 0, 15); camera.fov = 55; camera.updateProjectionMatrix(); } else {
     let focus = sim.pos;
-    if (sim.held && others.size) {                                           // own model still in the hand: watch the airborne plane nearest to the middle of the action
+    if ((sim.held || replay) && others.size) {                                           // own model still in the hand: watch the airborne plane nearest to the middle of the action
       const air = [...others.values()].filter((o) => o.pos.y > 1);
       if (air.length) { const c = new THREE.Vector3(); air.forEach((o) => c.add(o.pos)); c.divideScalar(air.length); focus = air.reduce((best, o) => (o.pos.distanceTo(c) < best.pos.distanceTo(c) ? o : best)).mesh.position; }
     }
@@ -139,6 +184,7 @@ renderer.setAnimationLoop((t) => {
     sent = t;
     room.send("pose", { pos: sim.pos.toArray(), quat: sim.quat.toArray(), vel: sim.vel.toArray(), airborne, held: sim.held });
   }
+  hud.battery(sim.battery01, sim.energyWh <= 0);
   updateRadioUI();
   renderer.render(scene, camera);
 });

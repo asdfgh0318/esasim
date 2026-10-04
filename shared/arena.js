@@ -10,6 +10,7 @@ import { BotPilot } from "./bot.js";
 import { FIELD, pitX } from "./rules.js";
 import { PLANES, PLANE_IDS } from "./planes/index.js";
 import { windAt } from "./wind.js";
+import { toParams, validate } from "./workshop.js";
 
 const SUB = 1 / 240;                     // flight sub-step
 const RESPAWN_DELAY = 4;                 // DESIGN: seconds from touchdown until the model is back in the pilot's hand (§4.6 restart, abstracted)
@@ -30,23 +31,25 @@ export class Arena {
 
   _geom(pr) { return { noseZ: pr.noseZ, wingLeZ: pr.wingLeZ, span: pr.span, propRadius: pr.propDiaIn * 0.0254 / 2 }; }
 
-  _slot(id, name, bot, type) {
+  _slot(id, name, bot, type, build) {
     const p = this.fight.addPilot(id, { name, bot });
     if (!p) return null;
     type = PLANES[type] ? type : null;                                  // no valid type: the arena's default params
-    const params = type ? PLANES[type] : this.params;
+    let params = type ? PLANES[type] : this.params, ok = true;
+    if (build) { params = toParams({ ...build, plane: type || build.plane }); ok = validate(params.build).ok; }
+    p.illegal = !ok;                                                    // workshop check (ESA §3.4, §3.6.2, §6)
     const s = { id, name, bot, type, params, geom: this._geom(params), pit: p.pit, streamer: new Streamer({ seed: p.pit + 1 }), prev: null, cur: null, airborne: false, downT: -1, launchAt: 0, tail: [0, 0, 0] };
     if (bot) { s.plane = new Plane(params); s.ai = new BotPilot({ skill: 0.7, seed: p.pit + 3 }); this._home(s); }
     this.slots.set(id, s); return s;
   }
-  addHuman(id, name, type) { return this._slot(id, name, false, type); }
+  addHuman(id, name, type, build) { return this._slot(id, name, false, type, build); }
   addBot(name, type) { return this._slot("bot-" + (this.slots.size + 1) + "-" + Math.floor(Math.random() * 1e4), name || "Bot", true, type || PLANE_IDS[this.slots.size % PLANE_IDS.length]); }
   remove(id) { this.fight.removePilot(id); this.slots.delete(id); }
 
   _home(s) {                                                   // plane back in the pilot's hand at the pit, new streamer (§4.4)
     const pl = s.plane;
     pl.pos.set(pitX(s.pit), 1.4, FIELD.pilotLineZ); pl.vel.set(0, 0, 0); pl.quat.identity(); pl.omega.set(0, 0, 0);
-    pl.held = true; pl.onGround = false; pl.input.throttle = 0;
+    pl.held = true; pl.onGround = false; pl.input.throttle = 0; pl.refuel();
     s.airborne = false; s.downT = -1; s.cur = null; s.prev = null;
     this._tail(s); s.streamer.reset(s.tail);
   }
@@ -153,7 +156,7 @@ export class Arena {
       fight: this.fight.snapshot(),
       series: { label: this.label(), fightNo: this.fightNo, rounds: this.rounds, prior: this.prior(), winner: this.winner() },
       planes: [...this.slots.values()].filter((s) => s.cur).map((s) => ({
-        id: s.id, pit: s.pit, airborne: s.airborne, bot: s.bot, plane: s.type || "spitfire",
+        id: s.id, pit: s.pit, airborne: s.airborne, bot: s.bot, plane: s.type || "spitfire", spanMm: Math.round(s.params.span * 1000),
         pos: s.cur.pos.map((v) => +v.toFixed(2)), fwd: s.cur.fwd.map((v) => +v.toFixed(3)), right: s.cur.right.map((v) => +v.toFixed(3)),
         streamer: s.streamer.points(this.t).flat().map((v) => +v.toFixed(2)),
       })),

@@ -27,7 +27,7 @@ export class Fight {
       airSeconds: 0, launches: 0, lastLaunchT: -1, landedT: -1,
       cuts: 0, protectionLost: false, crossings: 0, disqualified: false,
       awayT: 0, warned: false, nonEngagements: 0, landingBonus: 0, protectionBonus: 0,
-      streamerIntact: true, lastCutOn: new Map(),
+      streamerIntact: true, lastCutOn: new Map(), illegal: false,
     };
     this.pilots.set(id, p); return p;
   }
@@ -44,6 +44,7 @@ export class Fight {
     return Math.min(SCORING.flightPointsMax, Math.floor(p.airSeconds / SCORING.flightSecondsPerPoint + 1e-6));
   }
   score(p) {
+    if (p.illegal) return 0;                                                   // §6: over the mass or battery limit = 0 points for the round
     return this.flightPoints(p) + p.cuts * SCORING.cut + p.protectionBonus + p.landingBonus
       + p.crossings * SCORING.safetyLine + p.nonEngagements * SCORING.nonEngagement;
   }
@@ -144,7 +145,7 @@ export class Fight {
         : this.phase === "flight" ? this.cfg.flight - this.flightT : 0,
       pilots: [...this.pilots.values()].map((p) => ({
         id: p.id, name: p.name, bot: p.bot, pit: p.pit, ready: p.ready, airborne: p.airborne, cuts: p.cuts,
-        crossings: p.crossings, disqualified: p.disqualified, protectionLost: p.protectionLost, flight: this.flightPoints(p), score: this.score(p),
+        crossings: p.crossings, disqualified: p.disqualified, illegal: p.illegal, protectionLost: p.protectionLost, flight: this.flightPoints(p), score: this.score(p),
       })),
     };
   }

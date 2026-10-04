@@ -33,3 +33,7 @@ From aircombat.eu "Building plans" (Creative Commons BY-NC-SA per that page), un
 ## If you find a better model
 
 Sketchfab CC BY models (low-poly Spitfire, Bf 109 and others exist, login needed to download) are the likeliest source; check the licence on each page and credit the author. A new model needs: glTF/GLB or STL, nose along +Z, y up, scaled to an 0.8 m span, an entry in `PLANE_TYPES` and `shared/planes/index.js`.
+
+## Workshop (build -> parameters)
+
+`shared/workshop.js` turns a build (plane, span 650-900 mm, battery 5-20 Wh, prop 6-11 x 3-7 in, ballast 0-250 g) into flight parameters and checks it against ESA §3.1.2 (span 700-860 mm), §3.4 (battery max 15 Wh) and §3.6.2 (mass 200-450 g). The ranges deliberately allow illegal builds: they fly but score 0 for the round (§6). The mass model and the prop scaling are DESIGN estimates (see the comments in the file); the wing area scales with the span and the 3D wing is stretched to match.

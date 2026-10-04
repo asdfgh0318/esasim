@@ -1,6 +1,6 @@
 # ESASIM
 
-Multiplayer web RC-plane simulator for **ESA (Electric Simple Aircombat)**, a Polish R/C air-combat class: foam WWII-style fighters cutting each other's paper streamers. Status: playable fight (humans + bots, streamers, cuts, ESA scoring), generic plane, no real models yet.
+Multiplayer web RC-plane simulator for **ESA (Electric Simple Aircombat)**, a Polish R/C air-combat class: foam WWII-style fighters cutting each other's paper streamers. Status: playable contest (rounds + final, humans + bots, streamers, cuts, ESA scoring, workshop, replay), OpenSCAD planes.
 
 ## First prompt (verbatim, 2026-10-04)
 
@@ -79,3 +79,5 @@ Still open:
   - Known gaps: bots do not chase the +20 landing bonus; no stuck streamers; no 'pilot in zone' abstraction; human velocity is not reported to bots (lead aim uses position only); RadioMaster panel untested on hardware.
   - Tuning knobs (all DESIGN): wobble 0.12 m, cut forgiveness 3 cm, attack window 2 s, engage radius 30 m, respawn 4 s, bot gains.
 - 2026-10-04: **Models:** looked for free models (Poly Pizza CC BY 3.0 generic only; Sketchfab login), then built four planes in OpenSCAD (Spitfire, Hurricane, FW 190, Yak-3) with `tools/build-models.sh` -> `public/models/*/*.stl`, `client/planeModel.js` (STLLoader, spinning prop, pilot-coloured tail), `viewer.html`, plane picker in the lobby, server sends each plane type. Per-plane wing area in `shared/planes/index.js`. `esa-wwii.js` now uses kit numbers (320 g, 9x5 prop, 800 mm, thrust 4.5 N DESIGN) and SCAD geometry (noseZ 0.235, wingLeZ 0.055, tailZ -0.335). Tests still pass. Models licence proposed: CC0 (Adam to confirm).
+- 2026-10-04: **Finishing round** (Adam: "continue, call me when I can play the finished game"). Added: `npm start` (`tools/start.mjs`), `shared/wind.js` gusts (client and bots), human velocity sent for bot lead aim, contest series in `shared/arena.js` (3 rounds + final, totals, tie-break §4.16, winner banner, HUD columns fight/sum, env ESASIM_ROUNDS), workshop (`shared/workshop.js`, `client/workshop.js`: span/battery/prop/ballast, validation §3.1.2/§3.4/§3.6.2, illegal = 0 points §6, server validates the build sent on join), battery model in `shared/flight.js` (drain ~ throttle^1.8, 120 W, dead stick at 0, refuel on fetch), recorder and replay in `client/main.js` (watch or save JSON after a fight). Bot margins widened for wind. 70 checks pass in `npm test`. Closed issues: #7, #11, #15 (and #12 partly: velocity done, landing bonus not).
+  - New DESIGN values: mass model (frame 85 g + 100 g x (span/800)^2 + 6.7 g/Wh + 0.9 g/in + ballast), prop scaling at constant power (thrust ~ D^(2/3), rpm ~ D^(-5/3) pitch^(-1/3)), gust 1.2 m/s.

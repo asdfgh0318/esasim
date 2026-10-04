@@ -17,12 +17,16 @@ export class Plane {
     this.omega = new THREE.Vector3();          // body frame, rad/s
     this.input = { throttle: 0, elevator: 0, aileron: 0, rudder: 0 }; // elevator +1 = stick back, aileron/rudder +1 = right
     this.onGround = true;
+    this.energyWh = p.batteryWh ?? Infinity;   // battery energy; at zero the motor stops (dead stick)
     this.held = true;                          // in the pilot's hand until launch() (ESA §4.4: WWII is hand-launched)
     this.airspeed = 0; this.alpha = 0; this.beta = 0;
     this.wind = new THREE.Vector3();           // world frame; turbulence plugs in here
     this._v = new THREE.Vector3(); this._f = new THREE.Vector3(); this._dq = new THREE.Quaternion();
     this._lift = new THREE.Vector3(); this._fwd = new THREE.Vector3(); this._side = new THREE.Vector3(); this._ax = new THREE.Vector3(); this._e = new THREE.Euler();   // temporaries: no allocation per step
   }
+
+  get battery01() { return Number.isFinite(this.energyWh) ? Math.max(0, this.energyWh / this.p.batteryWh) : 1; }
+  refuel() { this.energyWh = this.p.batteryWh ?? Infinity; }          // new battery after the model was fetched (ESA §3.4: at least two batteries)
 
   // Max speed the prop can pull the air: rpm x pitch. ESA has no rpm/pitch limit (§3.5); this is a plane parameter.
   get pitchSpeed() { return this.p.maxRpm * this.p.propPitchIn * IN / 60; }
@@ -40,7 +44,9 @@ export class Plane {
   step(dt) {
     if (this.held) return;
     const p = this.p, u = this.input;
-    const throttle = Math.min(1, Math.max(0, u.throttle));
+    let throttle = Math.min(1, Math.max(0, u.throttle));
+    if (this.energyWh <= 0) throttle = 0;
+    else if (Number.isFinite(this.energyWh)) this.energyWh -= (p.powerW || 120) * Math.pow(throttle, 1.8) * dt / 3600;   // P ~ throttle^1.8 (DESIGN)
     // Air-relative velocity in the body frame.
     const vb = this._v.copy(this.vel).sub(this.wind).applyQuaternion(this._dq.copy(this.quat).invert());
     const V = Math.max(vb.length(), 1e-3);

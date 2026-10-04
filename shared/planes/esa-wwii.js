@@ -13,6 +13,8 @@ export const ESA_WWII = {
   staticThrust: 4.5,     // N   DESIGN: kit says at least 300 g (2.9 N); about 1.4 thrust/weight, 15 Wh battery (§3.4)
   cl0: 0.25, clAlpha: 4.0, alphaStall: 0.26,   // DESIGN: foam, thin flat-ish section
   cd0: 0.042, oswald: 0.75,                      // DESIGN: foam fuselage and exposed parts
+  batteryWh: 15,         // ESA §3.4 maximum
+  powerW: 120,           // W at full throttle, DESIGN
   // Body geometry along +z from the centre of gravity, metres (the SCAD model's origin).
   noseZ: 0.235,          // prop disc position [scad]
   wingLeZ: 0.055,        // wing root leading edge (ESA §3.1 allows sandpaper cutters on it) [scad]

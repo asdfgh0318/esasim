@@ -19,7 +19,7 @@ function load(type, part, smooth) {
 }
 
 // Returns a Group right away (a small box until the parts arrive). group.userData: { tint: [materials], prop: Mesh|null }.
-export function createPlane(type = "spitfire", tint = 0xd23b3b) {
+export function createPlane(type = "spitfire", tint = 0xd23b3b, opts = {}) {
   const g = new THREE.Group();
   const tintMat = new THREE.MeshLambertMaterial({ color: tint, side: THREE.DoubleSide }), camo = new THREE.MeshLambertMaterial({ color: CAMO[type] || 0x667755, side: THREE.DoubleSide });
   g.userData = { tint: [tintMat], prop: null, type };
@@ -28,6 +28,7 @@ export function createPlane(type = "spitfire", tint = 0xd23b3b) {
     ["spinner", tintMat, true], ["prop", new THREE.MeshLambertMaterial({ color: 0x222222, side: THREE.DoubleSide }), false]];
   Promise.all(parts.map(([p, m, s]) => load(type, p, s).then((geo) => {
     const mesh = new THREE.Mesh(geo, m); mesh.scale.setScalar(0.001);
+    if (p === "wing" && opts.spanMm) mesh.scale.x = 0.001 * opts.spanMm / 800;           // workshop span
     if (p === "prop") { mesh.position.z = ESA_WWII.noseZ; g.userData.prop = mesh; }
     g.add(mesh);
   }))).then(() => g.remove(stub)).catch((e) => console.warn("plane model failed", type, e));

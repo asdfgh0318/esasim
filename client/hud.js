@@ -13,6 +13,8 @@ const css = `
 #fh .lobby button{padding:9px 16px;font-size:14px;border:0;border-radius:8px;background:#2b3d5e;color:#fff;cursor:pointer}
 #fh .lobby select{padding:8px;font-size:14px;border-radius:8px;border:0;background:#2b3d5e;color:#fff}
 #fh .lobby button.go{background:#d23b3b} #fh .lobby button.on{background:#2a8a56}
+#fh .batt{position:absolute;left:12px;bottom:12px;width:150px;height:18px;background:#0b1220cc;border:1px solid #2b3d5e;border-radius:6px;overflow:hidden}
+#fh .batt div{height:100%;background:#2ad47a;width:100%} #fh .batt span{position:absolute;left:8px;top:1px;font-size:11px}
 #fh .help{position:absolute;right:12px;bottom:12px;font-size:11px;color:#9aa8bf;text-align:right}`;
 
 const fmt = (s) => `${Math.floor(Math.max(0, s) / 60)}:${String(Math.floor(Math.max(0, s) % 60)).padStart(2, "0")}`;
@@ -30,7 +32,9 @@ export function mountHud(actions, planes) {
   const el = document.createElement("div"); el.id = "fh";
   el.innerHTML = `<div class="banner"><b id="fh-t">ESASIM</b><span id="fh-s"></span></div>
     <div class="score" id="fh-score"></div><div class="toasts" id="fh-toasts"></div>
-    <div class="lobby" id="fh-lobby"><select id="b-plane" title="Your plane (reloads the page)"></select><button id="b-ready">Ready</button><button id="b-bot">Add bot</button><button id="b-nobot">Remove bots</button><button id="b-start" class="go">Start fight</button></div>
+    <div class="lobby" id="fh-lobby"><select id="b-plane" title="Your plane (reloads the page)"></select><button id="b-ws">Workshop</button><button id="b-ready">Ready</button><button id="b-bot">Add bot</button><button id="b-nobot">Remove bots</button><button id="b-start" class="go">Start fight</button></div>
+    <div class="lobby" id="fh-replay" style="display:none"><button id="b-replay">Watch replay</button><button id="b-save">Save replay (JSON)</button></div>
+    <div class="batt" id="fh-batt"><div id="fh-batt-bar"></div><span id="fh-batt-t">battery</span></div>
     <div class="help">Space launch · P pilot view · C chase · V FPV · R radio</div>`;
   document.body.append(el);
   const $ = (id) => el.querySelector("#" + id);
@@ -38,6 +42,8 @@ export function mountHud(actions, planes) {
   const sel = $("b-plane");
   sel.innerHTML = planes.types.map((t) => `<option value="${t}" ${t === planes.current ? "selected" : ""}>${planes.names[t]}</option>`).join("");
   sel.onchange = () => actions.plane(sel.value);
+  $("b-ws").onclick = () => actions.workshop();
+  $("b-replay").onclick = () => actions.replay(); $("b-save").onclick = () => actions.saveReplay();
   $("b-ready").onclick = () => { ready = !ready; $("b-ready").classList.toggle("on", ready); actions.ready(ready); };
   $("b-bot").onclick = actions.addBot; $("b-nobot").onclick = actions.removeBots; $("b-start").onclick = actions.start;
 
@@ -51,9 +57,11 @@ export function mountHud(actions, planes) {
       $("b-bot").style.display = $("b-nobot").style.display = $("b-start").style.display = f.phase === "lobby" ? "" : "none";
       if (f.phase === "lobby" || f.phase === "results") { ready = false; $("b-ready").classList.remove("on"); }
       const rows = [...f.pilots].sort((a, b) => ((sr.prior[b.id] || 0) + b.score) - ((sr.prior[a.id] || 0) + a.score)).map((p) =>
-        `<tr class="${p.id === meId ? "me" : ""}"><td>${p.bot ? "🤖 " : ""}${p.name.replace(/</g, "")}${p.disqualified ? " (DQ)" : p.airborne ? " ✈" : ""}</td><td>${p.flight}</td><td>${p.cuts}</td><td>${p.crossings ? "-" + 200 * p.crossings : "0"}</td><td>${p.score}</td><td><b>${(sr.prior[p.id] || 0) + p.score}</b></td></tr>`).join("");
+        `<tr class="${p.id === meId ? "me" : ""}"><td>${p.bot ? "🤖 " : ""}${p.name.replace(/</g, "")}${p.illegal ? " (ILLEGAL)" : p.disqualified ? " (DQ)" : p.airborne ? " ✈" : ""}</td><td>${p.flight}</td><td>${p.cuts}</td><td>${p.crossings ? "-" + 200 * p.crossings : "0"}</td><td>${p.score}</td><td><b>${(sr.prior[p.id] || 0) + p.score}</b></td></tr>`).join("");
       $("fh-score").innerHTML = `<table><tr><th>Pilot</th><th>time</th><th>cuts</th><th>line</th><th>fight</th><th>sum</th></tr>${rows}</table>`;
     },
+    replayBar(show, playing) { $("fh-replay").style.display = show ? "flex" : "none"; $("b-replay").textContent = playing ? "Stop replay" : "Watch replay"; },
+    battery(p, dead) { $("fh-batt-bar").style.width = Math.round(p * 100) + "%"; $("fh-batt-bar").style.background = p > 0.25 ? "#2ad47a" : "#ff5a5a"; $("fh-batt-t").textContent = dead ? "battery empty!" : `battery ${Math.round(p * 100)}%`; },
     toast(text, kind = "") {
       const t = document.createElement("div"); t.className = "toast " + kind; t.textContent = text; $("fh-toasts").append(t);
       setTimeout(() => t.remove(), 4000);

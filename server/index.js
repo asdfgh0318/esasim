@@ -31,7 +31,7 @@ class CombatRoom extends Room {
   }
 
   onJoin(client, options) {
-    const s = this.arena.addHuman(client.sessionId, String(options?.name || "Pilot").slice(0, 16), String(options?.plane || "spitfire"));
+    const s = this.arena.addHuman(client.sessionId, String(options?.name || "Pilot").slice(0, 16), String(options?.plane || "spitfire"), options?.build);
     client.send("you", { id: client.sessionId, pit: s ? s.pit : 0 });
     console.log(client.sessionId, "joined, box", s ? s.pit + 1 : "?");
   }
