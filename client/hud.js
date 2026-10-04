@@ -44,7 +44,7 @@ export function mountHud(actions, planes) {
     <div class="lobby" id="fh-replay" style="display:none"><button id="b-replay">${t("watch")}</button><button id="b-save">${t("saveReplay")}</button></div>
     <div class="batt" id="fh-batt"><div id="fh-batt-bar"></div><span id="fh-batt-t">${t("battery")}</span></div>
     <div class="orient" id="fh-orient"></div>
-    <div class="vtxset" id="fh-vtxset"><span>VTX</span><select id="v-pow"></select><select id="v-ch"></select></div>
+    <div class="vtxset" id="fh-vtxset"><span>VTX</span><select id="v-pow"></select><select id="v-ch"></select><span>${t("fov")}</span><select id="v-fov" title="${t("fovTip")}">${[40, 50, 60, 70, 80, 90].map((f) => `<option value="${f}">${f}°</option>`).join("")}</select></div>
     <div class="vtx" id="fh-vtx" style="display:none"></div>
     <div class="help"><button id="b-lang" style="pointer-events:auto;font-size:11px;padding:1px 6px;margin-right:8px;border:0;border-radius:4px;background:#2b3d5e;color:#fff;cursor:pointer">${t("lang")}</button>${t("help")}</div>
     <div class="cta" id="fh-cta" style="display:none"></div>
@@ -66,6 +66,7 @@ export function mountHud(actions, planes) {
   $("b-ready").onclick = () => { ready = !ready; $("b-ready").classList.toggle("on", ready); actions.ready(ready); };
   let tipsSeen = false; try { tipsSeen = localStorage.getItem("esasim-tips") === "1"; } catch { /* no storage */ }
   $("b-tips").onclick = () => { tipsSeen = true; $("fh-tips").style.display = "none"; try { localStorage.setItem("esasim-tips", "1"); } catch { /* ignore */ } };
+  $("v-fov").onchange = () => actions.fov?.(Number($("v-fov").value));
   $("b-voice").onclick = () => actions.voice?.();
   $("b-voice").textContent = t("voiceOff");
   let speaking = new Set();
@@ -90,6 +91,7 @@ export function mountHud(actions, planes) {
         `<tr class="${p.id === meId ? "me" : ""}"><td>${p.bot ? "🤖 " : ""}${speaking.has(p.id) ? "🔊 " : ""}${p.name.replace(/</g, "")}${p.illegal ? ` (${t("ill")})` : p.disqualified ? " (DQ)" : p.airborne ? " ✈" : ""}</td><td>${p.flight}</td><td>${p.cuts}</td><td>${p.crossings ? "-" + 200 * p.crossings : "0"}</td><td>${p.score}</td><td><b>${(sr.prior[p.id] || 0) + p.score}</b></td></tr>`).join("");
       $("fh-score").innerHTML = `<table><tr>${t("th").map((h) => `<th>${h}</th>`).join("")}</tr>${rows}</table>`;
     },
+    setFov(v) { const s = $("v-fov"); if (![...s.options].some((o) => Number(o.value) === v)) s.add(new Option(v + "°", v)); s.value = String(v); },
     voiceAvailable(on) { $("fh-voice").style.display = on ? "block" : "none"; },
     voiceMode(mode) { const b = $("b-voice"); b.className = mode === "off" ? "" : mode === "error" ? "err" : "on"; b.textContent = t(mode === "ptt" ? "voicePtt" : mode === "open" ? "voiceOpen" : mode === "error" ? "voiceErr" : "voiceOff"); },
     setSpeaking(set) { speaking = set; },

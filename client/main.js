@@ -72,6 +72,7 @@ const hud = mountHud({
   plane: (t) => { saveBuild({ ...build, plane: t }); const u = new URLSearchParams(location.search); u.set("plane", t); location.search = u.toString(); },
   workshop: () => workshop.toggle(),
   voice: () => voice?.cycle(),
+  fov: (v) => rig.setFov(v),
   invite: () => {                                                                   // private room: first click opens a new code, in a room the click copies the invite link
     if (!roomCode) { const u = new URLSearchParams(location.search); u.set("room", Math.random().toString(36).slice(2, 6).toUpperCase()); location.search = u.toString(); return; }
     const link = `${location.origin}${location.pathname}?room=${roomCode}`;
@@ -80,6 +81,7 @@ const hud = mountHud({
   vtx: (mw, ch) => setVtx(mw, ch),
   replay: () => (replay ? stopReplay() : startReplay()), saveReplay: () => saveReplay(),
 }, { types: PLANE_TYPES, names: PLANE_NAMES, current: planeType });
+hud.setFov(rig.fov);
 const workshop = mountWorkshop(PLANE_TYPES, PLANE_NAMES, build);
 if (strict) { const adv = document.getElementById("ws-adv"); if (adv) adv.style.display = "none"; }
 if (!strict) mountPhysicsPanel(build, (b) => { saveBuild(b); location.reload(); });          // advanced physics editor (PicaSim-style parameters)
