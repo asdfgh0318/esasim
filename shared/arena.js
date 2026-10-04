@@ -17,6 +17,7 @@ const rightOf = (q) => new THREE.Vector3(1, 0, 0).applyQuaternion(q);
 export class Arena {
   constructor({ params, fight = {} }) {
     this.params = params;
+    this.fightCfg = fight;
     this.fight = new Fight(fight);
     this.slots = new Map();
     this.t = 0;
@@ -27,7 +28,7 @@ export class Arena {
   _slot(id, name, bot) {
     const p = this.fight.addPilot(id, { name, bot });
     if (!p) return null;
-    const s = { id, bot, pit: p.pit, streamer: new Streamer({ seed: p.pit + 1 }), prev: null, cur: null, airborne: false, downT: -1, launchAt: 0, tail: [0, 0, 0] };
+    const s = { id, name, bot, pit: p.pit, streamer: new Streamer({ seed: p.pit + 1 }), prev: null, cur: null, airborne: false, downT: -1, launchAt: 0, tail: [0, 0, 0] };
     if (bot) { s.plane = new Plane(this.params); s.ai = new BotPilot({ skill: 0.7, seed: p.pit + 3 }); this._home(s); }
     this.slots.set(id, s); return s;
   }
@@ -102,6 +103,15 @@ export class Arena {
     for (const s of this.slots.values()) s.prev = s.cur;
     this.events.push(...fl.step(dt, reports));
     return this.events;
+  }
+
+  // New fight with the same pilots (after the results): bots ready, humans must press ready again.
+  restart() {
+    this.fight = new Fight(this.fightCfg);
+    for (const s of this.slots.values()) {
+      const p = this.fight.addPilot(s.id, { name: s.name || s.id, bot: s.bot, pit: s.pit });
+      if (s.bot) this._home(s); else { s.airborne = false; s.streamer.reset(null); }
+    }
   }
 
   snapshot() {

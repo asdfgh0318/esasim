@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "server": "node server/index.js",
-    "test": "node test/flight.test.js && node test/cut.test.js && node test/fight.test.js && node test/bot.test.js"
+    "test": "node test/flight.test.js && node test/cut.test.js && node test/fight.test.js && node test/bot.test.js && node test/server.test.js"
   },
   "dependencies": {
     "@colyseus/schema": "^5.0.36",
