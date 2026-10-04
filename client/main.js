@@ -326,7 +326,7 @@ renderer.setAnimationLoop((t) => {
       renderer.setRenderTarget(feedB); renderer.render(scene, camB); renderer.setRenderTarget(null);
     }
     fpvPass.uniforms.noise.value = Math.max(1 - q, level * 0.35); fpvPass.uniforms.interf.value = level; fpvPass.uniforms.tFeedB.value = feedB.texture;
-    fpvPass.uniforms.time.value = t / 1000; fpvPass.uniforms.aspect.value = innerWidth / innerHeight;
+    fpvPass.uniforms.time.value = t / 1000; fpvPass.uniforms.aspect.value = innerWidth / innerHeight; fpvPass.uniforms.texel.value = [1 / (innerWidth * renderer.getPixelRatio()), 1 / (innerHeight * renderer.getPixelRatio())];
     hud.vtx(q, info); fpvPass.enabled = true; composer.render();
   } else { hud.vtx(null); renderer.render(scene, camera); }
   // beginner orientation widget: the plane as seen from the pilot's eyes at the start box

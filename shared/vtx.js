@@ -8,8 +8,8 @@ export const VTX_POWERS = [25, 50, 100];          // mW; 25 mW is race mode
 export const CHANNELS = ["R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8"];
 export const overlap = (a, b) => { const d = Math.abs(a - b); return d === 0 ? 1 : d === 1 ? 0.2 : 0.03; };   // adjacent channels leak, far ones barely
 
-// Range grows with sqrt(power): 25 mW is clean up to 20 m and gone at 95 m (the field is small, so it is noticeable).
-export const vtxRange = (mw) => { const k = Math.sqrt(mw / 25); return { clean: 20 * k, lost: 95 * k }; };
+// Range grows with sqrt(power): 25 mW is clean up to 24 m and gone at 100 m (the field is small, so it is noticeable).
+export const vtxRange = (mw) => { const k = Math.sqrt(mw / 25); return { clean: 24 * k, lost: 100 * k }; };
 export const signalQuality = (d, mw) => { const r = vtxRange(mw); return Math.min(1, Math.max(0, 1 - (d - r.clean) / (r.lost - r.clean))) ** 0.8; };
 
 // me: { mw, ch }, dMe: distance of my plane from my receiver; others: [{ id, mw, ch, d }] = airborne planes, d = distance to MY receiver.
