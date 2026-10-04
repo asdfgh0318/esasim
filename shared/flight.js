@@ -1,8 +1,9 @@
 import * as THREE from "three";
 
 // Fixed-wing flight model, shared by client and server.
-// Body axes (three.js object convention): x right, y up, z forward.
-// Sign conventions: +omega.x = nose down, +omega.z = right wing up, +omega.y = nose right.
+// Body axes (three.js is right-handed): z forward, y up, so **x points to the plane's LEFT**.
+// Sign conventions: +omega.x = nose down, +omega.z = left wing up (= roll right), +omega.y = nose left.
+// Inputs: elevator +1 = stick back (nose up), aileron +1 = roll right, rudder +1 = yaw right.
 // No stabilisation of any kind (ACES §3.9, applies to ESA by ESA §1.2): sticks command surface deflection, not rates.
 const RHO = 1.225, G = 9.81, QREF = 0.5 * RHO * 15 * 15;
 const GEAR_HEIGHT = 0.08;
@@ -80,8 +81,8 @@ export class Plane {
     const auth = Math.min(3, Math.max(qr, 0.25 * throttle));
     const a = p.authority, s = p.stability, d = p.damping, w = this.omega;
     const accX = -a.pitch * u.elevator * auth + s.pitch * qr * alpha - d.pitch * w.x;
-    const accZ = -a.roll * u.aileron * auth + s.dihedral * qr * beta - d.roll * w.z;
-    const accY = a.yaw * u.rudder * auth + s.yaw * qr * beta - d.yaw * w.y;
+    const accZ = a.roll * u.aileron * auth + s.dihedral * qr * beta - d.roll * w.z;      // right aileron lifts the left (+x) wing
+    const accY = -a.yaw * u.rudder * auth + s.yaw * qr * beta - d.yaw * w.y;             // right rudder turns the nose toward -x
     w.x += accX * dt; w.y += accY * dt; w.z += accZ * dt;
 
     this.vel.addScaledVector(f, dt);

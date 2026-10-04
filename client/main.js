@@ -11,19 +11,29 @@ import { mountRadioUI } from "./input/radioUI.js";
 import { StreamerView } from "./streamerView.js";
 import { CameraRig } from "./camera.js";
 import { mountHud } from "./hud.js";
+import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
+import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
+import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
+import { makeSky } from "./sky.js";
+import { createOrientationWidget } from "./orientation.js";
+import { FpvShader } from "./fpvEffect.js";
+import { signalQuality, interference, CHANNELS } from "../shared/vtx.js";
 import { loadBuild, saveBuild, mountWorkshop } from "./workshop.js";
 import { createPlane, setTint, spinProp, PLANE_TYPES, PLANE_NAMES } from "./planeModel.js";
 
 const params = new URLSearchParams(location.search);
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x9cc9ee);
-scene.fog = new THREE.Fog(0x9cc9ee, 150, 600);
+scene.background = makeSky();                              // textured sky: gradient, clouds, sun
+scene.fog = new THREE.Fog(0xc0dcf0, 150, 650);            // haze matches the sky at the horizon
 scene.add(new THREE.HemisphereLight(0xffffff, 0x446644, 1.2), buildField());
 const camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 1500);
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(innerWidth, innerHeight);
 document.body.append(renderer.domElement);
-addEventListener("resize", () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
+const composer = new EffectComposer(renderer), fpvPass = new ShaderPass(FpvShader);
+composer.addPass(new RenderPass(scene, camera)); composer.addPass(fpvPass); composer.addPass(new OutputPass());
+addEventListener("resize", () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); composer.setSize(innerWidth, innerHeight); });
 
 const COLORS = [0xd23b3b, 0x3b6bd2, 0x2aa84a, 0xe0b000, 0x9b4bd0, 0x22b8c4, 0xe07a30];   // pilot colours by start box (tail and spinner)
 const build = loadBuild();
@@ -36,12 +46,14 @@ const sim = new Plane(simParams);
 let me = { id: null, pit: 3 };
 let phase = "lobby", snapNames = new Map(), online = false;
 const myMesh = createPlane(planeType, COLORS[me.pit], { spanMm: build.spanMm }); scene.add(myMesh);
+const orient = createOrientationWidget(planeType, COLORS[me.pit]);
 const others = new Map(), views = new Map();   // id -> { mesh, pos, quat } / StreamerView
 const localStreamer = new Streamer({ seed: 9 }); // offline only
 const rig = new CameraRig(camera);
 const radio = new RadioInput(), updateRadioUI = mountRadioUI(radio);
 const keys = new Set();
-let room = null, landedAt = -1, kbThrottle = 0;
+let room = null, landedAt = -1, kbThrottle = 0, myVtx = { mw: build.vtxMw || 25, ch: Math.max(0, build.vtxCh) };
+const feedB = new THREE.WebGLRenderTarget(640, 360), camB = new THREE.PerspectiveCamera(70, 16 / 9, 0.1, 1500);   // another pilot's video feed
 // Flight recorder (ESA §4.19: protests are decided by vote, so a replay is the evidence): snapshots and events of the last fight.
 let rec = [], recT0 = 0, replay = null, recPhase = "";
 
@@ -49,6 +61,7 @@ const hud = mountHud({
   ready: (v) => room?.send("ready", v), addBot: () => room?.send("addBot"), removeBots: () => room?.send("removeBots"), start: () => room?.send("start"),
   plane: (t) => { saveBuild({ ...build, plane: t }); const u = new URLSearchParams(location.search); u.set("plane", t); location.search = u.toString(); },
   workshop: () => workshop.toggle(),
+  vtx: (mw, ch) => setVtx(mw, ch),
   replay: () => (replay ? stopReplay() : startReplay()), saveReplay: () => saveReplay(),
 }, { types: PLANE_TYPES, names: PLANE_NAMES, current: planeType });
 const workshop = mountWorkshop(PLANE_TYPES, PLANE_NAMES, build);
@@ -62,9 +75,20 @@ home();
 const canLaunch = () => sim.held && (!online || phase === "lobby" || phase === "prep" || phase === "flight");   // §4.2: no launches in readiness
 addEventListener("keydown", (e) => {
   keys.add(e.code);
+  if (e.code === "Space" || e.code.startsWith("Arrow")) e.preventDefault();       // a focused button must not swallow Space
   if (e.code === "Space") { if (canLaunch()) { sim.launch(); } else if (sim.held) hud.toast("Not now: launch is allowed in the flight part (§4.2.3)"); }
 });
 addEventListener("keyup", (e) => keys.delete(e.code));
+addEventListener("blur", () => keys.clear());                               // no stuck keys after switching windows
+document.addEventListener("click", (e) => { if (e.target.closest?.("button")) e.target.blur?.(); });   // keep the keyboard on the game
+
+// ---- video transmitter, switchable live like the power switch at the pits (only with the model in the hand) ----
+function setVtx(mw, ch) {
+  if (!sim.held) { hud.toast("Change the video transmitter with the model in your hand"); hud.setVtx(myVtx.mw, myVtx.ch); return; }
+  myVtx = { mw, ch: ch < 0 ? myVtx.ch : ch };                                           // auto keeps the channel the arena picked
+  saveBuild({ ...build, vtxMw: mw, vtxCh: ch });
+  room?.send("vtx", { mw, ch });
+}
 
 // ---- recorder and replay ----
 const pendingEvents = [];
@@ -122,10 +146,11 @@ function onSnap(snap, fromReplay = false) {
     let v = views.get(p.id);
     if (!v) { v = new StreamerView(scene, COLORS[p.pit % 7]); views.set(p.id, v); }
     v.update(p.streamer);
+    if (p.id === me.id && p.vtxMw) { myVtx = { mw: p.vtxMw, ch: p.vtxCh }; hud.setVtx(myVtx.mw, myVtx.ch); }
     if (p.id === me.id && !fromReplay) { if (others.has(me.id)) { scene.remove(others.get(me.id).mesh); others.delete(me.id); } continue; }
     let o = others.get(p.id);
-    if (!o) { o = { mesh: createPlane(p.plane, COLORS[p.pit % 7], { spanMm: p.spanMm }), pos: new THREE.Vector3(...p.pos), quat: new THREE.Quaternion(), air: false }; o.mesh.position.copy(o.pos); scene.add(o.mesh); others.set(p.id, o); }
-    o.pos.set(...p.pos); o.air = p.airborne;
+    if (!o) { o = { mesh: createPlane(p.plane, COLORS[p.pit % 7], { spanMm: p.spanMm }), pos: new THREE.Vector3(...p.pos), quat: new THREE.Quaternion(), air: false, vtx: { mw: 25, ch: 0 } }; o.mesh.position.copy(o.pos); scene.add(o.mesh); others.set(p.id, o); }
+    o.pos.set(...p.pos); o.air = p.airborne; o.vtx = { mw: p.vtxMw || 25, ch: p.vtxCh ?? 0 };
     const z = new THREE.Vector3(...p.fwd), x = new THREE.Vector3(...p.right), y = new THREE.Vector3().crossVectors(z, x);
     o.quat.setFromRotationMatrix(new THREE.Matrix4().makeBasis(x, y, z));
   }
@@ -153,10 +178,12 @@ renderer.setAnimationLoop((t) => {
   }
   const k = (c) => (keys.has(c) ? 1 : 0);
   if (radio.poll()) Object.assign(sim.input, radio.channels);
-  else {
-    kbThrottle = THREE.MathUtils.clamp(kbThrottle + (k("KeyW") - k("KeyS")) * 0.4 * frame, 0, 1);
-    sim.input.throttle = kbThrottle; sim.input.elevator = k("ArrowDown") - k("ArrowUp");
-    sim.input.aileron = k("ArrowRight") - k("ArrowLeft"); sim.input.rudder = k("KeyD") - k("KeyA");
+  else {                                          // keyboard, same layout as the author's drone sim: WASD pitch/roll, Q/E yaw, Shift/Ctrl throttle (arrows also pitch/roll)
+    kbThrottle = THREE.MathUtils.clamp(kbThrottle + ((k("ShiftLeft") || k("ShiftRight")) - (k("ControlLeft") || k("ControlRight"))) * 0.5 * frame, 0, 1);
+    sim.input.throttle = kbThrottle;
+    sim.input.elevator = (k("KeyS") || k("ArrowDown")) - (k("KeyW") || k("ArrowUp"));     // W/up = stick forward = nose down
+    sim.input.aileron = (k("KeyD") || k("ArrowRight")) - (k("KeyA") || k("ArrowLeft"));
+    sim.input.rudder = k("KeyE") - k("KeyQ");
   }
   sim.wind.set(...windAt(t / 1000, sim.pos.x, sim.pos.z));
   while (acc >= STEP) { sim.step(STEP); acc -= STEP; }
@@ -184,7 +211,30 @@ renderer.setAnimationLoop((t) => {
     sent = t;
     room.send("pose", { pos: sim.pos.toArray(), quat: sim.quat.toArray(), vel: sim.vel.toArray(), airborne, held: sim.held });
   }
-  hud.battery(sim.battery01, sim.energyWh <= 0);
+  hud.battery(sim.battery01, sim.energyWh <= 0); hud.vtxEnabled(sim.held);
   updateRadioUI();
-  renderer.render(scene, camera);
+  // Analog FPV: the link degrades with distance from the pilot (ESASIM-specific effect, see client/fpvEffect.js)
+  if (replay && rig.mode === "fpv") rig.mode = "pilot";
+  if (rig.mode === "fpv") {
+    const rx = pitX(me.pit), ry = 1.7, rz = FIELD.pilotLineZ - 0.8;                    // my receiver, at my start box
+    const dMe = Math.hypot(sim.pos.x - rx, sim.pos.y - ry, sim.pos.z - rz);
+    const q = signalQuality(dMe, myVtx.mw);
+    const air = []; for (const [id, o] of others) if (o.air) air.push({ id, mw: o.vtx.mw, ch: o.vtx.ch, d: Math.hypot(o.mesh.position.x - rx, o.mesh.position.y - ry, o.mesh.position.z - rz) });
+    const inter = interference(myVtx, dMe, air);
+    let level = 0, info = null;
+    const src = inter.source && inter.level > 0.1 ? others.get(inter.source) : null;
+    if (src) {                                                                         // render the interfering pilot's nose camera into the second feed
+      level = inter.level; info = { level, name: snapNames.get(inter.source) || "?", ch: CHANNELS[src.vtx.ch] || "?", mw: src.vtx.mw };
+      const m = src.mesh;
+      camB.position.copy(m.position).addScaledVector(new THREE.Vector3(0, 0, 1).applyQuaternion(m.quaternion), 0.31).addScaledVector(new THREE.Vector3(0, 1, 0).applyQuaternion(m.quaternion), 0.03);
+      camB.quaternion.copy(m.quaternion).multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI));
+      renderer.setRenderTarget(feedB); renderer.render(scene, camB); renderer.setRenderTarget(null);
+    }
+    fpvPass.uniforms.noise.value = Math.max(1 - q, level * 0.35); fpvPass.uniforms.interf.value = level; fpvPass.uniforms.tFeedB.value = feedB.texture;
+    fpvPass.uniforms.time.value = t / 1000; fpvPass.uniforms.aspect.value = innerWidth / innerHeight;
+    hud.vtx(q, info); fpvPass.enabled = true; composer.render();
+  } else { hud.vtx(null); renderer.render(scene, camera); }
+  // beginner orientation widget: the plane as seen from the pilot's eyes at the start box
+  hud.orient(orient.update(new THREE.Vector3(pitX(me.pit), 1.7, FIELD.pilotLineZ - 0.8), sim.pos, sim.quat));
+  orient.render(renderer);
 });

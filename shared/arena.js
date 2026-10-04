@@ -11,10 +11,12 @@ import { FIELD, pitX } from "./rules.js";
 import { PLANES, PLANE_IDS } from "./planes/index.js";
 import { windAt } from "./wind.js";
 import { toParams, validate } from "./workshop.js";
+import { randomPower, VTX_POWERS } from "./vtx.js";
 
 const SUB = 1 / 240;                     // flight sub-step
 const RESPAWN_DELAY = 4;                 // DESIGN: seconds from touchdown until the model is back in the pilot's hand (§4.6 restart, abstracted)
 const fwdOf = (q) => new THREE.Vector3(0, 0, 1).applyQuaternion(q);
+// NB: model +x is the plane's physical LEFT (see shared/flight.js); "right" here is that +x axis, used symmetrically (wing span) and to orient the mesh.
 const rightOf = (q) => new THREE.Vector3(1, 0, 0).applyQuaternion(q);
 
 export class Arena {
@@ -29,6 +31,12 @@ export class Arena {
     this.events = [];
   }
 
+  _freeChannel() {                                                       // random channel not used by anyone yet (frequency control, ESA §1.2/§4.17)
+    const used = new Set([...this.slots.values()].map((x) => x.vtx.ch));
+    const free = [0, 1, 2, 3, 4, 5, 6, 7].filter((c) => !used.has(c));
+    return free.length ? free[Math.floor(Math.random() * free.length)] : Math.floor(Math.random() * 8);
+  }
+
   _geom(pr) { return { noseZ: pr.noseZ, wingLeZ: pr.wingLeZ, span: pr.span, propRadius: pr.propDiaIn * 0.0254 / 2 }; }
 
   _slot(id, name, bot, type, build) {
@@ -37,8 +45,9 @@ export class Arena {
     type = PLANES[type] ? type : null;                                  // no valid type: the arena's default params
     let params = type ? PLANES[type] : this.params, ok = true;
     if (build) { params = toParams({ ...build, plane: type || build.plane }); ok = validate(params.build).ok; }
+    const mw = bot ? randomPower() : (build?.vtxMw ?? 25), ch = !bot && build && build.vtxCh >= 0 ? build.vtxCh : this._freeChannel();
     p.illegal = !ok;                                                    // workshop check (ESA §3.4, §3.6.2, §6)
-    const s = { id, name, bot, type, params, geom: this._geom(params), pit: p.pit, streamer: new Streamer({ seed: p.pit + 1 }), prev: null, cur: null, airborne: false, downT: -1, launchAt: 0, tail: [0, 0, 0] };
+    const s = { id, name, bot, type, params, vtx: { mw, ch }, geom: this._geom(params), pit: p.pit, streamer: new Streamer({ seed: p.pit + 1 }), prev: null, cur: null, airborne: false, downT: -1, launchAt: 0, tail: [0, 0, 0] };
     if (bot) { s.plane = new Plane(params); s.ai = new BotPilot({ skill: 0.7, seed: p.pit + 3 }); this._home(s); }
     this.slots.set(id, s); return s;
   }
@@ -52,6 +61,16 @@ export class Arena {
     pl.held = true; pl.onGround = false; pl.input.throttle = 0; pl.refuel();
     s.airborne = false; s.downT = -1; s.cur = null; s.prev = null;
     this._tail(s); s.streamer.reset(s.tail);
+  }
+
+  // Video transmitter switched by a pilot (power and channel), only with the model in the hand (not airborne).
+  setVtx(id, m) {
+    const s = this.slots.get(id);
+    if (!s || s.airborne || !m) return false;
+    const mw = VTX_POWERS.includes(Number(m.mw)) ? Number(m.mw) : s.vtx.mw;
+    let ch = Math.round(Number(m.ch));
+    if (!(ch >= 0 && ch <= 7)) { ch = s.vtx.ch; }
+    s.vtx = { mw, ch }; return true;
   }
 
   // Humans: pose reported by the client { pos:[x,y,z], quat:[x,y,z,w], airborne, held }.
@@ -156,7 +175,7 @@ export class Arena {
       fight: this.fight.snapshot(),
       series: { label: this.label(), fightNo: this.fightNo, rounds: this.rounds, prior: this.prior(), winner: this.winner() },
       planes: [...this.slots.values()].filter((s) => s.cur).map((s) => ({
-        id: s.id, pit: s.pit, airborne: s.airborne, bot: s.bot, plane: s.type || "spitfire", spanMm: Math.round(s.params.span * 1000),
+        id: s.id, pit: s.pit, airborne: s.airborne, bot: s.bot, plane: s.type || "spitfire", spanMm: Math.round(s.params.span * 1000), vtxMw: s.vtx.mw, vtxCh: s.vtx.ch,
         pos: s.cur.pos.map((v) => +v.toFixed(2)), fwd: s.cur.fwd.map((v) => +v.toFixed(3)), right: s.cur.right.map((v) => +v.toFixed(3)),
         streamer: s.streamer.points(this.t).flat().map((v) => +v.toFixed(2)),
       })),

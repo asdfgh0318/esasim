@@ -23,7 +23,9 @@ export class BotPilot {
     // Predictive boundary: where will I be in 1.5 s? Turn radius is about 13 m and stalls throw the plane around, so keep a wide margin from the safety line (z = 0).
     const fx = pos.x + plane.vel.x * 1.5, fz = pos.z + plane.vel.z * 1.5, fy = pos.y + plane.vel.y * 1.2;
     const out = Math.abs(fx) > zone.w * 0.4 || fz < 38 || pos.z < 31 || fz > zone.d * 0.92 || pos.y > 20;
-    if (landing) _aim.set(0, 0, FIELD.flightZone.d * 0.55);                 // bots land mid-zone, far from the safety line; the +20 landing bonus (§4.7) is for humans
+    const goAround = landing && (pos.z < 38 || (plane.vel.z < 0 && pos.z < 50));     // too close to the line while landing: power on, turn away
+    if (goAround) _aim.set(0, 14, 62);
+    else if (landing) _aim.set(0, 0, FIELD.flightZone.d * 0.55);                 // bots land mid-zone, far from the safety line; the +20 landing bonus (§4.7) is for humans
     else if (target && !out) _aim.copy(target.pos).addScaledVector(target.vel, clamp(best / speed, 0, 1.0));
     else _aim.copy(CENTER);
     if (!landing) { _aim.y = clamp(_aim.y, 5, 16); if (_aim.z < 40 && !out) _aim.z = 40; }                                  // never aim near the safety line
@@ -41,22 +43,21 @@ export class BotPilot {
     }
     _fwd.set(0, 0, 1).applyQuaternion(plane.quat);
     if (_fwd.y > 0.6) elev = Math.min(elev, 0.2);                           // no steep climbs: they end in a stall
-    if (!takeoff && !low && (plane.airspeed < 11 || Math.abs(plane.alpha) > 0.3)) {   // stall recovery: wings level, then nose slightly down
+    if (!takeoff && !low && (plane.airspeed < (landing && !goAround ? 8 : 11) || Math.abs(plane.alpha) > 0.3)) {   // stall recovery: wings level, then nose slightly down
       _up.set(0, 1, 0).applyQuaternion(_inv); rollErr = Math.atan2(_up.x, _up.y);
       elev = Math.abs(rollErr) < 1.0 ? clamp(2.5 * (-0.1 - _fwd.y), -1, 1) : 0;
       if (Math.abs(rollErr) < 0.8 && _d.z > -0.5) rollErr += clamp(_d.x * 1.5, -0.5, 0.5);   // keep turning away from the boundary, gently banked
     }
     if (landing) {
       if (_fwd.y < -0.42) elev = Math.max(elev, 0);                          // descent no steeper than about 25 degrees
-      if (pos.z < 34) _aim.set(0, 12, 58);                                   // never land near the line
       if (pos.y < 2.2) { _up.set(0, 1, 0).applyQuaternion(_inv); rollErr = Math.atan2(_up.x, _up.y); elev = plane.vel.y < -1.2 ? 0.25 : 0.0; }   // flare, then let it settle
     }
     const k = 0.15 * (1 - this.skill);                                      // less skilled = noisier sticks
     this.n1 += (this._rand() * 2 - this.n1) * Math.min(1, 2 * dt);
     this.n2 += (this._rand() * 2 - this.n2) * Math.min(1, 2 * dt);
     plane.input.elevator = clamp(elev + this.n1 * k, -1, 1);
-    plane.input.aileron = clamp(rollErr * 1.5 + this.n2 * k, -1, 1);
-    plane.input.rudder = clamp(plane.beta * 3, -0.5, 0.5);
-    plane.input.throttle = landing ? (pos.y < 12 || pos.z < 25 ? 0 : 0.3) : takeoff || plane.airspeed < 10 || best > 15 ? 1 : 0.7;
+    plane.input.aileron = clamp(-(rollErr * 1.5) + this.n2 * k, -1, 1);       // +x is the plane's left, aileron + rolls right
+    plane.input.rudder = clamp(-plane.beta * 3, -0.5, 0.5);
+    plane.input.throttle = goAround ? 1 : landing ? (pos.y < 12 ? 0 : 0.3) : takeoff || plane.airspeed < 10 || best > 15 ? 1 : 0.7;
   }
 }

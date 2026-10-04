@@ -14,7 +14,9 @@
 - **Workshop**: tune your plane (type, span, battery, prop, ballast) inside the ESA limits (span 700-860 mm, 200-450 g, 15 Wh). The battery drains with throttle, so a bigger one is heavier but lasts. An illegal plane still flies but scores 0 for the round (§6).
 - **Four modelled planes** (Spitfire, Hurricane, FW 190, Yak-3), built in OpenSCAD to ESA kit proportions.
 - **Pursuit bots**, so you can test alone. Add up to six. Gusty air is shared by all planes.
-- **Hand launch** like real WWII ESA, from your start box. **Pilot camera** standing at the start box with zoom, plus chase and FPV cameras.
+- **Hand launch** like real WWII ESA, from your start box. **Pilot camera** standing at your start box and following the plane (default), or **analog-style FPV** (V): scanlines, snow and tearing grow with distance from you, ending in signal lost.
+- **Textured sky** (procedural clouds and sun) and a **beginner orientation widget** in the top-right corner: your plane as you see it from the start box, with a yellow nose arrow, red (left) and green (right) wing lights and a plain-language label ("Nose toward you · banked left").
+- **Analog FPV and video interference**: every plane carries a video transmitter (power 25 mW to 5 W, channel R1-R8). Range grows with power. Another pilot's transmitter near your start box, especially a 5 W one that forgot race mode, swamps your feed and you see *their* camera rolling through yours. Switch power and channel live (model in your hand). This is a sim effect, ESA has no VTX rules.
 - **Replay**: after a fight, watch it back (scoreboard and events included) or save it as JSON, useful as evidence for protests (§4.19).
 - **RadioMaster support** (any USB joystick-mode radio) with mapping and calibration (key R), ported from the author's earlier drone sim. Keyboard works too.
 - The flight model, streamer, cut detection, scoring, series, workshop and bots are headless and covered by tests (`npm test`).
@@ -24,7 +26,10 @@
 ![The four OpenSCAD planes](docs/img/models.png)
 ![Waiting room: bots in their start boxes](docs/img/lobby.png)
 ![A running fight seen from the start box](docs/img/fight.png)
-![Chase camera, own plane with its streamer](docs/img/chase.png)
+![Pilot view with the textured sky and the orientation widget](docs/img/pilot-view.png)
+![Analog FPV close to the pilot](docs/img/fpv-near.png)
+![Analog FPV far out: signal lost](docs/img/fpv-far.png)
+![FPV interference from another pilot's 5 W transmitter](docs/img/interference.png)
 
 The contest site is built from ESA §2: red = safety line, white = pilot line (3 m behind), green = readiness line, yellow = audience zone, tan = 50 x 20 m landing field, grey = 7 start boxes. The rules do not give a flight-zone size, so that one is a design choice.
 
@@ -40,8 +45,8 @@ npm start        # game server (:2567) and client (http://localhost:5173) togeth
 (`npm run server` and `npm run dev` start them separately.)
 
 1. Open http://localhost:5173. Press **Add bot** a few times, **Ready**, **Start fight**. **Workshop** tunes your plane.
-2. During preparation and flight press **Space** to throw your plane, then fly. Controls: arrows pitch/roll, A/D rudder, W/S throttle. With a radio: plug it in (joystick mode), press **R** to map and calibrate.
-3. Cameras: **P** pilot box, **C** chase, **V** FPV.
+2. During preparation and flight press **Space** to throw your plane, then fly. Keyboard (same layout as the drone sim): **W/S pitch** (W = nose down), **A/D roll**, **Q/E yaw**, **Shift/Ctrl throttle**; arrows also pitch/roll. With a radio: plug it in (joystick mode), press **R** to map and calibrate.
+3. Cameras: **P** pilot view (default), **V** analog FPV. The video transmitter (power, channel) is switched with the selectors bottom left, with the model in your hand; a 5 W transmitter reaches far but swamps other pilots' video when it flies near their box.
 4. Others can join the same room from other browsers (`?server=<host>` if the server is on another machine). Without a server the page runs as offline practice.
 
 Short phases for testing: `ESASIM_PREP=5 ESASIM_READY=2 ESASIM_FLIGHT=60 ESASIM_ROUNDS=1 npm run server`.

@@ -31,8 +31,18 @@ let peak = 0; pl.input.elevator = 1; run(pl, 1.0, (p) => { peak = Math.max(peak,
 check("pitch rate with full up", deg(peak) > 60 && deg(peak) < 300, `${deg(peak).toFixed(0)} °/s peak`);
 
 // 4. Roll rate with full aileron (target ~200-400 °/s).
-pl = mk(80, 18, 0.6); run(pl, 2); peak = 0; pl.input.aileron = 1; run(pl, 1, (p) => { peak = Math.max(peak, -p.omega.z); });
+pl = mk(80, 18, 0.6); run(pl, 2); peak = 0; pl.input.aileron = 1; run(pl, 1, (p) => { peak = Math.max(peak, p.omega.z); });
 check("roll rate with full right aileron", deg(peak) > 150 && deg(peak) < 500, `${deg(peak).toFixed(0)} °/s peak`);
+
+// 4b. Physical directions (the model's +x axis is the plane's LEFT): right aileron must drop the right wing, right rudder must turn the nose right.
+{ const rightWingY = (p) => new THREE.Vector3(-0.4, 0, 0).applyQuaternion(p.quat).y;      // right wing tip = -x
+  const noseX = (p) => new THREE.Vector3(0, 0, 1).applyQuaternion(p.quat).x;                // flying toward +z, the right-hand side is -x
+  let a = mk(80, 18, 0.6); run(a, 1); a.input.aileron = 1; run(a, 0.4);
+  check("right aileron drops the right wing", rightWingY(a) < -0.05, `right wing tip height ${rightWingY(a).toFixed(2)} m`);
+  let b = mk(80, 18, 0.6); run(b, 1); b.input.rudder = 1; run(b, 0.8);
+  check("right rudder turns the nose to the right", noseX(b) < -0.02, `nose x ${noseX(b).toFixed(3)} (negative = right)`);
+  let c = mk(80, 18, 0.6); run(c, 1); c.input.elevator = 1; run(c, 0.4);
+  check("stick back raises the nose", new THREE.Vector3(0, 0, 1).applyQuaternion(c.quat).y > 0.05, "nose up"); }
 
 // 5. Hand launch (ESA §4.4): thrown at 9 m/s, 11° up, full throttle, hands off, must climb away.
 pl = new Plane(FW190D); pl.pos.set(0, 1.5, -3); pl.input.throttle = 1; pl.launch();

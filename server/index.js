@@ -15,6 +15,7 @@ class CombatRoom extends Room {
     this.arena = new Arena({ rounds: env("ESASIM_ROUNDS", 3), params: ESA_WWII, fight: { prep: env("ESASIM_PREP", FIGHT.prepSeconds), ready: env("ESASIM_READY", 10), flight: env("ESASIM_FLIGHT", FIGHT.flightSeconds) } });
     this.tick = 0; this.resultsAt = null;
     this.onMessage("pose", (c, m) => this.arena.setPose(c.sessionId, m));
+    this.onMessage("vtx", (c, m) => this.arena.setVtx(c.sessionId, m));
     this.onMessage("ready", (c, v) => this.arena.fight.setReady(c.sessionId, v !== false));
     this.onMessage("addBot", () => { if (this.arena.fight.phase === "lobby") this.arena.addBot("Bot " + (this.arena.slots.size + 1)); });
     this.onMessage("removeBots", () => { if (this.arena.fight.phase === "lobby") for (const s of [...this.arena.slots.values()]) if (s.bot) this.arena.remove(s.id); });

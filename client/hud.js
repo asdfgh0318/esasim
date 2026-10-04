@@ -15,8 +15,14 @@ const css = `
 #fh .lobby button.go{background:#d23b3b} #fh .lobby button.on{background:#2a8a56}
 #fh .batt{position:absolute;left:12px;bottom:12px;width:150px;height:18px;background:#0b1220cc;border:1px solid #2b3d5e;border-radius:6px;overflow:hidden}
 #fh .batt div{height:100%;background:#2ad47a;width:100%} #fh .batt span{position:absolute;left:8px;top:1px;font-size:11px}
+#fh .orient{position:absolute;right:10px;top:168px;width:150px;text-align:center;font-size:12px;color:#e6edf7;background:#0b1220aa;border-radius:6px;padding:3px 4px}
+#fh .vtxset{position:absolute;left:12px;bottom:36px;display:flex;gap:6px;align-items:center;pointer-events:auto;font-size:12px}
+#fh .vtxset select{background:#0b1220cc;color:#e6edf7;border:1px solid #2b3d5e;border-radius:6px;padding:3px}
+#fh .vtxset select:disabled{opacity:.45}
+#fh .vtx{position:absolute;left:50%;bottom:62px;transform:translateX(-50%);font:600 14px monospace;color:#9dff9d;text-shadow:0 0 4px #000;letter-spacing:1px}
 #fh .help{position:absolute;right:12px;bottom:12px;font-size:11px;color:#9aa8bf;text-align:right}`;
 
+import { VTX_POWERS, CHANNELS } from "../shared/vtx.js";
 const fmt = (s) => `${Math.floor(Math.max(0, s) / 60)}:${String(Math.floor(Math.max(0, s) % 60)).padStart(2, "0")}`;
 const TEXT = {
   lobby: ["Waiting room", "Add bots or wait for pilots, press Ready, then Start. Practice flights are fine (Space = hand launch)."],
@@ -35,10 +41,18 @@ export function mountHud(actions, planes) {
     <div class="lobby" id="fh-lobby"><select id="b-plane" title="Your plane (reloads the page)"></select><button id="b-ws">Workshop</button><button id="b-ready">Ready</button><button id="b-bot">Add bot</button><button id="b-nobot">Remove bots</button><button id="b-start" class="go">Start fight</button></div>
     <div class="lobby" id="fh-replay" style="display:none"><button id="b-replay">Watch replay</button><button id="b-save">Save replay (JSON)</button></div>
     <div class="batt" id="fh-batt"><div id="fh-batt-bar"></div><span id="fh-batt-t">battery</span></div>
-    <div class="help">Space launch · P pilot view · C chase · V FPV · R radio</div>`;
+    <div class="orient" id="fh-orient"></div>
+    <div class="vtxset" id="fh-vtxset"><span>VTX</span><select id="v-pow"></select><select id="v-ch"></select></div>
+    <div class="vtx" id="fh-vtx" style="display:none"></div>
+    <div class="help">Space launch · WASD pitch/roll · Q/E yaw · Shift/Ctrl throttle · P pilot view · V FPV · R radio</div>`;
   document.body.append(el);
   const $ = (id) => el.querySelector("#" + id);
   let ready = false;
+  const pw = $("v-pow"), vc = $("v-ch");
+  pw.innerHTML = VTX_POWERS.map((p) => `<option value="${p}">${p >= 1000 ? p / 1000 + " W" : p + " mW"}${p === 25 ? " race" : ""}</option>`).join("");
+  vc.innerHTML = CHANNELS.map((c, i) => `<option value="${i}">${c}</option>`).join("");
+  pw.title = "Video transmitter power (change with the model in your hand)"; vc.title = "Video channel";
+  pw.onchange = vc.onchange = () => actions.vtx(Number(pw.value), Number(vc.value));
   const sel = $("b-plane");
   sel.innerHTML = planes.types.map((t) => `<option value="${t}" ${t === planes.current ? "selected" : ""}>${planes.names[t]}</option>`).join("");
   sel.onchange = () => actions.plane(sel.value);
@@ -61,6 +75,17 @@ export function mountHud(actions, planes) {
       $("fh-score").innerHTML = `<table><tr><th>Pilot</th><th>time</th><th>cuts</th><th>line</th><th>fight</th><th>sum</th></tr>${rows}</table>`;
     },
     replayBar(show, playing) { $("fh-replay").style.display = show ? "flex" : "none"; $("b-replay").textContent = playing ? "Stop replay" : "Watch replay"; },
+    vtx(q, inter) {
+      const el = $("fh-vtx"); if (q == null) { el.style.display = "none"; return; }
+      el.style.display = "block"; el.style.color = q > 0.5 ? "#9dff9d" : q > 0.2 ? "#ffd166" : "#ff6a6a";
+      const bars = `${"█".repeat(Math.ceil(q * 5))}${"░".repeat(5 - Math.ceil(q * 5))}`;
+      let t = q < 0.03 ? "SIGNAL LOST" : `VTX ${bars} ${Math.round(q * 100)}%`;
+      if (inter && inter.level > 0.1 && inter.name) { t += `   ⚠ INTERFERENCE ${Math.round(inter.level * 100)}%: ${inter.name} (${inter.ch}, ${inter.mw >= 1000 ? inter.mw / 1000 + " W" : inter.mw + " mW"})`; if (inter.level > 0.5) el.style.color = "#ff6a6a"; }
+      el.textContent = t;
+    },
+    setVtx(mw, ch) { if (document.activeElement !== pw && Number(pw.value) !== mw) pw.value = String(mw); if (document.activeElement !== vc && Number(vc.value) !== ch) vc.value = String(ch); },
+    vtxEnabled(on) { if (pw.disabled === on) { pw.disabled = vc.disabled = !on; } },
+    orient(t) { const e = $("fh-orient"); if (e.textContent !== t) e.textContent = t; },
     battery(p, dead) { $("fh-batt-bar").style.width = Math.round(p * 100) + "%"; $("fh-batt-bar").style.background = p > 0.25 ? "#2ad47a" : "#ff5a5a"; $("fh-batt-t").textContent = dead ? "battery empty!" : `battery ${Math.round(p * 100)}%`; },
     toast(text, kind = "") {
       const t = document.createElement("div"); t.className = "toast " + kind; t.textContent = text; $("fh-toasts").append(t);

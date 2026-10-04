@@ -1,4 +1,5 @@
 import { DEFAULT_BUILD, RANGES, validate, clampBuild } from "../shared/workshop.js";
+import { VTX_POWERS, CHANNELS } from "../shared/vtx.js";
 
 // Workshop panel: tune the plane within the ESA limits. The build is saved in the browser and applied on rejoin.
 const KEY = "esasim_build";
@@ -21,14 +22,16 @@ export function mountWorkshop(types, names, build) {
   const b = { ...build };
   el.innerHTML = `<h3>Workshop</h3><div class="row"><label>Plane</label><select id="ws-plane">${types.map((t) => `<option value="${t}" ${t === b.plane ? "selected" : ""}>${names[t]}</option>`).join("")}</select></div>
     ${Object.entries(RANGES).map(([k, [lo, hi, st]]) => `<div class="row"><label>${LABELS[k][0]}</label><input type="range" id="ws-${k}" min="${lo}" max="${hi}" step="${st}" value="${b[k]}"><span id="ws-v-${k}"></span></div>`).join("")}
+    <div class="row"><label>Video power</label><select id="ws-vtxMw">${VTX_POWERS.map((p) => `<option value="${p}" ${p === b.vtxMw ? "selected" : ""}>${p >= 1000 ? p / 1000 + " W" : p + " mW"}${p === 25 ? " (race mode)" : ""}</option>`).join("")}</select>
+      <select id="ws-vtxCh"><option value="-1" ${b.vtxCh < 0 ? "selected" : ""}>Auto channel</option>${CHANNELS.map((c, i) => `<option value="${i}" ${i === b.vtxCh ? "selected" : ""}>${c}</option>`).join("")}</select></div>
     <div id="ws-mass" class="hint"></div><div id="ws-res"></div>
     <button id="ws-apply" class="go">Apply and rejoin</button><button id="ws-reset">Reset</button>
-    <div class="hint">ESA limits: span 700-860 mm (§3.1.2), mass 200-450 g (§3.6.2), battery max 15 Wh (§3.4). An illegal plane still flies but scores 0 for the round (§6). The battery drains with throttle.</div>`;
+    <div class="hint">ESA limits: span 700-860 mm (§3.1.2), mass 200-450 g (§3.6.2), battery max 15 Wh (§3.4). An illegal plane still flies but scores 0 for the round (§6). The battery drains with throttle. A strong video transmitter reaches far but swamps other pilots' video when you fly near their box (sim effect, not an ESA rule).</div>`;
   document.body.append(el);
   const $ = (id) => el.querySelector("#" + id);
   const refresh = () => {
     for (const k of Object.keys(RANGES)) { b[k] = Number($(`ws-${k}`).value); $(`ws-v-${k}`).textContent = `${b[k]} ${LABELS[k][1]}`; }
-    b.plane = $("ws-plane").value;
+    b.plane = $("ws-plane").value; b.vtxMw = Number($("ws-vtxMw").value); b.vtxCh = Number($("ws-vtxCh").value);
     const r = validate(b);
     $("ws-mass").textContent = `Mass ${r.massG.toFixed(0)} g`;
     $("ws-res").innerHTML = r.ok ? '<div class="ok">Legal: counts for points.</div>' : r.problems.map((p) => `<div class="bad">${p.rule}: ${p.text}</div>`).join("");

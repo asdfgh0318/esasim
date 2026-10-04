@@ -3,14 +3,17 @@
 // limit scores 0 points for the round (§6). Mass model and prop scaling are DESIGN (listed in docs/models.md).
 import { planeParams } from "./planes/index.js";
 import { PLANE_LIMITS } from "./rules.js";
+import { VTX_POWERS } from "./vtx.js";
 
-export const DEFAULT_BUILD = { plane: "spitfire", spanMm: 800, batteryWh: 15, propDiaIn: 9, propPitchIn: 5, ballastG: 20 };
+export const DEFAULT_BUILD = { plane: "spitfire", spanMm: 800, batteryWh: 15, propDiaIn: 9, propPitchIn: 5, ballastG: 20, vtxMw: 25, vtxCh: -1 };   // vtxCh -1 = auto (the arena picks a free channel)
 export const RANGES = { spanMm: [650, 900, 10], batteryWh: [5, 20, 0.5], propDiaIn: [6, 11, 0.5], propPitchIn: [3, 7, 0.5], ballastG: [0, 250, 5] };
 const POWER_W = 120;            // DESIGN: motor power at full throttle (the kit motor "min 300 g thrust")
 
 export function clampBuild(b = {}) {
   const out = { plane: b.plane || DEFAULT_BUILD.plane };
   for (const [k, [lo, hi]] of Object.entries(RANGES)) { const v = Number(b[k]); out[k] = Number.isFinite(v) ? Math.min(hi, Math.max(lo, v)) : DEFAULT_BUILD[k]; }
+  const mw = Number(b.vtxMw); out.vtxMw = VTX_POWERS.includes(mw) ? mw : DEFAULT_BUILD.vtxMw;     // video transmitter: sim effect, not an ESA rule
+  const ch = Math.round(Number(b.vtxCh)); out.vtxCh = Number.isFinite(ch) ? Math.min(7, Math.max(-1, ch)) : -1;
   return out;
 }
 // DESIGN mass model: foam airframe with motor, ESC, servos and receiver; battery about 6.7 g/Wh; prop about 1 g per inch.
