@@ -2,3 +2,12 @@ node_modules/
 dist/
 *.log
 papers/*.txt
+# Third-party pages saved as local evidence (copyright, contact emails): kept on disk, not published.
+# Rules PDFs/text and the forum announcement pages stay in the repo.
+papers/aircombat.eu_*.htm
+papers/poland/shop_*.html
+papers/poland/article_*.html
+papers/poland/howto_*.html
+papers/poland/blog_*.html
+papers/poland/club_*.html
+papers/poland/yt_*.html

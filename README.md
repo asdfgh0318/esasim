@@ -40,11 +40,12 @@ Open http://localhost:5173. Space = hand launch. With a radio (USB joystick mode
 - [`docs/rules.md`](docs/rules.md): the ESA rules, extracted with citations
 - [`docs/rules-aces.md`](docs/rules-aces.md): the ACES fallback rules
 - [`docs/drone-sim-audit.md`](docs/drone-sim-audit.md): what was reused from the earlier drone sim
+- [`docs/fly-for-real.md`](docs/fly-for-real.md): verified Polish shops, guides, teams and contests (feeds the in-game intro)
 - [`docs/models.md`](docs/models.md): what plane models are needed
 
 ## Rules and decisions
 
-Every game rule in the code cites its § of the [ESA 2024 regulations](papers/poland/Regulamin_Aircombat_ESA_2024.pdf) (see [`shared/rules.js`](shared/rules.js)); ESA falls back to the international ACES rules for anything it does not cover (extract: [`docs/rules-aces.md`](docs/rules-aces.md)). I have not confirmed that the 2024 PDF is still the current version. Where the rules are silent, the choice is marked DESIGN. The PDFs in `papers/` govern over any summary in this repo. Plans and changes are logged in [`CLAUDE.md`](CLAUDE.md).
+Every game rule in the code cites its § of the [ESA 2024 regulations](papers/poland/Regulamin_Aircombat_ESA_2024.pdf) (see [`shared/rules.js`](shared/rules.js)); ESA falls back to the international ACES rules for anything it does not cover (extract: [`docs/rules-aces.md`](docs/rules-aces.md)). The official 2026 announcement says the regulation is unchanged from 2024/2025. Where the rules are silent, the choice is marked DESIGN. The PDFs in `papers/` govern over any summary in this repo. Plans and changes are logged in [`CLAUDE.md`](CLAUDE.md).
 
 ## Credits
 

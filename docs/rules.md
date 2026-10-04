@@ -2,7 +2,7 @@
 
 **Source of truth: `../papers/poland/Regulamin_Aircombat_ESA_2024.pdf`** ("Regulamin zawodów i klas modeli latających ESA (Electric Simple Aircombat)", 7 pp, "obowiązuje od sezonu 2024"). Where this file and the PDF disagree, the PDF governs. Polish quotes are verbatim; English is my translation.
 
-**Version caveat.** The ACES Polska forum thread (`papers/poland/esa_forum_regulamin_t21.html`) lists the 2024 document as the one for "2024 i 2025", posted 15.08.2024. I have not found or read a 2026 version. **Adam: please confirm this is still current for the competition you are targeting, or drop the newer PDF into `papers/poland/`.**
+**Version.** The ACES Polska forum thread lists this 2024 document as the one for "2024 i 2025" (posted 15.08.2024). The official 2026 announcement (Rozkaz KG ESA #2026/03, 26.03.2026, `papers/poland/forum_esa_t234_puchar_kalendarz_2026.html`) says: "Obowiązujący regulamin: zgodnie z viewtopic.php?f=11&t=21 [bez zmian względem poprzedniego sezonu]", i.e. the rules in that thread are unchanged for 2026. So the 2024 PDF is current as far as I can verify.
 
 Read in full: 2024 rules (text + page 1 image checked). Downloaded, only skimmed for differences: the 2022 rules (`Regulamin_Aircombat_ESA_2022.pdf`). The 2022 forum thread notes a landing-points change for WWI (WWII stayed +20).
 Fallback: §1.2 "Wszelkie zasady nie ujęte w tym regulaminie reguluje regulamin Aircombat ACES wraz z załącznikami." The ACES extract is in [`rules-aces.md`](rules-aces.md).
@@ -89,7 +89,6 @@ There is no stabilisation clause in ESA; ACES §3.9 (no electronic stabilisation
 
 ## Open points
 
-- Confirm the 2024/2025 PDF is the current rules (see top).
 - Flight-zone size and start-box size are not given: design values in `shared/rules.js`.
 - Check what ACES appendices (model measurement, points table) still apply to ESA.
 - WWI class rules (ground posts, ground launch, 1000 mm span) later.

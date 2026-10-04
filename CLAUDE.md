@@ -21,7 +21,7 @@ Multiplayer web RC-plane simulator for **ESA (Electric Simple Aircombat)**, a Po
 **CORRECTION 2026-10-04:** I first took "ESA" for ACES (the international 1:12 class at aircombat.eu) and built on the ACES rules. That was wrong. ESA = **Electric Simple Aircombat**, a Polish class with its own regulations: foam only, WWII span 700-860 mm, max 450 g, max 15 Wh, 10 m x 1 cm crepe-paper streamer, 5 min flight, hand launch. ESA §1.2 falls back to ACES for anything it does not cover.
 
 - **Primary:** `papers/poland/Regulamin_Aircombat_ESA_2024.pdf` (valid "od sezonu 2024", forum says 2024 and 2025). Extract with § cites: `docs/rules.md`. The PDF governs if they disagree.
-- **Not confirmed:** whether the 2024 PDF is still current for the competition Adam targets (no 2026 version found). Ask Adam / ask for the PDF.
+- **Version:** the official 2026 announcement (Rozkaz KG ESA #2026/03, `papers/poland/forum_esa_t234_...`) says the regulation is unchanged from 2024/2025, so the 2024 PDF is current (verified 2026-10-04).
 - **Fallback only:** ACES PDFs in `papers/`, extract in `docs/rules-aces.md`. Never use ACES values for ESA (1:12, 500-1500 g, 12 m streamer, 7 min are ACES).
 - Also saved: ESA 2022 rules, forum threads and event pages in `papers/poland/` (fetched 2026-10-04).
 - **Every game-rule decision (field, scoring, limits, plane validation) must name the § it follows, in code comments and the Changelog.** If the rules are silent, say so and log it as DESIGN in `docs/rules.md` "Open points".
@@ -50,7 +50,7 @@ The game is a lure to get people flying ACES air combat in real life. The intro 
 
 Answered 2026-10-04: rules = http://aircombat.eu/rules.htm (ACES); format = shared-sky air combat, everything per ACES rules (field dimensions included) first; a workshop to build and modify planes comes later; repo = public asdfgh0318/esasim.
 Still open:
-1. Is the 2024/2025 ESA PDF the current rules? Flight-zone size (rules silent).
+1. Flight-zone size (rules silent).
 2. How a streamer cut is detected.
 3. First plane to ship (waiting for Adam's models).
 4. Research for the intro: shops, plans, YouTube, teams (Poland first, then worldwide; issue #1).
@@ -74,3 +74,4 @@ Still open:
 - 2026-10-04: Flight model v0 (`shared/flight.js`, `shared/planes/fw190d.js`, `test/flight.test.js`, all 6 checks pass). Params from the FW-190D plan (span 875 mm, 820 g, 9x4.7 prop). Thrust, drag, stability numbers are DESIGN guesses to tune with real stick time. Known weak spot: power-off glide is steep (about 5 m/s sink at 21 m/s, L/D around 4).
 - 2026-10-04: Ported the radio pipeline (`client/input/radio.js`, `radioUI.js`), client now flies the new model. Audit written: `docs/drone-sim-audit.md`. Plans for FW-190D and Fiat G.55 saved in `models/plans/`.
 - 2026-10-04: **Correction:** ESA is Electric Simple Aircombat (Polish), not ACES. Found via the Polish event "XII Bitwa ESA i VIII Bitwa ACES o Płock". Downloaded ESA 2022/2024 rules and Polish pages to `papers/poland/`, rewrote `docs/rules.md` for ESA (old ACES extract kept as `docs/rules-aces.md`), `shared/rules.js` now ESA constants, field rebuilt per ESA §2, new generic ESA plane (`shared/planes/esa-wwii.js`, 400 g, 800 mm), hand launch (`Plane.launch`, Space), intro text fixed. Flight tests pass (hand launch, rates, stall). The FW-190D (820 g) is not ESA-legal, kept as reference only.
+- 2026-10-04: Poland-first research for the intro (issue #1): verified shops (ef3m.pl, napolskimniebie.pl), build guides, squadrons/calendar 2026, one contest video; written in `docs/fly-for-real.md`, linked from the intro. Dropped unverified links (RCTRAX 404, Cyber-Fly, modelerc.info). Removed pages with private emails from the repo. 2026 rules confirmed unchanged. Worldwide pass still to do.
