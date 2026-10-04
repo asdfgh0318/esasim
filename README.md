@@ -91,7 +91,7 @@ Every game rule in the code cites its § of the [ESA 2024 regulations](papers/po
 
 ## Licence
 
-ESASIM is open source for hobbyists: [PolyForm Noncommercial 1.0.0](LICENSE) (use, study, change and share for any noncommercial purpose). That licence is also what lets it build on PicaSim's physics; see [`NOTICE`](NOTICE).
+ESASIM is source-available and free for hobbyists: [PolyForm Noncommercial 1.0.0](LICENSE) (use, study, change and share for any noncommercial purpose). That licence is also what lets it build on PicaSim's physics; see [`NOTICE`](NOTICE).
 
 ## Credits
 

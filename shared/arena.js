@@ -19,8 +19,13 @@ const fwdOf = (q) => new THREE.Vector3(0, 0, 1).applyQuaternion(q);
 // NB: model +x is the plane's physical LEFT (see shared/flight.js); "right" here is that +x axis, used symmetrically (wing span) and to orient the mesh.
 const rightOf = (q) => new THREE.Vector3(1, 0, 0).applyQuaternion(q);
 
+// Small seeded generator (mulberry32) so a whole arena run is repeatable in tests; the server seeds it from the clock.
+function makeRng(seed) { let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+const POSE_TIMEOUT = 1;                  // DESIGN: no pose for 1 s = the model is treated as down (closed tab, lost connection)
+
 export class Arena {
-  constructor({ params, fight = {}, rounds = 3 }) {
+  constructor({ params, fight = {}, rounds = 3, seed = (Date.now() ^ 0x5bd1e995) >>> 0 }) {
+    this.rand = makeRng(seed);
     this.params = params;
     // Contest series (ESA §4.1): `rounds` fights, then a final; points of all fights add up (§4.1), ties by the final, then the best single fight (§4.16).
     this.rounds = rounds; this.fightNo = 0; this.done = []; this.recorded = false;
@@ -34,25 +39,26 @@ export class Arena {
   _freeChannel() {                                                       // random channel not used by anyone yet (frequency control, ESA §1.2/§4.17)
     const used = new Set([...this.slots.values()].map((x) => x.vtx.ch));
     const free = [0, 1, 2, 3, 4, 5, 6, 7].filter((c) => !used.has(c));
-    return free.length ? free[Math.floor(Math.random() * free.length)] : Math.floor(Math.random() * 8);
+    return free.length ? free[Math.floor(this.rand() * free.length)] : Math.floor(this.rand() * 8);
   }
 
   _geom(pr) { return { noseZ: pr.noseZ, wingLeZ: pr.wingLeZ, span: pr.span, propRadius: pr.propDiaIn * 0.0254 / 2 }; }
 
   _slot(id, name, bot, type, build) {
+    let s_illegal = false;
     const p = this.fight.addPilot(id, { name, bot });
     if (!p) return null;
     type = PLANES[type] ? type : null;                                  // no valid type: the arena's default params
     let params = type ? PLANES[type] : this.params, ok = true;
     if (build) { params = toParams({ ...build, plane: type || build.plane }); ok = validate(params.build).ok; }
-    const mw = bot ? randomPower() : (build?.vtxMw ?? 25), ch = !bot && build && build.vtxCh >= 0 ? build.vtxCh : this._freeChannel();
-    p.illegal = !ok;                                                    // workshop check (ESA §3.4, §3.6.2, §6)
-    const s = { id, name, bot, type, params, vtx: { mw, ch }, geom: this._geom(params), pit: p.pit, streamer: new Streamer({ seed: p.pit + 1 }), prev: null, cur: null, airborne: false, downT: -1, launchAt: 0, tail: [0, 0, 0] };
+    const mw = bot ? randomPower(this.rand()) : (build?.vtxMw ?? 25), ch = !bot && build && build.vtxCh >= 0 ? build.vtxCh : this._freeChannel();
+    p.illegal = !ok; s_illegal = !ok;                                    // workshop check (ESA §3.4, §3.6.2, §6)
+    const s = { id, name, bot, type, params, vtx: { mw, ch }, geom: this._geom(params), pit: p.pit, streamer: new Streamer({ seed: p.pit + 1 }), prev: null, cur: null, airborne: false, downT: -1, launchAt: 0, tail: [0, 0, 0], illegal: s_illegal, crossingsTotal: 0, dq: false, poseT: 0 };
     if (bot) { s.plane = createPlane(params); s.ai = new BotPilot({ skill: 0.7, seed: p.pit + 3 }); this._home(s); }
     this.slots.set(id, s); return s;
   }
   addHuman(id, name, type, build) { return this._slot(id, name, false, type, build); }
-  addBot(name, type) { return this._slot("bot-" + (this.slots.size + 1) + "-" + Math.floor(Math.random() * 1e4), name || "Bot", true, type || PLANE_IDS[this.slots.size % PLANE_IDS.length]); }
+  addBot(name, type) { return this._slot("bot-" + (this.slots.size + 1) + "-" + Math.floor(this.rand() * 1e4), name || "Bot", true, type || PLANE_IDS[this.slots.size % PLANE_IDS.length]); }
   remove(id) { this.fight.removePilot(id); this.slots.delete(id); }
 
   _home(s) {                                                   // plane back in the pilot's hand at the pit, new streamer (§4.4)
@@ -78,6 +84,7 @@ export class Arena {
     const s = this.slots.get(id); if (!s || s.bot) return;
     const q = new THREE.Quaternion().fromArray(m.quat);
     s.cur = { pos: m.pos, fwd: fwdOf(q).toArray(), right: rightOf(q).toArray() };
+    s.poseT = this.t;
     s.airborne = !!m.airborne; s.vel = m.vel || [0, 0, 0];
     if (m.held && !s.wasHeld) s.streamer.reset(null);
     s.wasHeld = !!m.held;
@@ -93,6 +100,7 @@ export class Arena {
   step(dt) {
     this.t += dt; this.events = [];
     this.fight.drain();
+    for (const s of this.slots.values()) if (!s.bot && s.airborne && this.t - s.poseT > POSE_TIMEOUT) s.airborne = false;   // alt-tab / dead connection: no frozen plane scoring flight time
     const fl = this.fight, phase = fl.phase;
     const enemiesOf = (me) => [...this.slots.values()].filter((o) => o !== me && o.airborne && (o.bot ? o.plane : o.cur)).map((o) => ({
       pos: o.bot ? o.plane.pos : new THREE.Vector3(...o.cur.pos),
@@ -101,7 +109,7 @@ export class Arena {
     for (const s of this.slots.values()) {
       if (!s.bot) continue;
       const pl = s.plane;
-      if (pl.held && phase === "flight" && fl.flightT >= s.launchAt && fl.cfg.flight - fl.flightT > 15) { pl.input.throttle = 1; pl.launch(); }
+      if (pl.held && phase === "flight" && !fl.pilots.get(s.id)?.disqualified && fl.flightT >= s.launchAt && fl.cfg.flight - fl.flightT > 15) { pl.input.throttle = 1; pl.launch(); }
       if (!pl.held) {
         pl.wind.set(...windAt(this.t, pl.pos.x, pl.pos.z));
         s.ai.control(pl, enemiesOf(s), dt, phase === "ended");
@@ -109,7 +117,7 @@ export class Arena {
         const air = !pl.onGround && pl.pos.y > 0.2;
         if (s.airborne && !air && s.downT < 0) s.downT = this.t;                 // touchdown / crash
         s.airborne = air;
-        if (s.downT >= 0 && this.t - s.downT > RESPAWN_DELAY) { this._home(s); s.launchAt = fl.flightT + 1 + Math.random() * 3; }
+        if (s.downT >= 0 && this.t - s.downT > RESPAWN_DELAY) { this._home(s); s.launchAt = fl.flightT + 1 + this.rand() * 3; }
       }
       const rec = { pos: pl.pos.toArray(), fwd: fwdOf(pl.quat).toArray(), right: rightOf(pl.quat).toArray() };
       s.prev = s.cur || rec; s.cur = rec;
@@ -140,7 +148,10 @@ export class Arena {
   _record() {
     this.recorded = true;
     const scores = {}, names = {};
-    for (const p of this.fight.pilots.values()) { scores[p.id] = this.fight.score(p); names[p.id] = p.name; }
+    for (const p of this.fight.pilots.values()) {
+      scores[p.id] = this.fight.score(p); names[p.id] = p.name;
+      const s = this.slots.get(p.id); if (s) { s.crossingsTotal = p.priorCrossings + p.crossings; s.dq = p.disqualified; }   // §4.9: carried through the contest
+    }
     this.done[this.fightNo] = { scores, names };
   }
   get isFinal() { return this.fightNo >= this.rounds; }
@@ -161,11 +172,12 @@ export class Arena {
 
   // New fight with the same pilots (after the results): bots ready, humans must press ready again.
   restart() {
-    if (this.isFinal && this.recorded) { this.fightNo = 0; this.done = []; } else if (this.recorded) this.fightNo++;   // after the final: a new contest
+    const newContest = this.isFinal && this.recorded;
+    if (newContest) { this.fightNo = 0; this.done = []; for (const s of this.slots.values()) { s.crossingsTotal = 0; s.dq = false; } } else if (this.recorded) this.fightNo++;   // after the final: a new contest
     this.recorded = false;
     this.fight = new Fight(this.fightCfg);
     for (const s of this.slots.values()) {
-      const p = this.fight.addPilot(s.id, { name: s.name || s.id, bot: s.bot, pit: s.pit });
+      this.fight.addPilot(s.id, { name: s.name || s.id, bot: s.bot, pit: s.pit, priorCrossings: s.crossingsTotal, disqualified: s.dq, illegal: s.illegal });   // §4.9, §6 carried through the contest
       if (s.bot) this._home(s); else { s.airborne = false; s.streamer.reset(null); }
     }
   }

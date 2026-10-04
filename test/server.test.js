@@ -29,12 +29,12 @@ try {
   check("phase flight reached", A.snap?.fight.phase === "flight", A.snap?.fight.phase);
 
   // Scripted flights at 20 Hz. A flies along +z at 15 m/s, y = 10. B crosses A's streamer 5 m behind A's tail flying along +x.
-  let az = 12, t0 = Date.now(), bx = -6;
+  // B sweeps back and forth across the streamer while its distance behind A slowly changes, so the test does not depend on timer drift.
+  let az = 12, k = 0;
   const iv = setInterval(() => {
-    const dt = 0.05; az += 15 * dt;
+    k++; az += 15 * 0.05;
     A.room.send("pose", { pos: [0, 10, az], quat, airborne: true, held: false });
-    bx += 15 * dt;
-    B.room.send("pose", { pos: [bx, 10, 12 + 15 * ((Date.now() - t0) / 1000) - 5.4 - 0.36 + 0.0], quat: quatX, airborne: bx > -5.5, held: false });
+    B.room.send("pose", { pos: [7 * Math.sin(k * 0.3), 10, az - 4.2 - 3 * Math.min(k / 50, 1)], quat: quatX, airborne: true, held: false });
   }, 50);
   await sleep(2500);
   clearInterval(iv);

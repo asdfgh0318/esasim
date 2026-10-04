@@ -5,7 +5,7 @@ import { ESA_WWII } from "../shared/planes/esa-wwii.js";
 let fail = 0;
 const check = (name, ok, info) => { console.log(`${ok ? "ok  " : "FAIL"} ${name}: ${info}`); if (!ok) fail++; };
 const N = Number(process.env.BOTS || 3);
-const a = new Arena({ params: ESA_WWII, fight: { prep: 1, ready: 1 } });
+const a = new Arena({ params: ESA_WWII, seed: 1, fight: { prep: 1, ready: 1 } });
 for (let i = 0; i < N; i++) a.addBot("Bot" + (i + 1));
 a.fight.start();
 const counts = { cut: 0, safety: 0, launch: 0, land: 0 };

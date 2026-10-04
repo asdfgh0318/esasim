@@ -33,8 +33,9 @@ class CombatRoom extends Room {
 
   onJoin(client, options) {
     const s = this.arena.addHuman(client.sessionId, String(options?.name || "Pilot").slice(0, 16), String(options?.plane || "spitfire"), options?.build);
-    client.send("you", { id: client.sessionId, pit: s ? s.pit : 0 });
-    console.log(client.sessionId, "joined, box", s ? s.pit + 1 : "?");
+    if (!s) { client.send("full", {}); client.leave(); return; }                  // all 7 start boxes taken (humans and bots share them, §4.1)
+    client.send("you", { id: client.sessionId, pit: s.pit });
+    console.log(client.sessionId, "joined, box", s.pit + 1);
   }
   onLeave(client) { this.arena.remove(client.sessionId); }
 }

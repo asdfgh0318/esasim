@@ -4,7 +4,7 @@ import { ESA_WWII } from "../shared/planes/esa-wwii.js";
 
 let fail = 0;
 const check = (name, ok, info) => { console.log(`${ok ? "ok  " : "FAIL"} ${name}: ${info}`); if (!ok) fail++; };
-const a = new Arena({ params: ESA_WWII, rounds: 2, fight: { prep: 1, ready: 1, flight: 45 } });
+const a = new Arena({ params: ESA_WWII, rounds: 2, seed: 1, fight: { prep: 1, ready: 1, flight: 45 } });
 for (let i = 0; i < 3; i++) a.addBot("Bot" + (i + 1));
 const labels = [], totals = [];
 for (let f = 0; f < 3; f++) {

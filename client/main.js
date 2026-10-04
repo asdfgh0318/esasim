@@ -74,7 +74,8 @@ function home() {                                  // plane back in the pilot's 
   localStreamer.reset([sim.pos.x, sim.pos.y, sim.pos.z + simParams.tailZ]);
 }
 home();
-const canLaunch = () => sim.held && (!online || phase === "lobby" || phase === "prep" || phase === "flight");   // §4.2: no launches in readiness
+let meDq = false;                                                                  // §4.9: disqualified for the rest of the contest
+const canLaunch = () => sim.held && !meDq && (!online || phase === "lobby" || phase === "prep" || phase === "flight");   // §4.2: no launches in readiness
 addEventListener("keydown", (e) => {
   keys.add(e.code);
   if (e.code === "Space" || e.code.startsWith("Arrow")) e.preventDefault();       // a focused button must not swallow Space
@@ -145,6 +146,7 @@ function onSnap(snap, fromReplay = false) {
   if (replay && !fromReplay) return;
   if (!fromReplay) record(snap);
   phase = snap.fight.phase;
+  meDq = !!snap.fight.pilots.find((p) => p.id === me.id)?.disqualified;
   snapNames = new Map(snap.fight.pilots.map((p) => [p.id, p.name]));
   hud.update(snap, me.id);
   if (!replay) hud.replayBar(phase === "results" && rec.length > 0, false);
@@ -170,6 +172,7 @@ new Client(serverUrl()).joinOrCreate("combat", { name: params.get("name") || "Pi
   r.onMessage("you", (y) => { me = y; rig.setPit(y.pit); setTint(myMesh, COLORS[y.pit % 7]); if (sim.held) home(); });
   r.onMessage("snap", (sn) => onSnap(sn)); r.onMessage("events", (ev) => { if (!replay) pendingEvents.push(...ev); ev.forEach((e) => onEvent(e)); });
   r.onMessage("restart", () => { home(); hud.toast("New fight"); });
+  r.onMessage("full", () => { online = false; room = null; hud.toast("Room is full (7 boxes). Playing offline."); hud.offline(); });
   if (params.get("bots")) for (let i = 0; i < Number(params.get("bots")); i++) r.send("addBot");   // debug helpers for screenshots/tests
   if (params.has("autostart")) setTimeout(() => { r.send("ready", true); r.send("start"); }, 500);
 }).catch(() => { console.warn("no server: offline practice"); hud.offline(); });
