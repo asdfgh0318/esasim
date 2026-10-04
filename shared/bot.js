@@ -22,11 +22,11 @@ export class BotPilot {
     const zone = FIELD.flightZone;
     // Predictive boundary: where will I be in 1.5 s? Turn radius is about 13 m and stalls throw the plane around, so keep a wide margin from the safety line (z = 0).
     const fx = pos.x + plane.vel.x * 1.5, fz = pos.z + plane.vel.z * 1.5, fy = pos.y + plane.vel.y * 1.2;
-    const out = Math.abs(fx) > zone.w * 0.4 || fz < 34 || pos.z < 28 || fz > zone.d * 0.92 || pos.y > 20;
+    const out = Math.abs(fx) > zone.w * 0.4 || fz < 38 || pos.z < 31 || fz > zone.d * 0.92 || pos.y > 20;
     if (landing) _aim.set(0, 0, FIELD.flightZone.d * 0.55);                 // bots land mid-zone, far from the safety line; the +20 landing bonus (§4.7) is for humans
     else if (target && !out) _aim.copy(target.pos).addScaledVector(target.vel, clamp(best / speed, 0, 1.0));
     else _aim.copy(CENTER);
-    if (!landing) { _aim.y = clamp(_aim.y, 5, 16); if (_aim.z < 36 && !out) _aim.z = 36; }                                  // never aim near the safety line
+    if (!landing) { _aim.y = clamp(_aim.y, 5, 16); if (_aim.z < 40 && !out) _aim.z = 40; }                                  // never aim near the safety line
     const takeoff = pos.y < 7 && plane.airspeed < 13;                      // just thrown: level wings, gentle climb, full power
     const low = !landing && !takeoff && (pos.y < 3 || fy < 2.5);
     _inv.copy(plane.quat).invert();
@@ -48,7 +48,7 @@ export class BotPilot {
     }
     if (landing) {
       if (_fwd.y < -0.42) elev = Math.max(elev, 0);                          // descent no steeper than about 25 degrees
-      if (pos.z < 30) _aim.set(0, 12, 55);                                   // never land near the line
+      if (pos.z < 34) _aim.set(0, 12, 58);                                   // never land near the line
       if (pos.y < 2.2) { _up.set(0, 1, 0).applyQuaternion(_inv); rollErr = Math.atan2(_up.x, _up.y); elev = plane.vel.y < -1.2 ? 0.25 : 0.0; }   // flare, then let it settle
     }
     const k = 0.15 * (1 - this.skill);                                      // less skilled = noisier sticks

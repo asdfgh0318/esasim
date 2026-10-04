@@ -5,6 +5,7 @@ import { Plane } from "../shared/flight.js";
 import { Streamer } from "../shared/streamer.js";
 import { planeParams } from "../shared/planes/index.js";
 import { FIELD, pitX } from "../shared/rules.js";
+import { windAt } from "../shared/wind.js";
 import { RadioInput } from "./input/radio.js";
 import { mountRadioUI } from "./input/radioUI.js";
 import { StreamerView } from "./streamerView.js";
@@ -112,6 +113,7 @@ renderer.setAnimationLoop((t) => {
     sim.input.throttle = kbThrottle; sim.input.elevator = k("ArrowDown") - k("ArrowUp");
     sim.input.aileron = k("ArrowRight") - k("ArrowLeft"); sim.input.rudder = k("KeyD") - k("KeyA");
   }
+  sim.wind.set(...windAt(t / 1000, sim.pos.x, sim.pos.z));
   while (acc >= STEP) { sim.step(STEP); acc -= STEP; }
   const airborne = !sim.held && !sim.onGround && sim.pos.y > 0.2;
   if (!sim.held && !airborne && landedAt < 0) landedAt = t;                          // touchdown: fetch the model after a moment
@@ -135,7 +137,7 @@ renderer.setAnimationLoop((t) => {
   }
   if (room && t - sent > 50) {
     sent = t;
-    room.send("pose", { pos: sim.pos.toArray(), quat: sim.quat.toArray(), airborne, held: sim.held });
+    room.send("pose", { pos: sim.pos.toArray(), quat: sim.quat.toArray(), vel: sim.vel.toArray(), airborne, held: sim.held });
   }
   updateRadioUI();
   renderer.render(scene, camera);

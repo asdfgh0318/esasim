@@ -44,14 +44,15 @@ export function mountHud(actions, planes) {
   return {
     offline() { $("fh-t").textContent = "Offline practice"; $("fh-s").textContent = "No server: fly freely (Space = hand launch). Run npm run server for fights."; $("fh-lobby").style.display = "none"; $("fh-score").style.display = "none"; },
     update(snap, meId) {
-      const f = snap.fight, [title, sub] = TEXT[f.phase] || ["", ""];
-      $("fh-t").textContent = f.left > 0 ? `${title}  ${fmt(f.left)}` : title; $("fh-s").textContent = sub;
+      const f = snap.fight, sr = snap.series || { label: "", prior: {}, winner: null }, [title, sub] = TEXT[f.phase] || ["", ""];
+      $("fh-t").textContent = `${sr.label ? sr.label + " · " : ""}${f.left > 0 ? `${title}  ${fmt(f.left)}` : title}`;
+      $("fh-s").textContent = f.phase === "results" && sr.winner ? `Contest over. Winner: ${sr.winner.name} with ${sr.winner.total} points.` : sub;
       $("fh-lobby").style.display = f.phase === "lobby" || f.phase === "prep" ? "flex" : "none";
       $("b-bot").style.display = $("b-nobot").style.display = $("b-start").style.display = f.phase === "lobby" ? "" : "none";
       if (f.phase === "lobby" || f.phase === "results") { ready = false; $("b-ready").classList.remove("on"); }
-      const rows = [...f.pilots].sort((a, b) => b.score - a.score).map((p) =>
-        `<tr class="${p.id === meId ? "me" : ""}"><td>${p.bot ? "🤖 " : ""}${p.name.replace(/</g, "")}${p.disqualified ? " (DQ)" : p.airborne ? " ✈" : ""}</td><td>${p.flight}</td><td>${p.cuts}</td><td>${p.crossings ? "-" + 200 * p.crossings : "0"}</td><td><b>${p.score}</b></td></tr>`).join("");
-      $("fh-score").innerHTML = `<table><tr><th>Pilot</th><th>time</th><th>cuts</th><th>line</th><th>total</th></tr>${rows}</table>`;
+      const rows = [...f.pilots].sort((a, b) => ((sr.prior[b.id] || 0) + b.score) - ((sr.prior[a.id] || 0) + a.score)).map((p) =>
+        `<tr class="${p.id === meId ? "me" : ""}"><td>${p.bot ? "🤖 " : ""}${p.name.replace(/</g, "")}${p.disqualified ? " (DQ)" : p.airborne ? " ✈" : ""}</td><td>${p.flight}</td><td>${p.cuts}</td><td>${p.crossings ? "-" + 200 * p.crossings : "0"}</td><td>${p.score}</td><td><b>${(sr.prior[p.id] || 0) + p.score}</b></td></tr>`).join("");
+      $("fh-score").innerHTML = `<table><tr><th>Pilot</th><th>time</th><th>cuts</th><th>line</th><th>fight</th><th>sum</th></tr>${rows}</table>`;
     },
     toast(text, kind = "") {
       const t = document.createElement("div"); t.className = "toast " + kind; t.textContent = text; $("fh-toasts").append(t);

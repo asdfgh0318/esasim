@@ -12,7 +12,7 @@ class CombatRoom extends Room {
   maxClients = FIGHT.maxPilots;
 
   onCreate() {
-    this.arena = new Arena({ params: ESA_WWII, fight: { prep: env("ESASIM_PREP", FIGHT.prepSeconds), ready: env("ESASIM_READY", 10), flight: env("ESASIM_FLIGHT", FIGHT.flightSeconds) } });
+    this.arena = new Arena({ rounds: env("ESASIM_ROUNDS", 3), params: ESA_WWII, fight: { prep: env("ESASIM_PREP", FIGHT.prepSeconds), ready: env("ESASIM_READY", 10), flight: env("ESASIM_FLIGHT", FIGHT.flightSeconds) } });
     this.tick = 0; this.resultsAt = null;
     this.onMessage("pose", (c, m) => this.arena.setPose(c.sessionId, m));
     this.onMessage("ready", (c, v) => this.arena.fight.setReady(c.sessionId, v !== false));

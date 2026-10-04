@@ -9,6 +9,7 @@ import { findCut } from "./cut.js";
 import { BotPilot } from "./bot.js";
 import { FIELD, pitX } from "./rules.js";
 import { PLANES, PLANE_IDS } from "./planes/index.js";
+import { windAt } from "./wind.js";
 
 const SUB = 1 / 240;                     // flight sub-step
 const RESPAWN_DELAY = 4;                 // DESIGN: seconds from touchdown until the model is back in the pilot's hand (§4.6 restart, abstracted)
@@ -16,8 +17,10 @@ const fwdOf = (q) => new THREE.Vector3(0, 0, 1).applyQuaternion(q);
 const rightOf = (q) => new THREE.Vector3(1, 0, 0).applyQuaternion(q);
 
 export class Arena {
-  constructor({ params, fight = {} }) {
+  constructor({ params, fight = {}, rounds = 3 }) {
     this.params = params;
+    // Contest series (ESA §4.1): `rounds` fights, then a final; points of all fights add up (§4.1), ties by the final, then the best single fight (§4.16).
+    this.rounds = rounds; this.fightNo = 0; this.done = []; this.recorded = false;
     this.fightCfg = fight;
     this.fight = new Fight(fight);
     this.slots = new Map();
@@ -53,7 +56,7 @@ export class Arena {
     const s = this.slots.get(id); if (!s || s.bot) return;
     const q = new THREE.Quaternion().fromArray(m.quat);
     s.cur = { pos: m.pos, fwd: fwdOf(q).toArray(), right: rightOf(q).toArray() };
-    s.airborne = !!m.airborne;
+    s.airborne = !!m.airborne; s.vel = m.vel || [0, 0, 0];
     if (m.held && !s.wasHeld) s.streamer.reset(null);
     s.wasHeld = !!m.held;
   }
@@ -71,13 +74,14 @@ export class Arena {
     const fl = this.fight, phase = fl.phase;
     const enemiesOf = (me) => [...this.slots.values()].filter((o) => o !== me && o.airborne && (o.bot ? o.plane : o.cur)).map((o) => ({
       pos: o.bot ? o.plane.pos : new THREE.Vector3(...o.cur.pos),
-      vel: o.bot ? o.plane.vel : new THREE.Vector3(),            // human velocity is not reported: lead aim uses position only
+      vel: o.bot ? o.plane.vel : new THREE.Vector3(...(o.vel || [0, 0, 0])),   // humans report their velocity for lead aim
     }));
     for (const s of this.slots.values()) {
       if (!s.bot) continue;
       const pl = s.plane;
       if (pl.held && phase === "flight" && fl.flightT >= s.launchAt && fl.cfg.flight - fl.flightT > 15) { pl.input.throttle = 1; pl.launch(); }
       if (!pl.held) {
+        pl.wind.set(...windAt(this.t, pl.pos.x, pl.pos.z));
         s.ai.control(pl, enemiesOf(s), dt, phase === "ended");
         for (let t = 0; t < dt - 1e-9; t += SUB) pl.step(Math.min(SUB, dt - t));
         const air = !pl.onGround && pl.pos.y > 0.2;
@@ -107,11 +111,36 @@ export class Arena {
     }
     for (const s of this.slots.values()) s.prev = s.cur;
     this.events.push(...fl.step(dt, reports));
+    if (fl.phase === "results" && !this.recorded) this._record();
     return this.events;
+  }
+
+  _record() {
+    this.recorded = true;
+    const scores = {}, names = {};
+    for (const p of this.fight.pilots.values()) { scores[p.id] = this.fight.score(p); names[p.id] = p.name; }
+    this.done[this.fightNo] = { scores, names };
+  }
+  get isFinal() { return this.fightNo >= this.rounds; }
+  label() { return this.isFinal ? "Final" : `Round ${this.fightNo + 1}/${this.rounds}`; }
+  prior() {                                                   // points from the earlier fights of this contest
+    const t = {};
+    for (let i = 0; i < this.fightNo; i++) for (const [id, pts] of Object.entries(this.done[i]?.scores || {})) t[id] = (t[id] || 0) + pts;
+    return t;
+  }
+  winner() {                                                  // only after the final
+    if (!this.isFinal || !this.recorded) return null;
+    const total = this.prior(), fin = this.done[this.fightNo].scores;
+    for (const [id, pts] of Object.entries(fin)) total[id] = (total[id] || 0) + pts;
+    const best = (id) => Math.max(...this.done.map((d) => d?.scores[id] ?? -Infinity));
+    const ids = Object.keys(total).sort((a, b) => total[b] - total[a] || (fin[b] ?? -Infinity) - (fin[a] ?? -Infinity) || best(b) - best(a));
+    return ids.length ? { id: ids[0], name: this.done[this.fightNo].names[ids[0]], total: total[ids[0]] } : null;
   }
 
   // New fight with the same pilots (after the results): bots ready, humans must press ready again.
   restart() {
+    if (this.isFinal && this.recorded) { this.fightNo = 0; this.done = []; } else if (this.recorded) this.fightNo++;   // after the final: a new contest
+    this.recorded = false;
     this.fight = new Fight(this.fightCfg);
     for (const s of this.slots.values()) {
       const p = this.fight.addPilot(s.id, { name: s.name || s.id, bot: s.bot, pit: s.pit });
@@ -122,6 +151,7 @@ export class Arena {
   snapshot() {
     return {
       fight: this.fight.snapshot(),
+      series: { label: this.label(), fightNo: this.fightNo, rounds: this.rounds, prior: this.prior(), winner: this.winner() },
       planes: [...this.slots.values()].filter((s) => s.cur).map((s) => ({
         id: s.id, pit: s.pit, airborne: s.airborne, bot: s.bot, plane: s.type || "spitfire",
         pos: s.cur.pos.map((v) => +v.toFixed(2)), fwd: s.cur.fwd.map((v) => +v.toFixed(3)), right: s.cur.right.map((v) => +v.toFixed(3)),
