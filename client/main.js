@@ -49,7 +49,7 @@ let phase = "lobby", snapNames = new Map(), online = false;
 const myMesh = createPlane(planeType, COLORS[me.pit], { spanMm: build.spanMm }); scene.add(myMesh);
 const orient = createOrientationWidget(planeType, COLORS[me.pit]);
 const others = new Map(), views = new Map();   // id -> { mesh, pos, quat } / StreamerView
-const localStreamer = new Streamer({ seed: 9 }); // offline only
+const localStreamer = new Streamer({ seed: 9 }); // my own streamer, drawn locally (the server only trims it when someone cuts it)
 const rig = new CameraRig(camera);
 const radio = new RadioInput(), updateRadioUI = mountRadioUI(radio);
 const keys = new Set();
@@ -156,14 +156,39 @@ function onSnap(snap, fromReplay = false) {
   snapNames = new Map(snap.fight.pilots.map((p) => [p.id, p.name]));
   hud.update(snap, me.id);
   if (!replay) hud.replayBar(phase === "results" && rec.length > 0, false);
+  const mine = snap.planes.find((p) => p.id === me.id);
+  if (mine && mine.vtxMw) { myVtx = { mw: mine.vtxMw, ch: mine.vtxCh }; hud.setVtx(myVtx.mw, myVtx.ch); }
+  if (fromReplay) { applyPlanes(snap.planes, true); return; }
+  if (mine) {                                                                          // own streamer is drawn locally (no network lag); the server only tells me when it was cut
+    let len = 0; for (let i = 3; i + 2 < mine.streamer.length; i += 3) len += Math.hypot(mine.streamer[i] - mine.streamer[i - 3], mine.streamer[i + 1] - mine.streamer[i - 2], mine.streamer[i + 2] - mine.streamer[i - 1]);
+    if (mine.streamer.length >= 6 && len < localStreamer.length - 0.4) localStreamer.cut(len);
+  }
+  snapBuf.push({ t: performance.now(), planes: snap.planes }); if (snapBuf.length > 12) snapBuf.shift();
+}
+// Remote planes and their streamers are shown INTERP_MS in the past, interpolated between the two snapshots around that moment, so mesh and
+// ribbon move smoothly and stay together (the server sends about 15 snapshots a second).
+const INTERP_MS = 100, snapBuf = [];
+function interpolated(now) {
+  const target = now - INTERP_MS;
+  if (!snapBuf.length) return null;
+  let i = snapBuf.length - 1; while (i > 0 && snapBuf[i - 1].t > target) i--;
+  const b = snapBuf[i], a = snapBuf[Math.max(0, i - 1)];
+  if (a === b || target >= b.t) return b.planes;
+  if (target <= a.t) return a.planes;
+  const f = (target - a.t) / (b.t - a.t), lerp3 = (x, y) => x.map((v, k) => v + (y[k] - v) * f);
+  return b.planes.map((pb) => {
+    const pa = a.planes.find((q) => q.id === pb.id); if (!pa) return pb;
+    return { ...pb, pos: lerp3(pa.pos, pb.pos), fwd: lerp3(pa.fwd, pb.fwd), right: lerp3(pa.right, pb.right), streamer: pa.streamer.length === pb.streamer.length ? lerp3(pa.streamer, pb.streamer) : pb.streamer };
+  });
+}
+function applyPlanes(planes, fromReplay = false) {
   const seen = new Set();
-  for (const p of snap.planes) {
+  for (const p of planes) {
     seen.add(p.id);
+    if (p.id === me.id && !fromReplay) { if (others.has(me.id)) { scene.remove(others.get(me.id).mesh); others.delete(me.id); } continue; }
     let v = views.get(p.id);
     if (!v) { v = new StreamerView(scene, COLORS[p.pit % 7]); views.set(p.id, v); }
     v.update(p.streamer);
-    if (p.id === me.id && p.vtxMw) { myVtx = { mw: p.vtxMw, ch: p.vtxCh }; hud.setVtx(myVtx.mw, myVtx.ch); }
-    if (p.id === me.id && !fromReplay) { if (others.has(me.id)) { scene.remove(others.get(me.id).mesh); others.delete(me.id); } continue; }
     let o = others.get(p.id);
     if (!o) { o = { mesh: createPlane(p.plane, COLORS[p.pit % 7], { spanMm: p.spanMm }), pos: new THREE.Vector3(...p.pos), quat: new THREE.Quaternion(), air: false, vtx: { mw: 25, ch: 0 } }; o.mesh.position.copy(o.pos); scene.add(o.mesh); others.set(p.id, o); }
     o.pos.set(...p.pos); o.air = p.airborne; o.vtx = { mw: p.vtxMw || 25, ch: p.vtxCh ?? 0 };
@@ -171,7 +196,7 @@ function onSnap(snap, fromReplay = false) {
     o.quat.setFromRotationMatrix(new THREE.Matrix4().makeBasis(x, y, z));
   }
   for (const [id, o] of others) if (!seen.has(id)) { scene.remove(o.mesh); others.delete(id); }
-  for (const [id, v] of views) if (!seen.has(id)) { v.dispose(); views.delete(id); }
+  for (const [id, v] of views) if (!seen.has(id) && id !== "local") { v.dispose(); views.delete(id); }
 }
 // Stable pilot id per browser tab (sessionStorage: survives a reload, two tabs stay two pilots) and an optional private room code (?room=ABCD).
 const pid = (() => { try { let v = sessionStorage.getItem("esasim-pid"); if (!v) { v = Math.random().toString(36).slice(2, 12); sessionStorage.setItem("esasim-pid", v); } return v; } catch { return Math.random().toString(36).slice(2, 12); } })();
@@ -227,13 +252,18 @@ renderer.setAnimationLoop((t) => {
   if (landedAt >= 0 && t - landedAt > 4000) home();
   myMesh.position.copy(sim.pos); myMesh.quaternion.copy(sim.quat);
   spinProp(myMesh, sim.held ? 0 : 60 + sim.input.throttle * 500, frame);
-  for (const o of others.values()) { o.mesh.position.lerp(o.pos, 1 - Math.exp(-14 * frame)); o.mesh.quaternion.slerp(o.quat, 1 - Math.exp(-14 * frame)); spinProp(o.mesh, o.air ? 420 : 0, frame); }
-  if (!online) {                                                                     // offline: draw my own streamer locally
+  if (!replay && online) { const pl = interpolated(performance.now()); if (pl) applyPlanes(pl); }
+  for (const o of others.values()) {
+    if (replay) { o.mesh.position.lerp(o.pos, 1 - Math.exp(-14 * frame)); o.mesh.quaternion.slerp(o.quat, 1 - Math.exp(-14 * frame)); }   // replay snapshots are sparse: smooth them
+    else { o.mesh.position.copy(o.pos); o.mesh.quaternion.copy(o.quat); }
+    spinProp(o.mesh, o.air ? 420 : 0, frame);
+  }
+  if (!replay) {                                                                     // my own streamer is always drawn locally
     const f = new THREE.Vector3(0, 0, 1).applyQuaternion(sim.quat);
     localStreamer.push([sim.pos.x + f.x * simParams.tailZ, sim.pos.y + f.y * simParams.tailZ, sim.pos.z + f.z * simParams.tailZ]);
     let v = views.get("local"); if (!v) { v = new StreamerView(scene, COLORS[me.pit]); views.set("local", v); }
     v.update(localStreamer.points(t / 1000).flat());
-  }
+  } else if (views.get("local")) views.get("local").mesh.visible = false;
   if (params.has("top")) { camera.position.set(0, 90, 15); camera.lookAt(0, 0, 15); camera.fov = 55; camera.updateProjectionMatrix(); } else {
     let focus = sim.pos;
     if ((sim.held || replay) && others.size) {                                           // own model still in the hand: watch the airborne plane nearest to the middle of the action
