@@ -20,7 +20,7 @@
 - **Pursuit bots**, so you can test alone. Add up to six. Gusty air is shared by all planes.
 - **Hand launch** like real WWII ESA, from your start box. **Pilot camera** standing at your start box and following the plane (default), or **analog-style FPV** (V): scanlines, snow and tearing grow with distance from you, ending in signal lost.
 - **Textured sky** (procedural clouds and sun) and a **beginner orientation widget** in the top-right corner: your plane as you see it from the start box, with a yellow nose arrow, an orange sphere (left) and a blue cube (right) on the wing tips and a plain-language label ("Nose toward you · banked left").
-- **Analog FPV and video interference**: every plane carries a video transmitter (power 25 mW to 5 W, channel R1-R8). Range grows with power. Another pilot's transmitter near your start box, especially a 5 W one that forgot race mode, swamps your feed and you see *their* camera rolling through yours. Switch power and channel live (model in your hand). This is a sim effect, ESA has no VTX rules.
+- **Analog FPV and video interference**: every plane carries a video transmitter (power 25, 50 or 100 mW, the maximum in this game, channel R1-R8). Range grows with power. Another pilot's transmitter near your start box, especially a 100 mW one next to your 25 mW, swamps your feed and you see *their* camera rolling through yours. Switch power and channel live (model in your hand). This is a sim effect, ESA has no VTX rules.
 - **Replay**: after a fight, watch it back (scoreboard and events included) or save it as JSON, useful as evidence for protests (§4.19).
 - **RadioMaster support** (any USB joystick-mode radio) with mapping and calibration (key R), ported from the author's earlier drone sim. Keyboard works too.
 - The flight model, streamer, cut detection, scoring, series, workshop and bots are headless and covered by tests (`npm test`).
@@ -37,7 +37,7 @@
 ![Pilot view with the textured sky and the orientation widget](docs/img/pilot-view.png)
 ![Analog FPV close to the pilot](docs/img/fpv-near.png)
 ![Analog FPV far out: signal lost](docs/img/fpv-far.png)
-![FPV interference from another pilot's 5 W transmitter](docs/img/interference.png)
+![FPV interference from another pilot's stronger transmitter](docs/img/interference.png)
 
 The contest site is built from ESA §2: red = safety line, white = pilot line (3 m behind), green = readiness line, yellow = audience zone (behind the pilots), a slightly lighter mown patch with white tape = 50 x 20 m landing field, grey = 7 start boxes. Around it: a tree line, wheat fields, a powerline, wind turbines, banners, tents and flags (all VISUAL, generic names, no real brands), after photos of real ESA/ACES pitches (plain mown grass and tape lines). The rules do not give a flight-zone size, so that one is a design choice.
 

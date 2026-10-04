@@ -1,8 +1,10 @@
 // Analog video link model (ESASIM-specific, DESIGN: ESA has no rules on video transmitters).
 // Each plane carries a VTX with a power and a channel. At a pilot's receiver (at his start box) the wanted signal is
-// P_own / d_own^2; every other airborne VTX leaks in as overlap(channel) * P / d^2. A blaster (5 W) flying close to
-// your box swamps your own signal even on another channel, and you see its picture through yours.
-export const VTX_POWERS = [25, 200, 600, 1500, 5000];          // mW; 25 mW is race mode
+// P_own / d_own^2; every other airborne VTX leaks in as overlap(channel) * P / d^2. A stronger neighbour (100 mW against your 25 mW)
+// flying close to your box swamps your own signal, and you see its picture through yours.
+// Air combat rule of the game (Adam, 2026-10-04): everybody has 100 mW at most.
+export const VTX_MAX_MW = 100;
+export const VTX_POWERS = [25, 50, 100];          // mW; 25 mW is race mode
 export const CHANNELS = ["R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8"];
 export const overlap = (a, b) => { const d = Math.abs(a - b); return d === 0 ? 1 : d === 1 ? 0.2 : 0.03; };   // adjacent channels leak, far ones barely
 
@@ -22,5 +24,5 @@ export function interference(me, dMe, others) {
   return { level: total / (total + own), source: best && best.i > 0.05 * (total + own) ? best.id : null };
 }
 
-// Random power for bots: mostly race mode, some forgot to turn it down (the 5 W blasters).
-export function randomPower(rnd = Math.random()) { return rnd < 0.45 ? 25 : rnd < 0.75 ? 200 : rnd < 0.87 ? 600 : 5000; }
+// Random power for bots: mostly race mode, some at 50 or 100 mW (the game's maximum).
+export function randomPower(rnd = Math.random()) { return rnd < 0.45 ? 25 : rnd < 0.75 ? 50 : 100; }
