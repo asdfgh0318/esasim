@@ -11,6 +11,10 @@ export const ESA_WWII = {
   staticThrust: 6,       // N   DESIGN (about 1.5 thrust/weight, 15 Wh battery §3.4)
   cl0: 0.25, clAlpha: 4.0, alphaStall: 0.26,   // DESIGN: foam, thin flat-ish section
   cd0: 0.05, oswald: 0.75,                      // DESIGN: foam fuselage and exposed parts
+  // Body geometry along +z from the centre of gravity, metres. DESIGN (foam fighter, about 0.65 m long).
+  noseZ: 0.22,           // prop disc position
+  wingLeZ: 0.06,         // wing leading edge (ESA §3.1 allows sandpaper cutters on it)
+  tailZ: -0.36,          // streamer attachment
   authority: { pitch: 30, roll: 60, yaw: 16 },
   stability: { pitch: 30, yaw: 25, dihedral: 8 },
   damping: { pitch: 9, roll: 14, yaw: 6 },
