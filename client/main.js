@@ -100,7 +100,7 @@ const canLaunch = () => sim.held && !meDq && (!online || phase === "lobby" || ph
 addEventListener("keydown", (e) => {
   keys.add(e.code);
   if (e.code === "Space" || e.code.startsWith("Arrow")) e.preventDefault();       // a focused button must not swallow Space
-  if (e.code === "Space") { if (canLaunch()) { if (!radio.connected) kbThrottle = 1; sim.launch(); hud.toast(radio.connected ? t("launched") : t("launchedFull")); } else if (sim.held) hud.toast(t("notNow")); }
+  if (e.code === "Space") { if (canLaunch()) { if (!radio.connected) kbThrottle = 1; sim.launch(); hud.toast(radio.connected ? t("launched") : t("launchedFull")); if (planeType === "kato") hud.toast(t("katoHint")); } else if (sim.held) hud.toast(t("notNow")); }
 });
 addEventListener("keyup", (e) => keys.delete(e.code));
 addEventListener("blur", () => keys.clear());                               // no stuck keys after switching windows

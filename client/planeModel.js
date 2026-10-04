@@ -4,9 +4,9 @@ import { mergeVertices } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { ESA_WWII } from "../shared/planes/esa-wwii.js";
 
 // Plane models: STL parts exported from models/scad/esa_plane.scad (OpenSCAD, units mm, nose +Z, y up, origin near the CG).
-export const PLANE_TYPES = ["spitfire", "hurricane", "fw190", "yak3"];
-export const PLANE_NAMES = { spitfire: "Spitfire", hurricane: "Hurricane", fw190: "FW 190", yak3: "Yak-3" };
-const CAMO = { spitfire: 0x86a057, hurricane: 0x7d9356, fw190: 0xa3b1c0, yak3: 0x93a866 };   // VISUAL only
+export const PLANE_TYPES = ["spitfire", "hurricane", "fw190", "yak3", "kato"];
+export const PLANE_NAMES = { spitfire: "Spitfire", hurricane: "Hurricane", fw190: "FW 190", yak3: "Yak-3", kato: "Electric Kato (flying wing)" };
+const CAMO = { spitfire: 0x86a057, hurricane: 0x7d9356, fw190: 0xa3b1c0, yak3: 0x93a866, kato: 0xe9e4d2 };   // VISUAL only
 const loader = new STLLoader(), cache = new Map();
 
 function load(type, part, smooth) {
@@ -41,9 +41,10 @@ export function createPlane(type = "spitfire", tint = 0xd23b3b, opts = {}) {
   const parts = [["fuselage", camo, true], ["wing", stripedWing(CAMO[type] || 0x667755, tintMat.color), false], ["tail", tintMat, false], ["canopy", new THREE.MeshLambertMaterial({ color: 0xa8d8ff, transparent: true, opacity: 0.75 }), true],
     ["spinner", tintMat, true], ["prop", new THREE.MeshLambertMaterial({ color: 0x222222, side: THREE.DoubleSide }), false]];
   Promise.all(parts.map(([p, m, s]) => load(type, p, s).then((geo) => {
-    const mesh = new THREE.Mesh(geo, m); mesh.scale.setScalar(0.001);
-    if (p === "wing" && opts.spanMm) mesh.scale.x = 0.001 * opts.spanMm / 800;           // workshop span
-    if (p === "prop") { mesh.position.z = ESA_WWII.noseZ; g.userData.prop = mesh; }
+    const mesh = new THREE.Mesh(geo, m), k = type === "kato" ? (opts.spanMm || 800) / 1210 : 1;   // the Kato model is drawn at its native 1210 mm and scaled as a whole
+    mesh.scale.setScalar(0.001 * k);
+    if (p === "wing" && opts.spanMm && type !== "kato") mesh.scale.x = 0.001 * opts.spanMm / 800;           // workshop span
+    if (p === "prop") { mesh.position.z = type === "kato" ? -0.094 * k : ESA_WWII.noseZ; g.userData.prop = mesh; }   // the Kato's prop pushes from behind the pod
     g.add(mesh);
   }))).then(() => g.remove(stub)).catch((e) => console.warn("plane model failed", type, e));
   return g;

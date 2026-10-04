@@ -1,7 +1,8 @@
 // Run: node test/picasim.test.js. Behaviour of the PicaSim-derived physics with the ESA plane definitions.
 import * as THREE from "three";
 import { PicaPlane } from "../shared/picasim/plane.js";
-import { buildEsaDef } from "../shared/picasim/esaDef.js";
+import { buildEsaDef, defMassKg, defSpanMm } from "../shared/picasim/esaDef.js";
+import { buildKatoDef } from "../shared/picasim/katoDef.js";
 import { AerofoilDefinition } from "../shared/picasim/aerofoil.js";
 
 let fail = 0;
@@ -58,6 +59,20 @@ check("mass and CG", base.aero.mass > 0.36 && base.aero.mass < 0.43 && Math.abs(
   check("roll rate with full aileron", peak > 150 && peak < 600, `${peak.toFixed(0)} deg/s`);
   const q = fly(mk(), 400, 14, 0.5); run(q, 0.5); let pk = 0; q.input.elevator = 1; run(q, 0.8, (p) => { pk = Math.max(pk, Math.abs(deg(p.omega.x))); });
   check("pitch rate with full elevator", pk > 70 && pk < 400, `${pk.toFixed(0)} deg/s`); }
+
+// PicaSim Electric Kato (flying wing, issue #21)
+{ const nat = buildKatoDef({ spanMm: 1210 });
+  check("Kato at native size has PicaSim's numbers: 1.21 m span, about 423 g", Math.abs(defSpanMm(nat) - 1210) < 15 && Math.abs(defMassKg(nat) * 1000 - 423) < 3, `${defSpanMm(nat).toFixed(0)} mm, ${(defMassKg(nat) * 1000).toFixed(0)} g`);
+  const mkK = (b = {}) => new PicaPlane({ def: buildKatoDef({ spanMm: 800, ...b }), batteryWh: 15, span: 0.8, id: "kato" });
+  check("Kato at the default 800 mm: real battery and electronics keep their mass (ESA-legal 200-450 g)", defMassKg(buildKatoDef({ spanMm: 800 })) * 1000 > 200 && defMassKg(buildKatoDef({ spanMm: 800 })) * 1000 < 450, `${(defMassKg(buildKatoDef({ spanMm: 800 })) * 1000).toFixed(0)} g`);
+  // hands off: a symmetric flying wing trims at zero lift and dives (as in PicaSim, where the pilot holds up-elevator)
+  { const pl = fly(mkK(), 300, 11, 0); run(pl, 8); check("Kato hands-off dives (zero-lift trim): it needs the sticks", pitchDeg(pl) < -45 && Number.isFinite(pl.pos.y), `pitch ${pitchDeg(pl).toFixed(0)} deg after 8 s`); }
+  // with stick input (a simple altitude controller) it launches, climbs and cruises
+  { const pl = mkK(); pl.pos.set(0, 1.4, -3); pl.held = true; pl.input.throttle = 1; pl.launch(10, 0.15); const upB = new THREE.Vector3(), inv = new THREE.Quaternion(); let minY = 99;
+    run(pl, 14, (p, t) => { inv.copy(p.quat).invert(); upB.set(0, 1, 0).applyQuaternion(inv); p.input.elevator = Math.max(-0.6, Math.min(0.8, 0.25 - p.vel.y * 0.08 + (12 - p.pos.y) * 0.04)); p.input.aileron = Math.max(-1, Math.min(1, -Math.atan2(upB.x, upB.y) * 1.5)); p.input.throttle = t < 3 ? 1 : 0.6; if (t > 2) minY = Math.min(minY, p.pos.y); });
+    check("Kato flown with stick input: hand launch, climb and cruise", minY > 4 && pl.pos.y > 8 && pl.vel.length() > 10 && pl.vel.length() < 40, `min height after 2 s ${minY.toFixed(1)} m, y ${pl.pos.y.toFixed(0)} m at 14 s, ${pl.vel.length().toFixed(0)} m/s`); }
+  { const pl = fly(mkK(), 200, 0, 1); run(pl, 1.5, (p) => { p.aero.comVel.set(0, 0, 0); p.aero.omegaB.set(0, 0, 0); p.aero.com.set(0, 0, 200); }); const tw = pl.aero.engines[0].thrust / (pl.aero.mass * 9.81);
+    check("Kato static thrust-to-weight is about 0.6 or more", tw > 0.5 && tw < 2, tw.toFixed(2)); } }
 
 // servo throws (issue #20): a bigger throw gives a faster response, a smaller one a slower response
 { const rate = (key, v, ax) => { const q = fly(mk({ [key]: v }), 400, 14, 0.5); run(q, 0.5); q.input[key === "aileronDeg" ? "aileron" : "elevator"] = 1; let pk = 0; run(q, 0.7, (p) => { pk = Math.max(pk, Math.abs(deg(p.omega[ax]))); }); return pk; };

@@ -8,7 +8,7 @@ import { Streamer } from "./streamer.js";
 import { findCut } from "./cut.js";
 import { BotPilot } from "./bot.js";
 import { FIELD, pitX } from "./rules.js";
-import { PLANES, PLANE_IDS } from "./planes/index.js";
+import { PLANES, BOT_PLANE_IDS as PLANE_IDS } from "./planes/index.js";
 import { windAt } from "./wind.js";
 import { toParams, validate } from "./workshop.js";
 import { randomPower, VTX_POWERS } from "./vtx.js";

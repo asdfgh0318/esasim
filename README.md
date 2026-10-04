@@ -16,7 +16,7 @@
 - **Streamers and cuts**: the 10 m streamer follows the tail's trace with turbulence wobble. A cut happens when the prop disc or the wing leading edge sweeps through an enemy streamer (swept tests, so fast passes don't tunnel).
 - **ESA scoring** (§6, WWII): +1 per 3 s of flight (100 for the full time), +100 per cut (one attack = one cut), +50 for keeping your streamer, +20 for landing in the 50 x 20 m field after the end signal, −200 for crossing the safety line (second crossing: disqualified), −50 for avoiding combat.
 - **Workshop**: tune your plane (type, span, battery, prop, ballast) inside the ESA limits (span 700-860 mm, 200-450 g, 15 Wh). The battery drains with throttle, so a bigger one is heavier but lasts. An illegal plane still flies but scores 0 for the round (§6).
-- **Four modelled planes** (Spitfire, Hurricane, FW 190, Yak-3), built in OpenSCAD to ESA kit proportions.
+- **Four modelled planes** (Spitfire, Hurricane, FW 190, Yak-3), built in OpenSCAD to ESA kit proportions, plus the **Electric Kato** flying wing from PicaSim (its aerodynamic numbers; our own model). The Kato has no stabiliser and dives hands-off, so it is flown with the sticks (hold S after the throw); it is ESA-legal at the default 800 mm (about 285 g) but it is not a WWII warbird, and bots never fly it.
 - **Pursuit bots**, so you can test alone. Add up to six. Gusty air is shared by all planes.
 - **Hand launch** like real WWII ESA, from your start box. **Pilot camera** standing at your start box and following the plane (default), or **analog-style FPV** (V): scanlines, snow and tearing grow with distance from you, ending in signal lost.
 - **Textured sky** (procedural clouds and sun) and a **beginner orientation widget** in the top-right corner: your plane as you see it from the start box, with a yellow nose arrow, an orange sphere (left) and a blue cube (right) on the wing tips and a plain-language label ("Nose toward you · banked left").
@@ -31,7 +31,7 @@
 ![The same screen in Polish](docs/img/results-pl.png)
 ![Replay of the last fight](docs/img/replay.png)
 ![Radio panel with RadioMaster and gamepad presets](docs/img/radio-panel.png)
-![The four OpenSCAD planes](docs/img/models.png)
+![The OpenSCAD planes: four ESA warbirds and the Kato flying wing](docs/img/models.png)
 ![Waiting room: bots in their start boxes](docs/img/lobby.png)
 ![A running fight seen from the start box](docs/img/fight.png)
 ![Pilot view with the textured sky and the orientation widget](docs/img/pilot-view.png)

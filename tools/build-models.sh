@@ -9,3 +9,9 @@ for plane in spitfire hurricane fw190 yak3; do
   done
   echo "$plane done"
 done
+# the PicaSim-inspired flying wing (original model, native 1210 mm size)
+mkdir -p public/models/kato
+for part in fuselage wing tail canopy spinner prop; do
+  openscad -q -D "part=\"$part\"" -o "public/models/kato/$part.stl" models/scad/kato.scad
+done
+echo "kato done"

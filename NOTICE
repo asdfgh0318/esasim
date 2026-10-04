@@ -12,6 +12,8 @@ the JavaScript port, the rigid-body integration, the ESA plane definitions and e
 
 The ESA and ACES rule documents in papers/ belong to their authors (ACES Polska, aircombat.eu) and are included for reference only.
 
+The Electric Kato flying wing (shared/picasim/katoDef.js) uses the aerodynamic parameters from PicaSim's data files (Aeroplane.xml, Kato-foil-root.xml,
+Kato-foil-tip.xml); the plane itself is the design of Kevin Bagwell (RCGroups thread 1988349). Its 3D mesh (models/scad/kato.scad) is our own original work.
 PicaSim's images, models and textures are NOT used: its README says they need permission from the authors for use in other projects.
 
 Textures (Poly Haven, CC0 / public domain, https://polyhaven.com/license):

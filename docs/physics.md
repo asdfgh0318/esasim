@@ -42,3 +42,11 @@ Adam asked for default planes that fly like a foamy indoor aerobatic plane, 20 %
 - **Hand launch:** throw speed 10 m/s (was 9) so the heavier plane does not sag into the ground.
 - Not done: a real "foamy" airframe (much lower wing loading, very large control surfaces, 3D-style post-stall); the ESA 200 g minimum rules out an actual indoor foamy of 30-60 g, so the character comes from large authority and a high thrust-to-weight, not from the real mass.
 
+## Electric Kato (PicaSim flying wing, 2026-10-04, issue #21)
+
+`shared/picasim/katoDef.js` transcribes PicaSim's `ElectricKato` (Aeroplane.xml and the two aerofoil files; design by Kevin Bagwell): two swept panels per side with elevons (aileron on channel 0, elevator mix on channel 1), tip fins, a pusher prop, native span 1.21 m and 423 g (checked in `test/picasim.test.js`). ESASIM adds, all marked in the file:
+- the plane scales with the workshop span (PicaSim `sizeScale = span / 1210`); the battery, electronics and ballast are given in real grams so they do not shrink with the airframe (default 800 mm build: 265 g plus ballast, legal under ESA 200-450 g and the 650-900 mm slider range);
+- elevator mix 0.5 instead of PicaSim's 0.25 (pitch rate about 165 deg/s instead of about 65), motor torque x2 (thrust-to-weight about 0.55 instead of PicaSim's 0.5 at native size), and an absolute 6 in prop at any plane size (a scaled-down PicaSim prop leaves almost no thrust);
+- the elevator and aileron throw sliders scale the elevon mixing around PicaSim's defaults.
+**Flight character:** the sections are symmetric (CL0 = 0, CM0 = 0), so hands-off the Kato trims at zero lift and dives (as PicaSim's does, where the pilot holds up-elevator). Sweeps showed a baked-in up-trim improves the glide (6.5:1 at 0.15 native) but pitches the nose down after a throw, and moving the ballast forward did not change the dive, so no trim is added. With stick input it hand-launches, climbs and cruises at roughly 20-25 m/s at 60 % throttle (test with a simple altitude controller). Bots are tuned for conventional planes and never fly it (`BOT_PLANE_IDS`). The mesh is original (`models/scad/kato.scad`, `tools/build-models.sh`).
+

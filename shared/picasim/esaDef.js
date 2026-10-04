@@ -92,7 +92,7 @@ export function defSpanMm(def) {
     const base = w.copy ? def.wings.find((x) => x.name === w.copy) : w;
     if (!base || !base.extents || base.name === "FuselageVertical" || Math.abs(base.roll || 0) > 60) continue;
     const s = def.settings?.sizeScale ?? 1, r = (base.roll || 0) * Math.PI / 180;
-    y = Math.max(y, (Math.abs(base.position[1] + base.extents[1] * Math.cos(r))) * s);
+    y = Math.max(y, (Math.abs(base.position[1] + base.extents[1] * Math.cos(r) * Math.cos((base.yaw || 0) * Math.PI / 180))) * s);   // a swept panel (yaw) projects shorter
   }
   return 2 * y * 1000;
 }
