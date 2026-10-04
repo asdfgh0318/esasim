@@ -8,6 +8,7 @@ import { Streamer } from "./streamer.js";
 import { findCut } from "./cut.js";
 import { BotPilot } from "./bot.js";
 import { FIELD, pitX } from "./rules.js";
+import { PLANES, PLANE_IDS } from "./planes/index.js";
 
 const SUB = 1 / 240;                     // flight sub-step
 const RESPAWN_DELAY = 4;                 // DESIGN: seconds from touchdown until the model is back in the pilot's hand (§4.6 restart, abstracted)
@@ -21,19 +22,22 @@ export class Arena {
     this.fight = new Fight(fight);
     this.slots = new Map();
     this.t = 0;
-    this.geom = { noseZ: params.noseZ, wingLeZ: params.wingLeZ, span: params.span, propRadius: params.propDiaIn * 0.0254 / 2 };
     this.events = [];
   }
 
-  _slot(id, name, bot) {
+  _geom(pr) { return { noseZ: pr.noseZ, wingLeZ: pr.wingLeZ, span: pr.span, propRadius: pr.propDiaIn * 0.0254 / 2 }; }
+
+  _slot(id, name, bot, type) {
     const p = this.fight.addPilot(id, { name, bot });
     if (!p) return null;
-    const s = { id, name, bot, pit: p.pit, streamer: new Streamer({ seed: p.pit + 1 }), prev: null, cur: null, airborne: false, downT: -1, launchAt: 0, tail: [0, 0, 0] };
-    if (bot) { s.plane = new Plane(this.params); s.ai = new BotPilot({ skill: 0.7, seed: p.pit + 3 }); this._home(s); }
+    type = PLANES[type] ? type : null;                                  // no valid type: the arena's default params
+    const params = type ? PLANES[type] : this.params;
+    const s = { id, name, bot, type, params, geom: this._geom(params), pit: p.pit, streamer: new Streamer({ seed: p.pit + 1 }), prev: null, cur: null, airborne: false, downT: -1, launchAt: 0, tail: [0, 0, 0] };
+    if (bot) { s.plane = new Plane(params); s.ai = new BotPilot({ skill: 0.7, seed: p.pit + 3 }); this._home(s); }
     this.slots.set(id, s); return s;
   }
-  addHuman(id, name) { return this._slot(id, name, false); }
-  addBot(name) { return this._slot("bot-" + (this.slots.size + 1) + "-" + Math.floor(Math.random() * 1e4), name || "Bot", true); }
+  addHuman(id, name, type) { return this._slot(id, name, false, type); }
+  addBot(name, type) { return this._slot("bot-" + (this.slots.size + 1) + "-" + Math.floor(Math.random() * 1e4), name || "Bot", true, type || PLANE_IDS[this.slots.size % PLANE_IDS.length]); }
   remove(id) { this.fight.removePilot(id); this.slots.delete(id); }
 
   _home(s) {                                                   // plane back in the pilot's hand at the pit, new streamer (§4.4)
@@ -57,7 +61,8 @@ export class Arena {
   _tail(s) {
     const pos = s.bot ? s.plane.pos.toArray() : s.cur.pos;
     const f = s.bot ? fwdOf(s.plane.quat).toArray() : s.cur.fwd;
-    s.tail = [pos[0] + f[0] * this.params.tailZ, pos[1] + f[1] * this.params.tailZ, pos[2] + f[2] * this.params.tailZ];
+    const tz = s.params.tailZ;
+    s.tail = [pos[0] + f[0] * tz, pos[1] + f[1] * tz, pos[2] + f[2] * tz];
   }
 
   step(dt) {
@@ -95,7 +100,7 @@ export class Arena {
         if (!a.airborne || !a.cur || !a.prev || fl.pilots.get(a.id)?.disqualified) continue;
         for (const v of this.slots.values()) {
           if (v === a || !v.streamer.head || v.streamer.length < 0.3) continue;
-          const hit = findCut(a.prev, a.cur, this.geom, v.streamer.points(this.t));
+          const hit = findCut(a.prev, a.cur, a.geom, v.streamer.points(this.t));
           if (hit) { v.streamer.cut(hit.arc); fl.cut(a.id, v.id); }
         }
       }
@@ -118,7 +123,7 @@ export class Arena {
     return {
       fight: this.fight.snapshot(),
       planes: [...this.slots.values()].filter((s) => s.cur).map((s) => ({
-        id: s.id, pit: s.pit, airborne: s.airborne, bot: s.bot,
+        id: s.id, pit: s.pit, airborne: s.airborne, bot: s.bot, plane: s.type || "spitfire",
         pos: s.cur.pos.map((v) => +v.toFixed(2)), fwd: s.cur.fwd.map((v) => +v.toFixed(3)), right: s.cur.right.map((v) => +v.toFixed(3)),
         streamer: s.streamer.points(this.t).flat().map((v) => +v.toFixed(2)),
       })),

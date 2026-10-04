@@ -1,0 +1,37 @@
+import * as THREE from "three";
+import { STLLoader } from "three/examples/jsm/loaders/STLLoader.js";
+import { mergeVertices } from "three/examples/jsm/utils/BufferGeometryUtils.js";
+import { ESA_WWII } from "../shared/planes/esa-wwii.js";
+
+// Plane models: STL parts exported from models/scad/esa_plane.scad (OpenSCAD, units mm, nose +Z, y up, origin near the CG).
+export const PLANE_TYPES = ["spitfire", "hurricane", "fw190", "yak3"];
+export const PLANE_NAMES = { spitfire: "Spitfire", hurricane: "Hurricane", fw190: "FW 190", yak3: "Yak-3" };
+const CAMO = { spitfire: 0x86a057, hurricane: 0x7d9356, fw190: 0xa3b1c0, yak3: 0x93a866 };   // VISUAL only
+const loader = new STLLoader(), cache = new Map();
+
+function load(type, part, smooth) {
+  const key = `${type}/${part}`;
+  if (!cache.has(key)) cache.set(key, new Promise((res, rej) => loader.load(`/models/${type}/${part}.stl`, (g) => {
+    if (smooth) { g.deleteAttribute("normal"); g = mergeVertices(g, 0.01); }
+    g.computeVertexNormals(); res(g);
+  }, undefined, rej)));
+  return cache.get(key);
+}
+
+// Returns a Group right away (a small box until the parts arrive). group.userData: { tint: [materials], prop: Mesh|null }.
+export function createPlane(type = "spitfire", tint = 0xd23b3b) {
+  const g = new THREE.Group();
+  const tintMat = new THREE.MeshLambertMaterial({ color: tint, side: THREE.DoubleSide }), camo = new THREE.MeshLambertMaterial({ color: CAMO[type] || 0x667755, side: THREE.DoubleSide });
+  g.userData = { tint: [tintMat], prop: null, type };
+  const stub = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.06, 0.55), camo); g.add(stub);
+  const parts = [["fuselage", camo, true], ["wing", camo, false], ["tail", tintMat, false], ["canopy", new THREE.MeshLambertMaterial({ color: 0xa8d8ff, transparent: true, opacity: 0.75 }), true],
+    ["spinner", tintMat, true], ["prop", new THREE.MeshLambertMaterial({ color: 0x222222, side: THREE.DoubleSide }), false]];
+  Promise.all(parts.map(([p, m, s]) => load(type, p, s).then((geo) => {
+    const mesh = new THREE.Mesh(geo, m); mesh.scale.setScalar(0.001);
+    if (p === "prop") { mesh.position.z = ESA_WWII.noseZ; g.userData.prop = mesh; }
+    g.add(mesh);
+  }))).then(() => g.remove(stub)).catch((e) => console.warn("plane model failed", type, e));
+  return g;
+}
+export function setTint(group, color) { group.userData.tint.forEach((m) => m.color.setHex(color)); }
+export function spinProp(group, rate, dt) { if (group.userData.prop) group.userData.prop.rotation.z += rate * dt; }

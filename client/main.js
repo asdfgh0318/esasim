@@ -3,13 +3,14 @@ import { Client } from "@colyseus/sdk";
 import { buildField } from "./field.js";
 import { Plane } from "../shared/flight.js";
 import { Streamer } from "../shared/streamer.js";
-import { ESA_WWII } from "../shared/planes/esa-wwii.js";
+import { planeParams } from "../shared/planes/index.js";
 import { FIELD, pitX } from "../shared/rules.js";
 import { RadioInput } from "./input/radio.js";
 import { mountRadioUI } from "./input/radioUI.js";
 import { StreamerView } from "./streamerView.js";
 import { CameraRig } from "./camera.js";
 import { mountHud } from "./hud.js";
+import { createPlane, setTint, spinProp, PLANE_TYPES, PLANE_NAMES } from "./planeModel.js";
 
 const params = new URLSearchParams(location.search);
 const scene = new THREE.Scene();
@@ -22,22 +23,15 @@ renderer.setSize(innerWidth, innerHeight);
 document.body.append(renderer.domElement);
 addEventListener("resize", () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
 
-// Placeholder mesh until real models arrive (about 0.65 m long, 0.8 m span like the generic ESA plane).
-const COLORS = [0xd23b3b, 0x3b6bd2, 0x2aa84a, 0xe0b000, 0x9b4bd0, 0x22b8c4, 0xe07a30];
-function makePlane(color) {
-  const g = new THREE.Group(), mat = new THREE.MeshLambertMaterial({ color });
-  g.add(new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.08, 0.65), mat));
-  g.add(new THREE.Mesh(new THREE.BoxGeometry(ESA_WWII.span, 0.015, 0.13), mat));
-  const tail = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.015, 0.08), mat); tail.position.set(0, 0, -0.3); g.add(tail);
-  const fin = new THREE.Mesh(new THREE.BoxGeometry(0.015, 0.1, 0.09), mat); fin.position.set(0, 0.05, -0.3); g.add(fin);
-  return g;
-}
+const COLORS = [0xd23b3b, 0x3b6bd2, 0x2aa84a, 0xe0b000, 0x9b4bd0, 0x22b8c4, 0xe07a30];   // pilot colours by start box (tail and spinner)
+const planeType = PLANE_TYPES.includes(params.get("plane")) ? params.get("plane") : "spitfire";
+const simParams = planeParams(planeType);
 
 // ---- state ----
-const sim = new Plane(ESA_WWII);
+const sim = new Plane(simParams);
 let me = { id: null, pit: 3 };
 let phase = "lobby", snapNames = new Map(), online = false;
-const myMesh = makePlane(COLORS[me.pit]); scene.add(myMesh);
+const myMesh = createPlane(planeType, COLORS[me.pit]); scene.add(myMesh);
 const others = new Map(), views = new Map();   // id -> { mesh, pos, quat } / StreamerView
 const localStreamer = new Streamer({ seed: 9 }); // offline only
 const rig = new CameraRig(camera);
@@ -47,12 +41,13 @@ let room = null, landedAt = -1, kbThrottle = 0;
 
 const hud = mountHud({
   ready: (v) => room?.send("ready", v), addBot: () => room?.send("addBot"), removeBots: () => room?.send("removeBots"), start: () => room?.send("start"),
-});
+  plane: (t) => { const u = new URLSearchParams(location.search); u.set("plane", t); location.search = u.toString(); },
+}, { types: PLANE_TYPES, names: PLANE_NAMES, current: planeType });
 
 function home() {                                  // plane back in the pilot's hand at the start box (ESA §4.4, §4.6)
   sim.pos.set(pitX(me.pit), 1.4, FIELD.pilotLineZ); sim.vel.set(0, 0, 0); sim.quat.identity(); sim.omega.set(0, 0, 0);
   sim.held = true; sim.onGround = false; sim.input.throttle = 0; kbThrottle = 0; landedAt = -1;
-  localStreamer.reset([sim.pos.x, sim.pos.y, sim.pos.z + ESA_WWII.tailZ]);
+  localStreamer.reset([sim.pos.x, sim.pos.y, sim.pos.z + simParams.tailZ]);
 }
 home();
 const canLaunch = () => sim.held && (!online || phase === "lobby" || phase === "prep" || phase === "flight");   // §4.2: no launches in readiness
@@ -88,17 +83,17 @@ function onSnap(snap) {
     v.update(p.streamer);
     if (p.id === me.id) continue;
     let o = others.get(p.id);
-    if (!o) { o = { mesh: makePlane(COLORS[p.pit % 7]), pos: new THREE.Vector3(...p.pos), quat: new THREE.Quaternion() }; o.mesh.position.copy(o.pos); scene.add(o.mesh); others.set(p.id, o); }
-    o.pos.set(...p.pos);
+    if (!o) { o = { mesh: createPlane(p.plane, COLORS[p.pit % 7]), pos: new THREE.Vector3(...p.pos), quat: new THREE.Quaternion(), air: false }; o.mesh.position.copy(o.pos); scene.add(o.mesh); others.set(p.id, o); }
+    o.pos.set(...p.pos); o.air = p.airborne;
     const z = new THREE.Vector3(...p.fwd), x = new THREE.Vector3(...p.right), y = new THREE.Vector3().crossVectors(z, x);
     o.quat.setFromRotationMatrix(new THREE.Matrix4().makeBasis(x, y, z));
   }
   for (const [id, o] of others) if (!seen.has(id)) { scene.remove(o.mesh); others.delete(id); }
   for (const [id, v] of views) if (!seen.has(id)) { v.dispose(); views.delete(id); }
 }
-new Client(`ws://${params.get("server") || location.hostname}:2567`).joinOrCreate("combat", { name: params.get("name") || "Pilot" }).then((r) => {
+new Client(`ws://${params.get("server") || location.hostname}:2567`).joinOrCreate("combat", { name: params.get("name") || "Pilot", plane: planeType }).then((r) => {
   room = r; online = true;
-  r.onMessage("you", (y) => { me = y; rig.setPit(y.pit); myMesh.children.forEach((c) => c.material.color.setHex(COLORS[y.pit % 7])); if (sim.held) home(); });
+  r.onMessage("you", (y) => { me = y; rig.setPit(y.pit); setTint(myMesh, COLORS[y.pit % 7]); if (sim.held) home(); });
   r.onMessage("snap", onSnap); r.onMessage("events", (ev) => ev.forEach(onEvent));
   r.onMessage("restart", () => { home(); hud.toast("New fight"); });
   if (params.get("bots")) for (let i = 0; i < Number(params.get("bots")); i++) r.send("addBot");   // debug helpers for screenshots/tests
@@ -122,10 +117,11 @@ renderer.setAnimationLoop((t) => {
   if (!sim.held && !airborne && landedAt < 0) landedAt = t;                          // touchdown: fetch the model after a moment
   if (landedAt >= 0 && t - landedAt > 4000) home();
   myMesh.position.copy(sim.pos); myMesh.quaternion.copy(sim.quat);
-  for (const o of others.values()) { o.mesh.position.lerp(o.pos, 1 - Math.exp(-14 * frame)); o.mesh.quaternion.slerp(o.quat, 1 - Math.exp(-14 * frame)); }
+  spinProp(myMesh, sim.held ? 0 : 60 + sim.input.throttle * 500, frame);
+  for (const o of others.values()) { o.mesh.position.lerp(o.pos, 1 - Math.exp(-14 * frame)); o.mesh.quaternion.slerp(o.quat, 1 - Math.exp(-14 * frame)); spinProp(o.mesh, o.air ? 420 : 0, frame); }
   if (!online) {                                                                     // offline: draw my own streamer locally
     const f = new THREE.Vector3(0, 0, 1).applyQuaternion(sim.quat);
-    localStreamer.push([sim.pos.x + f.x * ESA_WWII.tailZ, sim.pos.y + f.y * ESA_WWII.tailZ, sim.pos.z + f.z * ESA_WWII.tailZ]);
+    localStreamer.push([sim.pos.x + f.x * simParams.tailZ, sim.pos.y + f.y * simParams.tailZ, sim.pos.z + f.z * simParams.tailZ]);
     let v = views.get("local"); if (!v) { v = new StreamerView(scene, COLORS[me.pit]); views.set("local", v); }
     v.update(localStreamer.points(t / 1000).flat());
   }

@@ -20,7 +20,7 @@ export class CameraRig {
       cam.fov += (fov - cam.fov) * k; cam.updateProjectionMatrix();
     } else if (this.mode === "chase") {
       const yaw = new THREE.Euler().setFromQuaternion(sim.quat, "YXZ").y;
-      const back = new THREE.Vector3(0, 0.9, -3).applyQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), yaw)).add(sim.pos);
+      const back = new THREE.Vector3(0, 0.7, -2.2).applyQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), yaw)).add(sim.pos);
       cam.position.lerp(back, k); cam.lookAt(sim.pos);
       if (cam.fov !== 65) { cam.fov = 65; cam.updateProjectionMatrix(); }
     } else {

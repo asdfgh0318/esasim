@@ -11,6 +11,7 @@ const css = `
 #fh .toast.bad{border-color:#ff5a5a} #fh .toast.good{border-color:#2ad47a}
 #fh .lobby{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);display:flex;gap:8px;pointer-events:auto}
 #fh .lobby button{padding:9px 16px;font-size:14px;border:0;border-radius:8px;background:#2b3d5e;color:#fff;cursor:pointer}
+#fh .lobby select{padding:8px;font-size:14px;border-radius:8px;border:0;background:#2b3d5e;color:#fff}
 #fh .lobby button.go{background:#d23b3b} #fh .lobby button.on{background:#2a8a56}
 #fh .help{position:absolute;right:12px;bottom:12px;font-size:11px;color:#9aa8bf;text-align:right}`;
 
@@ -24,16 +25,19 @@ const TEXT = {
   results: ["Results", "A new fight starts in a moment."],
 };
 
-export function mountHud(actions) {
+export function mountHud(actions, planes) {
   document.head.append(Object.assign(document.createElement("style"), { textContent: css }));
   const el = document.createElement("div"); el.id = "fh";
   el.innerHTML = `<div class="banner"><b id="fh-t">ESASIM</b><span id="fh-s"></span></div>
     <div class="score" id="fh-score"></div><div class="toasts" id="fh-toasts"></div>
-    <div class="lobby" id="fh-lobby"><button id="b-ready">Ready</button><button id="b-bot">Add bot</button><button id="b-nobot">Remove bots</button><button id="b-start" class="go">Start fight</button></div>
+    <div class="lobby" id="fh-lobby"><select id="b-plane" title="Your plane (reloads the page)"></select><button id="b-ready">Ready</button><button id="b-bot">Add bot</button><button id="b-nobot">Remove bots</button><button id="b-start" class="go">Start fight</button></div>
     <div class="help">Space launch · P pilot view · C chase · V FPV · R radio</div>`;
   document.body.append(el);
   const $ = (id) => el.querySelector("#" + id);
   let ready = false;
+  const sel = $("b-plane");
+  sel.innerHTML = planes.types.map((t) => `<option value="${t}" ${t === planes.current ? "selected" : ""}>${planes.names[t]}</option>`).join("");
+  sel.onchange = () => actions.plane(sel.value);
   $("b-ready").onclick = () => { ready = !ready; $("b-ready").classList.toggle("on", ready); actions.ready(ready); };
   $("b-bot").onclick = actions.addBot; $("b-nobot").onclick = actions.removeBots; $("b-start").onclick = actions.start;
 
