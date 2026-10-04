@@ -25,9 +25,12 @@
 - **RadioMaster support** (any USB joystick-mode radio) with mapping and calibration (key R), ported from the author's earlier drone sim. Keyboard works too.
 - The flight model, streamer, cut detection, scoring, series, workshop and bots are headless and covered by tests (`npm test`).
 
-![Workshop with a limit violation](docs/img/workshop.png)
+![Workshop: span, battery, prop and ballast with the ESA legality check](docs/img/workshop.png)
 ![The advanced physics editor](docs/img/physics-panel.png)
-![Contest results with the winner](docs/img/results.png)
+![Results screen with the "fly it for real" links](docs/img/results.png)
+![The same screen in Polish](docs/img/results-pl.png)
+![Replay of the last fight](docs/img/replay.png)
+![Radio panel with RadioMaster and gamepad presets](docs/img/radio-panel.png)
 ![The four OpenSCAD planes](docs/img/models.png)
 ![Waiting room: bots in their start boxes](docs/img/lobby.png)
 ![A running fight seen from the start box](docs/img/fight.png)
