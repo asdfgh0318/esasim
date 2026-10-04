@@ -38,6 +38,13 @@ try {
   const D = await join("dave", "ROOM1"); await sleep(600);
   check("a human with no free box is told the room is full", A.snap.fight.pilots.length === 7 && D.full, `${A.snap.fight.pilots.length} pilots, full=${D.full}`);
 
+  // Voice signalling: "rtc" goes only to the addressed pilot of the same room; oversized payloads are dropped.
+  { const got = { A: [], B: [], C: [] }; A.room.onMessage("rtc", (m) => got.A.push(m)); B2.room.onMessage("rtc", (m) => got.B.push(m));
+    const Cc = await join("carol2", "ROOM2"); Cc.room.onMessage("rtc", (m) => got.C.push(m)); await sleep(300);
+    const aid = A.you.id, bid = B2.you.id;
+    A.room.send("rtc", { to: bid, data: { join: true } }); A.room.send("rtc", { to: bid, data: { blob: "x".repeat(20000) } }); A.room.send("rtc", { to: Cc.you.id, data: { join: true } }); await sleep(400);
+    check("rtc signalling reaches only the addressed pilot", got.B.length === 1 && got.B[0].from === aid && got.C.length === 0 && got.A.length === 0, `B=${got.B.length} C=${got.C.length} A=${got.A.length}`); }
+
   // A deliberate leave frees the box at once.
   B2.room.leave(); await sleep(500);
   check("a deliberate leave frees the box", A.snap.fight.pilots.length === 6, `${A.snap.fight.pilots.length}`);

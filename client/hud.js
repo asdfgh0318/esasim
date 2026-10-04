@@ -24,6 +24,8 @@ const css = `
 #fh .cta p{margin:6px 0;font-size:13px;color:#cfe0f5} #fh .cta a{color:#ffd166}
 #fh .tips{position:absolute;left:12px;top:250px;max-width:300px;background:#121c30ee;border:1px solid #2b3d5e;border-radius:10px;padding:10px 14px;font-size:13px;pointer-events:auto}
 #fh .tips ol{margin:6px 0 8px;padding-left:20px} #fh .tips li{margin:3px 0} #fh .tips button{padding:5px 12px;border:0;border-radius:6px;background:#2b3d5e;color:#fff;cursor:pointer}
+#fh .voice{position:absolute;left:12px;bottom:62px;pointer-events:auto}
+#fh .voice button{padding:5px 10px;border:0;border-radius:6px;background:#2b3d5e;color:#fff;cursor:pointer;font-size:12px} #fh .voice button.on{background:#2a8a56} #fh .voice button.err{background:#8a2a2a}
 #fh .help{position:absolute;right:12px;bottom:12px;font-size:11px;color:#9aa8bf;text-align:right}`;
 
 import { VTX_POWERS, CHANNELS } from "../shared/vtx.js";
@@ -46,6 +48,7 @@ export function mountHud(actions, planes) {
     <div class="vtx" id="fh-vtx" style="display:none"></div>
     <div class="help"><button id="b-lang" style="pointer-events:auto;font-size:11px;padding:1px 6px;margin-right:8px;border:0;border-radius:4px;background:#2b3d5e;color:#fff;cursor:pointer">${t("lang")}</button>${t("help")}</div>
     <div class="cta" id="fh-cta" style="display:none"></div>
+    <div class="voice" id="fh-voice" style="display:none"><button id="b-voice"></button></div>
     <div class="tips" id="fh-tips" style="display:none"><b>${t("tipsT")}</b><ol>${["tip1", "tip2", "tip3", "tip4", "tip5"].map((k) => `<li>${t(k)}</li>`).join("")}</ol><button id="b-tips">${t("tipsOk")}</button></div>`;
   document.body.append(el);
   const $ = (id) => el.querySelector("#" + id);
@@ -63,6 +66,9 @@ export function mountHud(actions, planes) {
   $("b-ready").onclick = () => { ready = !ready; $("b-ready").classList.toggle("on", ready); actions.ready(ready); };
   let tipsSeen = false; try { tipsSeen = localStorage.getItem("esasim-tips") === "1"; } catch { /* no storage */ }
   $("b-tips").onclick = () => { tipsSeen = true; $("fh-tips").style.display = "none"; try { localStorage.setItem("esasim-tips", "1"); } catch { /* ignore */ } };
+  $("b-voice").onclick = () => actions.voice?.();
+  $("b-voice").textContent = t("voiceOff");
+  let speaking = new Set();
   $("b-lang").onclick = toggleLang;
   $("fh-cta").innerHTML = `<b>${t("ctaT")}</b><p>${t("ctaP")}</p>` + CTA.map(([k, u]) => `<a href="${u}" target="_blank" rel="noopener">${t(k)}</a>`).join(" · ");
   $("b-invite").onclick = actions.invite; $("b-bot").onclick = () => actions.addBot($("b-level").value); $("b-nobot").onclick = actions.removeBots; $("b-start").onclick = actions.start;
@@ -81,9 +87,12 @@ export function mountHud(actions, planes) {
       if (f.phase === "lobby" && !isHost) $("fh-s").textContent = t("waitHost", { name: f.pilots.find((p) => p.id === snap.host)?.name || t("theHost") });
       if (f.phase === "lobby" || f.phase === "results") { ready = false; $("b-ready").classList.remove("on"); }
       const rows = [...f.pilots].sort((a, b) => ((sr.prior[b.id] || 0) + b.score) - ((sr.prior[a.id] || 0) + a.score)).map((p) =>
-        `<tr class="${p.id === meId ? "me" : ""}"><td>${p.bot ? "🤖 " : ""}${p.name.replace(/</g, "")}${p.illegal ? ` (${t("ill")})` : p.disqualified ? " (DQ)" : p.airborne ? " ✈" : ""}</td><td>${p.flight}</td><td>${p.cuts}</td><td>${p.crossings ? "-" + 200 * p.crossings : "0"}</td><td>${p.score}</td><td><b>${(sr.prior[p.id] || 0) + p.score}</b></td></tr>`).join("");
+        `<tr class="${p.id === meId ? "me" : ""}"><td>${p.bot ? "🤖 " : ""}${speaking.has(p.id) ? "🔊 " : ""}${p.name.replace(/</g, "")}${p.illegal ? ` (${t("ill")})` : p.disqualified ? " (DQ)" : p.airborne ? " ✈" : ""}</td><td>${p.flight}</td><td>${p.cuts}</td><td>${p.crossings ? "-" + 200 * p.crossings : "0"}</td><td>${p.score}</td><td><b>${(sr.prior[p.id] || 0) + p.score}</b></td></tr>`).join("");
       $("fh-score").innerHTML = `<table><tr>${t("th").map((h) => `<th>${h}</th>`).join("")}</tr>${rows}</table>`;
     },
+    voiceAvailable(on) { $("fh-voice").style.display = on ? "block" : "none"; },
+    voiceMode(mode) { const b = $("b-voice"); b.className = mode === "off" ? "" : mode === "error" ? "err" : "on"; b.textContent = t(mode === "ptt" ? "voicePtt" : mode === "open" ? "voiceOpen" : mode === "error" ? "voiceErr" : "voiceOff"); },
+    setSpeaking(set) { speaking = set; },
     replayBar(show, playing) { $("fh-replay").style.display = show ? "flex" : "none"; $("b-replay").textContent = playing ? t("stopReplay") : t("watch"); },
     vtx(q, inter) {
       const el = $("fh-vtx"); if (q == null) { el.style.display = "none"; return; }

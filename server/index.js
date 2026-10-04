@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import express from "express";
+import { WebSocketTransport } from "@colyseus/ws-transport";
 import { defineServer, defineRoom, Room } from "colyseus";
 import { Arena } from "../shared/arena.js";
 import { ESA_WWII } from "../shared/planes/esa-wwii.js";
@@ -40,6 +41,12 @@ class CombatRoom extends Room {
     this.onMessage("addBot", (c, m) => { if (isHost(c) && this.arena.fight.phase === "lobby") this.arena.addBot("Bot " + (this.arena.slots.size + 1), undefined, LEVELS[m?.level] ?? 0.7); });
     this.onMessage("removeBots", (c) => { if (isHost(c) && this.arena.fight.phase === "lobby") for (const s of [...this.arena.slots.values()]) if (s.bot) this.arena.remove(s.id); });
     this.onMessage("start", (c) => { if (isHost(c)) this.arena.fight.start(); });
+    // Voice chat signalling only: the audio itself goes peer to peer (WebRTC). The server relays small handshake messages between two pilots of this room.
+    this.onMessage("rtc", (c, m) => {
+      if (!m || typeof m.to !== "string" || JSON.stringify(m.data ?? null).length > 12000) return;
+      const target = this.clients.find((o) => o.userData?.pid === m.to);
+      if (target && target !== c) target.send("rtc", { from: pid(c), data: m.data });
+    });
     this.setSimulationInterval(() => this.update(), 1000 * TICK);
   }
 
@@ -91,6 +98,7 @@ class CombatRoom extends Room {
 // needs http://<your-address>:2567 and no second port or tunnel. In development `npm start` serves the client with Vite instead.
 const dist = fileURLToPath(new URL("../dist", import.meta.url));
 const server = defineServer({
+  transport: new WebSocketTransport({ maxPayload: 64 * 1024 }),                       // the default 4 kB could cut a voice-chat handshake (SDP with ICE candidates)
   rooms: { combat: defineRoom(CombatRoom).filterBy(["code"]) },                // ?room=CODE = a private room; no code = the shared default room
   express: (app) => { if (existsSync(dist)) { app.use(express.static(dist)); console.log("serving the built client from dist/"); } },
 });

@@ -68,6 +68,16 @@ npm start        # game server (:2567) and client (http://localhost:5173) togeth
 
 Short phases for testing: `ESASIM_PREP=5 ESASIM_READY=2 ESASIM_FLIGHT=60 ESASIM_ROUNDS=1 npm run server`.
 
+## Voice chat
+
+In a private room (`?room=CODE`) there is a "Voice: off" button. Click it once to allow the microphone: you are then in push-to-talk mode (hold **T**); click again for an open microphone, once more to switch voice off. Audio goes directly between the pilots (WebRTC); the game server only relays the connection handshake. Nobody is heard or connected until they switch voice on, and the public shared room has no voice. A 🔊 marks who is speaking in the score table.
+
+![Voice chat: Bob is speaking (🔊), Anna's voice button is on](docs/img/voice.png)
+
+- The browser only allows the microphone on `https://` pages or `localhost`. Over plain `http://<LAN address>` it is blocked: use a tunnel with https (see above), or in Chrome open `chrome://flags/#unsafely-treat-insecure-origin-as-secure` and add your `http://<address>:2567`.
+- On the same network it works without any extra service. Across the internet through home routers it may need a STUN server: add `&stun=1` to the room link (this uses a public Google STUN server, which sees your address). A TURN relay is not included, so some networks will not connect.
+- Tested with two headless browsers and fake microphones (they connect and the speaking marker works); not tested with real people over the internet.
+
 ## Controls and language
 
 Keyboard sticks ramp up (about 0.3 s to full) and have expo, so a tap is a small input; press R for the radio panel, which has presets for a RadioMaster (AETR) and a gamepad (mode 2) plus calibration. The UI is Polish or English (`?lang=pl|en`, or the PL/EN button; Polish browsers start in Polish; the Polish text is a first draft). After every fight the results screen links to real ESA resources.

@@ -13,6 +13,7 @@ import { CameraRig } from "./camera.js";
 import { mountHud } from "./hud.js";
 import { t } from "./i18n.js";
 import { sound } from "./sound.js";
+import { createVoice } from "./voice.js";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
@@ -70,6 +71,7 @@ const hud = mountHud({
   ready: (v) => room?.send("ready", v), addBot: (level) => room?.send("addBot", { level }), removeBots: () => room?.send("removeBots"), start: () => room?.send("start"),
   plane: (t) => { saveBuild({ ...build, plane: t }); const u = new URLSearchParams(location.search); u.set("plane", t); location.search = u.toString(); },
   workshop: () => workshop.toggle(),
+  voice: () => voice?.cycle(),
   invite: () => {                                                                   // private room: first click opens a new code, in a room the click copies the invite link
     if (!roomCode) { const u = new URLSearchParams(location.search); u.set("room", Math.random().toString(36).slice(2, 6).toUpperCase()); location.search = u.toString(); return; }
     const link = `${location.origin}${location.pathname}?room=${roomCode}`;
@@ -174,6 +176,8 @@ function onSnap(snap, fromReplay = false) {
     let len = 0; for (let i = 3; i + 2 < mine.streamer.length; i += 3) len += Math.hypot(mine.streamer[i] - mine.streamer[i - 3], mine.streamer[i + 1] - mine.streamer[i - 2], mine.streamer[i + 2] - mine.streamer[i - 1]);
     if (mine.streamer.length >= 6 && len < localStreamer.length - 0.4) localStreamer.cut(len);
   }
+  humanIds = snap.fight.pilots.filter((p) => !p.bot).map((p) => p.id);
+  voice?.sync();
   snapBuf.push({ t: performance.now(), planes: snap.planes }); if (snapBuf.length > 12) snapBuf.shift();
 }
 // Remote planes and their streamers are shown INTERP_MS in the past, interpolated between the two snapshots around that moment, so mesh and
@@ -214,12 +218,18 @@ const pid = (() => { try { let v = sessionStorage.getItem("esasim-pid"); if (!v)
 const roomCode = (params.get("room") || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8);
 { const bi = document.getElementById("b-invite"); if (bi) bi.textContent = roomCode ? t("inviteCopy") : t("invite"); }
 const joinOptions = () => ({ name: params.get("name") || "Pilot", plane: planeType, build, pid, code: roomCode, strict });
+// Voice chat only in private rooms (?room=CODE): opt-in, peer to peer, see client/voice.js.
+let humanIds = [];
+const voice = roomCode ? createVoice({ send: (m) => room?.send("rtc", m), myId: () => me.id, humans: () => humanIds, onSpeaking: (s) => hud.setSpeaking(s), onMode: (m, e) => { hud.voiceMode(m); if (e) console.warn("voice:", e); }, stun: params.has("stun") }) : null;
+if (voice) hud.voiceAvailable(true);
+window.__voice = voice;                                                                 // for tests
 function attach(r) {
   room = r; online = true;
   r.onMessage("you", (y) => { me = y; rig.setPit(y.pit); setTint(myMesh, COLORS[y.pit % 7]); if (sim.held) home(); });
   r.onMessage("snap", (sn) => onSnap(sn)); r.onMessage("events", (ev) => { if (!replay) pendingEvents.push(...ev); ev.forEach((e) => onEvent(e)); });
   r.onMessage("restart", () => { home(); hud.toast(t("toast.newFight")); });
-  r.onMessage("ping", (n) => r.send("pong", n));                                     // server measures the round trip for lag-compensated cuts (docs/netcode.md)
+  r.onMessage("ping", (n) => r.send("pong", n));
+  r.onMessage("rtc", (m) => voice?.onSignal(m.from, m.data));                                     // server measures the round trip for lag-compensated cuts (docs/netcode.md)
   r.onMessage("full", () => { online = false; room = null; hud.toast(t("toast.full")); hud.offline(); });
   r.onLeave((code) => {                                                              // dropped connection: try to come back to the same box within 30 s (the server keeps it)
     if (room !== r) return;
