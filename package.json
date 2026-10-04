@@ -1,0 +1,19 @@
+{
+  "name": "esasim",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "server": "node server/index.js"
+  },
+  "dependencies": {
+    "@colyseus/schema": "^5.0.36",
+    "@colyseus/sdk": "^0.18.5",
+    "@colyseus/ws-transport": "^0.18.4",
+    "colyseus": "^0.18.9",
+    "three": "^0.186.1",
+    "vite": "^8.3.2"
+  }
+}
