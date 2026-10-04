@@ -6,16 +6,19 @@
 import { applyOverrides } from "./overrides.js";
 
 export const KATO_SPAN_MM = 1210;
-export const KATO_ELEVATOR_MIX = 0.5;                 // PicaSim: 0.25. The elevons mix more elevator here so a hand-launched plane can recover (pitch rate about 165 deg/s instead of 65)
+export const KATO_ELEVATOR_MIX = 0.8;                 // PicaSim: 0.25 (see the tuning note below)
 export const KATO_TORQUE = 2;                         // multiplier on PicaSim's maxTorque: thrust-to-weight about 1 at 860 mm (PicaSim's own value gives 0.5), cruise about 16-20 m/s at 60 % throttle
 export const KATO_PROP = { radius: 0.0762, pitch: 0.17, chord: 0.013 };   // an absolute 6 in prop in metres at any plane size (PicaSim scales the prop with the plane, which leaves a small Kato with almost no thrust)
 // Kato is not an ESA WWII warbird: at its native size it is far outside ESA 3.1.2 (700-860 mm), so the workshop marks it illegal until it
 // is scaled down (span 700-860 mm) and ballasted to the 200 g minimum (3.6.2). It stays a flyable practice plane in the meantime.
 export const KATO_DEFAULTS = { aileronDeg: 30, elevatorDeg: 30 };
 
-// Hands-off the Kato dives: its sections are symmetric (CL0 = 0, CM0 = 0), so it trims at zero lift, as it does in PicaSim, where the pilot holds
-// up-elevator. It is a stick-flown plane. Sweeps (see the git history of this file) showed a built-in up-trim glides better (6.5:1 at 0.15
-// native) but pitches the nose down after a throw, so no trim is baked in; `b.trim` can still be set (control units, both panels).
+// Response tuning (ESASIM, not PicaSim; user report "elevator response is bad, cannot turn"): PicaSim's Kato sections are symmetric (CL0 = 0, CM0 = 0) and its
+// elevon lift coefficients are tiny (0.003-0.006/deg, our other planes use 0.02), so here it trims at zero lift: it dives hands-off, pulling does little
+// (80 deg/s) and a banked turn just spirals down (22 deg/s while losing 70 m). Real flying wings use cambered/reflexed sections, so the Kato gets CL0 0.3 and
+// CM0 0.01 (it then holds a stable glide hands-off at about 11 m/s, 5.5:1), 2x stronger elevons (lift and moment), elevator mix 0.8 and a smaller aileron
+// throw to keep the roll rate sane. Result at 800 mm, 14 m/s: pitch about 330 deg/s, roll about 420 deg/s, a banked turn about 120 deg/s.
+export const KATO_CL0 = 0.3, KATO_CM0 = 0.01, KATO_ELEVON_GAIN = 2, KATO_AILERON_DEG = 23;
 
 const AEROFOILS = {
   "Kato-root": { CDFlying: 0.01, CDStalled: 1.0, CM0: 0, CMPerDeg: -0.006, refRe: 200000, CDPower: -0.15, minReFrac: 0.1, CL0: 0, CLPerDeg: 0.08,
@@ -31,16 +34,17 @@ const AEROFOILS = {
 export function buildKatoDef(b0 = {}) {
   const b = { spanMm: KATO_SPAN_MM, batteryWh: 15, ballastG: 0, ...KATO_DEFAULTS, ...b0 };
   const sc = b.spanMm / KATO_SPAN_MM;
-  const ail = 35 * b.aileronDeg / KATO_DEFAULTS.aileronDeg, elev = (b.elevMix ?? KATO_ELEVATOR_MIX) * b.elevatorDeg / KATO_DEFAULTS.elevatorDeg;
-  const elevon = { trimControl: b.trim ?? 0, CLPerDegree: 0.003, CDPerDegree: 0, CMPerDegree: -0.002, flapFraction: 0.2, degreesPerControl: ail, controlRate: 10, controlClamp: 1, controlPerChannel: { 0: 1, 1: elev } };
+  const ail = KATO_AILERON_DEG * b.aileronDeg / KATO_DEFAULTS.aileronDeg, elev = (b.elevMix ?? KATO_ELEVATOR_MIX) * b.elevatorDeg / KATO_DEFAULTS.elevatorDeg;
+  const elevon = { trimControl: b.trim ?? 0, CLPerDegree: 0.003 * (b.elevonCL ?? KATO_ELEVON_GAIN), CDPerDegree: 0, CMPerDegree: -0.002 * (b.elevonCM ?? KATO_ELEVON_GAIN), flapFraction: 0.2, degreesPerControl: ail, controlRate: 10, controlClamp: 1, controlPerChannel: { 0: 1, 1: elev } };
+  const foils = structuredClone(AEROFOILS); for (const k of ["Kato-root", "Kato-tip"]) { foils[k].CL0 = b.cl0 ?? KATO_CL0; foils[k].CM0 = b.cm0 ?? KATO_CM0; }
   return applyOverrides({
     name: "Electric Kato (PicaSim)",
     settings: { sizeScale: b.spanMm / KATO_SPAN_MM, massScale: 1, dragScale: 1, engineScale: 1, extraMassPercent: 0 },
     dynamics: { wingSpan: 1.21, wingChord: 0.39, CMRollFromY: 0 },
-    aerofoils: AEROFOILS,
+    aerofoils: foils,
     wings: [
       { name: "Left1", aerofoil: "Kato-root", numSections: 2, mass: 0.08, position: [0.01, 0.025, 0], yaw: 24, extents: [0.29, 0.3, 0.01], wingAspectRatio: 5, groundEffect: true, ...elevon },
-      { name: "Left2", aerofoil: "Kato-tip", numSections: 5, mass: 0.03, position: [-0.08, 0.3, 0], yaw: 24, extents: [0.22, 0.33, 0.01], wingAspectRatio: 5, groundEffect: true, ...elevon, CLPerDegree: 0.006 },
+      { name: "Left2", aerofoil: "Kato-tip", numSections: 5, mass: 0.03, position: [-0.08, 0.3, 0], yaw: 24, extents: [0.22, 0.33, 0.01], wingAspectRatio: 5, groundEffect: true, ...elevon, CLPerDegree: 0.006 * (b.elevonCL ?? KATO_ELEVON_GAIN) },
       { name: "Right1", copy: "Left1", mirror: true }, { name: "Right2", copy: "Left2", mirror: true },
       { name: "FinLeft", aerofoil: "NACA0009", numSections: 2, mass: 0.001, position: [-0.3, 0.605, -0.04], roll: 90, extents: [0.1, 0.1, 0.01], wingAspectRatio: 5 },
       { name: "FinRight", copy: "FinLeft", mirror: true },
