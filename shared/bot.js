@@ -4,7 +4,7 @@ import * as THREE from "three";
 import { FIELD } from "./rules.js";
 
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
-const CENTER = new THREE.Vector3(0, 10, FIELD.flightZone.d * 0.5);
+const CENTER = new THREE.Vector3(0, 10, 34);                                // the fight happens over the landing field and just beyond it
 const _fwd = new THREE.Vector3(), _inv = new THREE.Quaternion(), _d = new THREE.Vector3(), _up = new THREE.Vector3(), _aim = new THREE.Vector3();
 
 export class BotPilot {
@@ -22,13 +22,13 @@ export class BotPilot {
     const zone = FIELD.flightZone;
     // Predictive boundary: where will I be in 1.5 s? Turn radius is about 13 m and stalls throw the plane around, so keep a wide margin from the safety line (z = 0).
     const fx = pos.x + plane.vel.x * 1.5, fz = pos.z + plane.vel.z * 1.5, fy = pos.y + plane.vel.y * 1.2;
-    const out = Math.abs(fx) > zone.w * 0.4 || fz < 44 || pos.z < 36 || fz > zone.d * 0.92 || pos.y > 20;
-    const goAround = landing && (pos.z < 38 || (plane.vel.z < 0 && pos.z < 50));     // too close to the line while landing: power on, turn away
-    if (goAround) _aim.set(0, 14, 62);
-    else if (landing) _aim.set(0, 0, FIELD.flightZone.d * 0.55);                 // bots land mid-zone, far from the safety line; the +20 landing bonus (§4.7) is for humans
+    const out = Math.abs(fx) > zone.w * 0.3 || fz < 26 || pos.z < 20 || fz > zone.d * 0.92 || pos.y > 20;
+    const goAround = landing && (pos.z < 28 || (plane.vel.z < 0 && pos.z < 38));     // too close to the line while landing: power on, turn away
+    if (goAround) _aim.set(0, 14, 52);
+    else if (landing) _aim.set(0, 0, 42);                                          // bots land beyond the landing field, away from the safety line; the +20 landing bonus (§4.7) is for humans
     else if (target && !out) _aim.copy(target.pos).addScaledVector(target.vel, clamp(best / speed, 0, 1.0));
     else _aim.copy(CENTER);
-    if (!landing) { _aim.y = clamp(_aim.y, 7, 16); if (_aim.z < 46 && !out) _aim.z = 46; }                                  // never aim near the safety line
+    if (!landing) { _aim.y = clamp(_aim.y, 7, 16); if (_aim.z < 30 && !out) _aim.z = 30; }                                  // never aim near the safety line
     const takeoff = pos.y < 7 && plane.airspeed < 13;                      // just thrown: level wings, gentle climb, full power
     const low = !landing && !takeoff && (pos.y < 5 || fy < 4);
     _inv.copy(plane.quat).invert();

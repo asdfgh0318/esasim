@@ -4,6 +4,8 @@
 
 > **This game is bait.** It exists to get you flying ESA air combat in the real world. If you like it, the in-game intro points to the real thing: rules, kits, build guides, squadrons and contests (Poland first, worldwide next).
 
+![Air fight over the landing field, seen from the pilot's start box](docs/img/hero.png)
+
 ![Intro screen](docs/img/intro.png)
 
 ## What works now
@@ -34,7 +36,7 @@
 ![Analog FPV far out: signal lost](docs/img/fpv-far.png)
 ![FPV interference from another pilot's 5 W transmitter](docs/img/interference.png)
 
-The contest site is built from ESA §2: red = safety line, white = pilot line (3 m behind), green = readiness line, yellow = audience zone, tan = 50 x 20 m landing field, grey = 7 start boxes. The rules do not give a flight-zone size, so that one is a design choice.
+The contest site is built from ESA §2: red = safety line, white = pilot line (3 m behind), green = readiness line, yellow = audience zone (behind the pilots), a slightly lighter mown patch with white tape = 50 x 20 m landing field, grey = 7 start boxes. Around it: a tree line, wheat fields, a powerline, wind turbines, banners, tents and flags (all VISUAL, generic names, no real brands), after photos of real ESA/ACES pitches (plain mown grass and tape lines). The rules do not give a flight-zone size, so that one is a design choice.
 
 ![Plan view of the ESA contest site](docs/img/field-plan.png)
 
