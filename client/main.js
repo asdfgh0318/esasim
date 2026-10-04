@@ -73,6 +73,7 @@ const hud = mountHud({
   workshop: () => workshop.toggle(),
   voice: () => voice?.cycle(),
   fov: (v) => rig.setFov(v),
+  fovFpv: (v) => rig.setFpvFov(v),
   abort: () => room?.send("abort"),
   leave: () => { const u = new URLSearchParams(location.search); u.set("offline", "1"); u.delete("room"); room?.leave(); location.search = u.toString(); },     // leave the room: reload into offline practice
   invite: () => {                                                                   // private room: first click opens a new code, in a room the click copies the invite link
@@ -83,7 +84,7 @@ const hud = mountHud({
   vtx: (mw, ch) => setVtx(mw, ch),
   replay: () => (replay ? stopReplay() : startReplay()), saveReplay: () => saveReplay(),
 }, { types: PLANE_TYPES, names: PLANE_NAMES, current: planeType });
-hud.setFov(rig.fov);
+hud.setFov(rig.fov); hud.setFov(rig.fpvFov, true);
 const workshop = mountWorkshop(PLANE_TYPES, PLANE_NAMES, build);
 if (strict) { const adv = document.getElementById("ws-adv"); if (adv) adv.style.display = "none"; }
 if (!strict) mountPhysicsPanel(build, (b) => { saveBuild(b); location.reload(); });          // advanced physics editor (PicaSim-style parameters)
