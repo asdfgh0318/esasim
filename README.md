@@ -17,13 +17,16 @@
 - **ESA scoring** (§6, WWII): +1 per 3 s of flight (100 for the full time), +100 per cut (one attack = one cut), +50 for keeping your streamer, +20 for landing in the 50 x 20 m field after the end signal, −200 for crossing the safety line (second crossing: disqualified), −50 for avoiding combat.
 - **Workshop**: tune your plane (type, span, battery, prop, ballast) inside the ESA limits (span 700-860 mm, 200-450 g, 15 Wh). The battery drains with throttle, so a bigger one is heavier but lasts. An illegal plane still flies but scores 0 for the round (§6).
 - **Four modelled planes** (Spitfire, Hurricane, FW 190, Yak-3), built in OpenSCAD to ESA kit proportions, plus the **Electric Kato** flying wing from PicaSim (its aerodynamic numbers; our own model). The Kato is a tail-less flying wing (elevator and ailerons share the same elevons), flown with the sticks; it is ESA-legal at the default 800 mm (about 285 g) but it is not a WWII warbird, and bots never fly it.
-- **Pursuit bots**, so you can test alone. Add up to six. Gusty air is shared by all planes.
+- **Pursuit bots**, so you can test alone: add up to six, at three skill levels (easy, club, ace); they break away when someone sits on their tail. Gusty air is shared by all planes (the same wind on the server and in your browser).
 - **Hand launch** like real WWII ESA, from your start box. **Pilot camera** standing at your start box and following the plane (default), or **analog-style FPV** (V): scanlines, snow and tearing grow with distance from you, ending in signal lost.
 - **Textured sky** (procedural clouds and sun) and a **beginner orientation widget** in the top-right corner: your plane as you see it from the start box, with a yellow nose arrow, an orange sphere (left) and a blue cube (right) on the wing tips and a plain-language label ("Nose toward you · banked left").
 - **Analog FPV and video interference**: every plane carries a video transmitter (power 25, 50 or 100 mW, the maximum in this game, channel R1-R8). Range grows with power. Another pilot's transmitter near your start box, especially a 100 mW one next to your 25 mW, only now and then draws a short thin horizontal glitch line in your feed (at 100 mW at most, that is all a pass-by does; your own range still decides how far you can fly). Switch power and channel live (model in your hand). This is a sim effect, ESA has no VTX rules.
 - **Replay**: after a fight, watch it back (scoreboard and events included) or save it as JSON, useful as evidence for protests (§4.19).
 - **RadioMaster support** (any USB joystick-mode radio) with mapping and calibration (key R), ported from the author's earlier drone sim. Keyboard works too.
-- The flight model, streamer, cut detection, scoring, series, workshop and bots are headless and covered by tests (`npm test`).
+- **Fair online play**: the server judges cuts with **lag compensation** (it rewinds the victim's streamer by your measured round trip, capped at 250 ms, see [`docs/netcode.md`](docs/netcode.md)), your own streamer is drawn locally, other planes are shown 100 ms in the past so they move smoothly, a dropped pilot can **reconnect** to the same box, and the server rejects teleports and impossible reports.
+- **Private rooms**, a host who starts the fight, **End match** / **Leave** buttons, optional **voice chat**, and contest rooms (`&strict=1`) without the physics editor.
+- **Polish and English UI** (`?lang=pl|en`), a first-flight guide, sound (whistle, cut, motor), colour-blind-friendly wing markers, and a results screen that links to real ESA resources.
+- The flight model, streamer, cut detection, scoring, series, workshop, bots, rooms, lag compensation and the server are headless and covered by tests (`npm test`, 173 checks).
 
 ![Workshop: span, battery, prop and ballast with the ESA legality check](docs/img/workshop.png)
 ![The advanced physics editor](docs/img/physics-panel.png)
@@ -54,7 +57,7 @@ npm start        # game server (:2567) and client (http://localhost:5173) togeth
 
 1. Open http://localhost:5173. Press **Add bot** a few times, **Ready**, **Start fight**. **Workshop** tunes your plane.
 2. During preparation and flight press **Space** to throw your plane, then fly. Keyboard (same layout as the drone sim): **W/S pitch** (W = nose down), **A/D roll**, **Q/E yaw**, **Shift/Ctrl throttle**; arrows also pitch/roll. With a radio: plug it in (joystick mode), press **R** to map and calibrate.
-3. Cameras: **P** pilot view (default), **V** analog FPV. The video transmitter (power, channel) is switched with the selectors bottom left, with the model in your hand; a 5 W transmitter reaches far but swamps other pilots' video when it flies near their box.
+3. Cameras: **P** pilot view (default), **V** analog FPV. The video transmitter (power, channel) is switched with the selectors bottom left, with the model in your hand; everybody is limited to 100 mW in this game.
 4. Others can join the same room from other browsers (`?server=<host>` if the server is on another machine). Without a server the page runs as offline practice.
 
 ### Play with a friend
@@ -87,23 +90,26 @@ Wings carry aerobatic stripes in each pilot's colour (white between the stripes 
 
 ## Models
 
-`models/scad/esa_plane.scad` is the source (needs `openscad`); `tools/build-models.sh` rebuilds the STLs in `public/models/`; `viewer.html?plane=all` previews them.
+`models/scad/esa_plane.scad` (the four warbirds) and `models/scad/kato.scad` (the flying wing) are the sources (need `openscad`); `tools/build-models.sh` rebuilds the STLs in `public/models/`; `viewer.html?plane=all` previews them.
 
 ## Tests
 
-`npm test` runs the flight model, streamer and cut detection, fight scoring (one check per §6 line), the workshop limits and battery, the contest series, a headless 5-minute bot fight, and a server integration test with real WebSocket clients.
+`npm test` (173 checks) runs the flight model and the Kato, streamer and cut detection, fight scoring (one check per §6 line), the workshop limits and battery, the rule fixes from the audit, the contest series, a headless 5-minute bot fight, lag-compensated cuts, and server tests with real WebSocket clients (fight, rooms, reconnect, host-only controls). GitHub Actions runs them on every push.
 
 ## Honest status
 
-- The physics engine is PicaSim's; the **ESA plane numbers on top of it are my estimates** (marked in `shared/picasim/esaDef.js`) and need real stick time. A hands-off launch needs full throttle (the keyboard launch sets it), and the glide is modest.
-- Each browser flies its own plane and the server judges, so a modified client could cheat on its own flight.
-- Not done yet: better 3D models (the OpenSCAD ones are stylised), stuck streamers (§4.11), the 'pilot in zone' procedure (§4.6), the WWI class, more of the "fly for real" research. See the [issues](https://github.com/asdfgh0318/esasim/issues).
-- Bots land mid-field rather than for the +20 bonus. The RadioMaster panel has not been tested with real hardware. The workshop's mass and prop formulas are my estimates (listed in `shared/workshop.js`).
+- The physics engine is PicaSim's; the **ESA plane numbers on top of it are my estimates** (marked in `shared/picasim/esaDef.js`) and need real stick time. The default planes are deliberately foamy-aerobat-like (+20 % mass, more thrust, bigger throws). The Kato is tuned to be flyable (stronger elevons, mild camber), not a faithful PicaSim copy; see [`docs/physics.md`](docs/physics.md).
+- Each browser still flies its own plane and the server judges. The server checks reports for plausibility and compensates lag, but a modified client could still cheat on its own flight ([`docs/netcode.md`](docs/netcode.md)). Lag compensation, voice chat and the tunnel instructions have not been tested over a real internet connection.
+- Not done yet: stuck streamers (§4.11), the 'pilot in zone' procedure (§4.6), the wing/tail tolerance at the safety line, the WWI class, bots flying closer to the pilots, better 3D models (the OpenSCAD ones are stylised). See the [issues](https://github.com/asdfgh0318/esasim/issues) and the audit in [`docs/audit-and-roadmap.md`](docs/audit-and-roadmap.md).
+- The RadioMaster panel has not been tested with real hardware. The Polish text is a first draft. The workshop's mass and prop formulas are my estimates (listed in `shared/workshop.js`).
 
 ## Docs
 
 - [`docs/rules.md`](docs/rules.md): the ESA rules, extracted with citations and mapped to the code
-- [`docs/physics.md`](docs/physics.md): the PicaSim-derived flight physics, the ESA plane definitions, the parameter editor
+- [`docs/physics.md`](docs/physics.md): the PicaSim-derived flight physics, the ESA plane definitions, the foamy defaults, throws, the Electric Kato, the parameter editor
+- [`docs/netcode.md`](docs/netcode.md): how cuts are judged online (lag compensation), what the server checks, what a cheater can still do
+- [`docs/audit-and-roadmap.md`](docs/audit-and-roadmap.md): the audit of the project and the development paths, with a status note
+- [`docs/venues.md`](docs/venues.md): the real venues used as visual reference
 - [`docs/rules-aces.md`](docs/rules-aces.md): the ACES fallback rules
 - [`docs/fly-for-real.md`](docs/fly-for-real.md): verified Polish shops, guides, teams and contests (feeds the in-game intro)
 - [`docs/drone-sim-audit.md`](docs/drone-sim-audit.md): what was reused from the earlier drone sim
@@ -118,4 +124,4 @@ ESASIM is source-available and free for hobbyists: [PolyForm Noncommercial 1.0.0
 
 ## Credits
 
-ESA and ACES rule documents belong to their authors (ACES Polska, aircombat.eu), included for reference. Flight physics derived from [PicaSim](https://github.com/Rowlhouse/PicaSim) by Danny Chapman. Sky and grass textures: [Poly Haven](https://polyhaven.com/license), CC0 (Greg Zaal, Jarod Guest, Charlotte Baglioni). Built by [asdfgh0318](https://github.com/asdfgh0318), vibecoded with Claude Code. Earlier sim: [fpv_simulator](https://github.com/asdfgh0318/fpv_simulator).
+ESA and ACES rule documents belong to their authors (ACES Polska, aircombat.eu), included for reference. Flight physics derived from [PicaSim](https://github.com/Rowlhouse/PicaSim) by Danny Chapman. The Electric Kato's parameters come from PicaSim's data files; the plane is Kevin Bagwell's design (RCGroups); the 3D mesh is our own. Sky and grass textures: [Poly Haven](https://polyhaven.com/license), CC0 (Greg Zaal, Jarod Guest, Charlotte Baglioni). Built by [asdfgh0318](https://github.com/asdfgh0318), vibecoded with Claude Code. Earlier sim: [fpv_simulator](https://github.com/asdfgh0318/fpv_simulator).
