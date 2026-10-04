@@ -25,7 +25,7 @@ export function mountWorkshop(types, names, build) {
     <div class="row"><label>Video power</label><select id="ws-vtxMw">${VTX_POWERS.map((p) => `<option value="${p}" ${p === b.vtxMw ? "selected" : ""}>${p >= 1000 ? p / 1000 + " W" : p + " mW"}${p === 25 ? " (race mode)" : ""}</option>`).join("")}</select>
       <select id="ws-vtxCh"><option value="-1" ${b.vtxCh < 0 ? "selected" : ""}>Auto channel</option>${CHANNELS.map((c, i) => `<option value="${i}" ${i === b.vtxCh ? "selected" : ""}>${c}</option>`).join("")}</select></div>
     <div id="ws-mass" class="hint"></div><div id="ws-res"></div>
-    <button id="ws-apply" class="go">Apply and rejoin</button><button id="ws-reset">Reset</button>
+    <button id="ws-apply" class="go">Apply and rejoin</button><button id="ws-reset">Reset</button><button id="ws-adv">Advanced physics…</button>
     <div class="hint">ESA limits: span 700-860 mm (§3.1.2), mass 200-450 g (§3.6.2), battery max 15 Wh (§3.4). An illegal plane still flies but scores 0 for the round (§6). The battery drains with throttle. A strong video transmitter reaches far but swamps other pilots' video when you fly near their box (sim effect, not an ESA rule).</div>`;
   document.body.append(el);
   const $ = (id) => el.querySelector("#" + id);
@@ -37,7 +37,8 @@ export function mountWorkshop(types, names, build) {
     $("ws-res").innerHTML = r.ok ? '<div class="ok">Legal: counts for points.</div>' : r.problems.map((p) => `<div class="bad">${p.rule}: ${p.text}</div>`).join("");
   };
   el.querySelectorAll("input,select").forEach((i) => i.oninput = refresh); refresh();
-  $("ws-apply").onclick = () => { saveBuild(clampBuild(b)); location.reload(); };
+  $("ws-apply").onclick = () => { saveBuild(clampBuild({ ...build, ...b })); location.reload(); };
+  $("ws-adv").onclick = () => dispatchEvent(new Event("esasim:physics"));
   $("ws-reset").onclick = () => { saveBuild({ ...DEFAULT_BUILD, plane: b.plane }); location.reload(); };
   return { toggle: () => { el.style.display = el.style.display === "block" ? "none" : "block"; } };
 }

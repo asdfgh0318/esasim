@@ -2,7 +2,10 @@
 // [kit] = ESA Hurricane kit page at ef3m.pl (papers/poland/shop_ef3m_hurricane.html, local): span 800 mm, length about 600 mm,
 // 200-350 g depending on equipment, prop 8x4 or 9x5, motor with at least 300 g thrust.
 // [scad] = from models/scad/esa_plane.scad. DESIGN = our estimate to tune (no source gives these).
+import { buildEsaDef } from "../picasim/esaDef.js";
+
 export const ESA_WWII = {
+  def: buildEsaDef({}),   // PicaSim-derived aeroplane definition (shared/picasim/); the numbers below are kept for the old model, rules and UI
   name: "ESA WWII generic (foam)",
   mass: 0.32,            // kg: rule 0.2-0.45 kg (§3.6.2), kit 0.20-0.35 kg [kit]
   span: 0.80,            // m: rule 0.70-0.86 m (§3.1.2), kit 0.80 m [kit]

@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { Client } from "@colyseus/sdk";
 import { buildField } from "./field.js";
-import { Plane } from "../shared/flight.js";
+import { createPlane as createSimPlane } from "../shared/plane.js";
 import { Streamer } from "../shared/streamer.js";
 import { toParams } from "../shared/workshop.js";
 import { FIELD, pitX } from "../shared/rules.js";
@@ -15,16 +15,17 @@ import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
 import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
-import { makeSky } from "./sky.js";
+import { makeSky, loadHdrSky } from "./sky.js";
 import { createOrientationWidget } from "./orientation.js";
 import { FpvShader } from "./fpvEffect.js";
 import { signalQuality, interference, CHANNELS } from "../shared/vtx.js";
 import { loadBuild, saveBuild, mountWorkshop } from "./workshop.js";
+import { mountPhysicsPanel } from "./physicsPanel.js";
 import { createPlane, setTint, spinProp, PLANE_TYPES, PLANE_NAMES } from "./planeModel.js";
 
 const params = new URLSearchParams(location.search);
 const scene = new THREE.Scene();
-scene.background = makeSky();                              // textured sky: gradient, clouds, sun
+scene.background = makeSky(); loadHdrSky(scene);          // procedural sky at once, the CC0 HDR sky replaces it when loaded
 scene.fog = new THREE.Fog(0xc0dcf0, 150, 650);            // haze matches the sky at the horizon
 scene.add(new THREE.HemisphereLight(0xffffff, 0x446644, 1.2), buildField());
 const camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 1500);
@@ -42,7 +43,7 @@ const planeType = build.plane;
 const simParams = toParams(build);                       // the pilot's workshop build; the server validates it (ESA §3, §6)
 
 // ---- state ----
-const sim = new Plane(simParams);
+const sim = createSimPlane(simParams);
 let me = { id: null, pit: 3 };
 let phase = "lobby", snapNames = new Map(), online = false;
 const myMesh = createPlane(planeType, COLORS[me.pit], { spanMm: build.spanMm }); scene.add(myMesh);
@@ -65,6 +66,7 @@ const hud = mountHud({
   replay: () => (replay ? stopReplay() : startReplay()), saveReplay: () => saveReplay(),
 }, { types: PLANE_TYPES, names: PLANE_NAMES, current: planeType });
 const workshop = mountWorkshop(PLANE_TYPES, PLANE_NAMES, build);
+mountPhysicsPanel(build, (b) => { saveBuild(b); location.reload(); });          // advanced physics editor (PicaSim-style parameters)
 
 function home() {                                  // plane back in the pilot's hand at the start box (ESA §4.4, §4.6)
   sim.pos.set(pitX(me.pit), 1.4, FIELD.pilotLineZ); sim.vel.set(0, 0, 0); sim.quat.identity(); sim.omega.set(0, 0, 0);
@@ -76,7 +78,7 @@ const canLaunch = () => sim.held && (!online || phase === "lobby" || phase === "
 addEventListener("keydown", (e) => {
   keys.add(e.code);
   if (e.code === "Space" || e.code.startsWith("Arrow")) e.preventDefault();       // a focused button must not swallow Space
-  if (e.code === "Space") { if (canLaunch()) { sim.launch(); } else if (sim.held) hud.toast("Not now: launch is allowed in the flight part (§4.2.3)"); }
+  if (e.code === "Space") { if (canLaunch()) { if (!radio.connected) kbThrottle = 1; sim.launch(); hud.toast(radio.connected ? "Launched" : "Launched at full throttle (Ctrl to reduce)"); } else if (sim.held) hud.toast("Not now: launch is allowed in the flight part (§4.2.3)"); }
 });
 addEventListener("keyup", (e) => keys.delete(e.code));
 addEventListener("blur", () => keys.clear());                               // no stuck keys after switching windows

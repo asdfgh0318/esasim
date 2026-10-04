@@ -9,6 +9,8 @@
 ## What works now
 
 - **A full ESA contest**: a waiting room, then rounds and a final (3 rounds + final per §4.1, points add up, ties by the final then the best single fight, §4.16). Each fight: preparation (test flights), readiness, a 5-minute flight, landing, results. Up to 7 pilots, humans and bots.
+- **PicaSim-derived flight physics**: each plane is a rigid body flown by blade-element aerofoils (real stall curves, drag buckets, prop wash, ground effect) and a blade-element propeller with RPM dynamics, ported from [PicaSim](https://github.com/Rowlhouse/PicaSim) with ESA-specific plane definitions ([`docs/physics.md`](docs/physics.md)).
+- **Advanced physics editor**: about 175 PicaSim-style parameters of your plane (wing CLPerDegree, flap fractions, control throws, propeller radius and torque, masses, positions, size/mass/drag/engine scales ...), searchable, with import and export. The weighed mass and the measured span still count for legality.
 - **Streamers and cuts**: the 10 m streamer follows the tail's trace with turbulence wobble. A cut happens when the prop disc or the wing leading edge sweeps through an enemy streamer (swept tests, so fast passes don't tunnel).
 - **ESA scoring** (§6, WWII): +1 per 3 s of flight (100 for the full time), +100 per cut (one attack = one cut), +50 for keeping your streamer, +20 for landing in the 50 x 20 m field after the end signal, −200 for crossing the safety line (second crossing: disqualified), −50 for avoiding combat.
 - **Workshop**: tune your plane (type, span, battery, prop, ballast) inside the ESA limits (span 700-860 mm, 200-450 g, 15 Wh). The battery drains with throttle, so a bigger one is heavier but lasts. An illegal plane still flies but scores 0 for the round (§6).
@@ -22,6 +24,7 @@
 - The flight model, streamer, cut detection, scoring, series, workshop and bots are headless and covered by tests (`npm test`).
 
 ![Workshop with a limit violation](docs/img/workshop.png)
+![The advanced physics editor](docs/img/physics-panel.png)
 ![Contest results with the winner](docs/img/results.png)
 ![The four OpenSCAD planes](docs/img/models.png)
 ![Waiting room: bots in their start boxes](docs/img/lobby.png)
@@ -61,7 +64,7 @@ Short phases for testing: `ESASIM_PREP=5 ESASIM_READY=2 ESASIM_FLIGHT=60 ESASIM_
 
 ## Honest status
 
-- Flight and streamer numbers are design estimates (marked `DESIGN` in the code). They need real stick time; the generic plane is not a specific model yet.
+- The physics engine is PicaSim's; the **ESA plane numbers on top of it are my estimates** (marked in `shared/picasim/esaDef.js`) and need real stick time. A hands-off launch needs full throttle (the keyboard launch sets it), and the glide is modest.
 - Each browser flies its own plane and the server judges, so a modified client could cheat on its own flight.
 - Not done yet: better 3D models (the OpenSCAD ones are stylised), stuck streamers (§4.11), the 'pilot in zone' procedure (§4.6), the WWI class, more of the "fly for real" research. See the [issues](https://github.com/asdfgh0318/esasim/issues).
 - Bots land mid-field rather than for the +20 bonus. The RadioMaster panel has not been tested with real hardware. The workshop's mass and prop formulas are my estimates (listed in `shared/workshop.js`).
@@ -69,6 +72,7 @@ Short phases for testing: `ESASIM_PREP=5 ESASIM_READY=2 ESASIM_FLIGHT=60 ESASIM_
 ## Docs
 
 - [`docs/rules.md`](docs/rules.md): the ESA rules, extracted with citations and mapped to the code
+- [`docs/physics.md`](docs/physics.md): the PicaSim-derived flight physics, the ESA plane definitions, the parameter editor
 - [`docs/rules-aces.md`](docs/rules-aces.md): the ACES fallback rules
 - [`docs/fly-for-real.md`](docs/fly-for-real.md): verified Polish shops, guides, teams and contests (feeds the in-game intro)
 - [`docs/drone-sim-audit.md`](docs/drone-sim-audit.md): what was reused from the earlier drone sim
@@ -77,6 +81,10 @@ Short phases for testing: `ESASIM_PREP=5 ESASIM_READY=2 ESASIM_FLIGHT=60 ESASIM_
 
 Every game rule in the code cites its § of the [ESA 2024 regulations](papers/poland/Regulamin_Aircombat_ESA_2024.pdf) (see [`shared/rules.js`](shared/rules.js)); ESA falls back to the international ACES rules for anything it does not cover. The PDFs in `papers/` govern over any summary in this repo.
 
+## Licence
+
+ESASIM is open source for hobbyists: [PolyForm Noncommercial 1.0.0](LICENSE) (use, study, change and share for any noncommercial purpose). That licence is also what lets it build on PicaSim's physics; see [`NOTICE`](NOTICE).
+
 ## Credits
 
-ESA and ACES rule documents belong to their authors (ACES Polska, aircombat.eu), included for reference. Built by [asdfgh0318](https://github.com/asdfgh0318), vibecoded with Claude Code. Earlier sim: [fpv_simulator](https://github.com/asdfgh0318/fpv_simulator).
+ESA and ACES rule documents belong to their authors (ACES Polska, aircombat.eu), included for reference. Flight physics derived from [PicaSim](https://github.com/Rowlhouse/PicaSim) by Danny Chapman. Sky and grass textures: [Poly Haven](https://polyhaven.com/license), CC0 (Greg Zaal, Jarod Guest, Charlotte Baglioni). Built by [asdfgh0318](https://github.com/asdfgh0318), vibecoded with Claude Code. Earlier sim: [fpv_simulator](https://github.com/asdfgh0318/fpv_simulator).

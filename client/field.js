@@ -8,7 +8,12 @@ export function buildField() {
     const m = new THREE.Mesh(new THREE.PlaneGeometry(w, d), new THREE.MeshBasicMaterial({ color }));
     m.rotation.x = -Math.PI / 2; m.position.set(x, y, z); g.add(m); return m;
   };
-  const grass = new THREE.Mesh(new THREE.PlaneGeometry(500, 500), new THREE.MeshLambertMaterial({ color: 0x3f7a3a }));
+  const grassMat = new THREE.MeshLambertMaterial({ color: 0x3f7a3a });                                // plain green until the texture arrives
+  new THREE.TextureLoader().load("/textures/grass_leafy_grass_diff_1k.jpg", (tex) => {                 // Poly Haven CC0 grass (see NOTICE)
+    tex.wrapS = tex.wrapT = THREE.RepeatWrapping; tex.repeat.set(110, 110); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
+    grassMat.map = tex; grassMat.color.setHex(0xb8c8a8); grassMat.needsUpdate = true;
+  });
+  const grass = new THREE.Mesh(new THREE.PlaneGeometry(500, 500), grassMat);
   grass.rotation.x = -Math.PI / 2; g.add(grass);
 
   const lf = FIELD.landingField;

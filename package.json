@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "server": "node server/index.js",
-    "test": "node test/flight.test.js && node test/cut.test.js && node test/fight.test.js && node test/workshop.test.js && node test/vtx.test.js && node test/series.test.js && node test/bot.test.js && node test/server.test.js",
+    "test": "node test/flight.test.js && node test/picasim.test.js && node test/cut.test.js && node test/fight.test.js && node test/workshop.test.js && node test/vtx.test.js && node test/series.test.js && node test/bot.test.js && node test/server.test.js",
     "start": "node tools/start.mjs"
   },
   "dependencies": {

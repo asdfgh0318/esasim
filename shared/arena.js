@@ -3,7 +3,7 @@
 // arena judges: streamers, cuts and scoring (ESA §4, §6).
 import * as THREE from "three";
 import { Fight } from "./fight.js";
-import { Plane } from "./flight.js";
+import { createPlane } from "./plane.js";
 import { Streamer } from "./streamer.js";
 import { findCut } from "./cut.js";
 import { BotPilot } from "./bot.js";
@@ -48,7 +48,7 @@ export class Arena {
     const mw = bot ? randomPower() : (build?.vtxMw ?? 25), ch = !bot && build && build.vtxCh >= 0 ? build.vtxCh : this._freeChannel();
     p.illegal = !ok;                                                    // workshop check (ESA §3.4, §3.6.2, §6)
     const s = { id, name, bot, type, params, vtx: { mw, ch }, geom: this._geom(params), pit: p.pit, streamer: new Streamer({ seed: p.pit + 1 }), prev: null, cur: null, airborne: false, downT: -1, launchAt: 0, tail: [0, 0, 0] };
-    if (bot) { s.plane = new Plane(params); s.ai = new BotPilot({ skill: 0.7, seed: p.pit + 3 }); this._home(s); }
+    if (bot) { s.plane = createPlane(params); s.ai = new BotPilot({ skill: 0.7, seed: p.pit + 3 }); this._home(s); }
     this.slots.set(id, s); return s;
   }
   addHuman(id, name, type, build) { return this._slot(id, name, false, type, build); }

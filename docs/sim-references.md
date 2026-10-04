@@ -19,6 +19,10 @@ My `shared/flight.js` is a single lumped body: lift and drag from one wing, and 
 - **control effectiveness that halves at a given speed** (`mControlHalfSpeed`), so elevators and ailerons go mushy at low speed;
 - **prop wash** over the wing and tail, **shadowing** of the fin by the tailplane, **ground effect**, and a turbulence input.
 
-## Suggested next step (not done)
+## Update: what was done with this (same day)
+
+The physics was ported: see [`physics.md`](physics.md). PicaSim's README says its **images and models need the authors' permission for use in other projects** (only its text and XML data, which includes the aeroplane and aerofoil parameters, are under the PolyForm licence), so its textures are not used. ESASIM uses CC0 textures from Poly Haven instead (the same site PicaSim's own sky came from): see `NOTICE`. If you want PicaSim's own panoramas or skies, ask Danny Chapman (the address is in PicaSim's README).
+
+## Original suggestion (done)
 
 A "flight model v2": split the plane into wing halves, tailplane and fin using the surface geometry we already have in `models/scad/esa_plane.scad`, compute blade-element forces per surface with the effects above, and keep the current model as the baseline in the tests (same hand-launch, stall, roll-rate checks). The idea is not copyrightable, so it can be written from scratch; **do not copy PicaSim code** unless ESASIM is released under a noncommercial licence too (Adam to decide the repo licence; none is set yet).

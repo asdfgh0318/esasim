@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
 
 // Procedural sky (no image files): a blue gradient, haze toward the horizon, fractal-noise clouds and a sun, painted on an
 // equirectangular canvas and used as the scene background.
@@ -44,4 +45,12 @@ export function makeSky(w = 1024, h = 512) {
   const tex = new THREE.CanvasTexture(cv);
   tex.mapping = THREE.EquirectangularReflectionMapping; tex.colorSpace = THREE.SRGBColorSpace;
   return tex;
+}
+
+// Daytime HDR sky (Poly Haven, CC0, see NOTICE). Replaces the procedural sky once loaded; the procedural one is the instant fallback.
+export function loadHdrSky(scene) {
+  new RGBELoader().load("/textures/sky_kloofendal_48d_partly_cloudy_puresky_2k.hdr", (tex) => {
+    tex.mapping = THREE.EquirectangularReflectionMapping;
+    scene.background = tex; scene.backgroundIntensity = 0.62;
+  }, undefined, () => console.warn("HDR sky not loaded, keeping the procedural sky"));
 }

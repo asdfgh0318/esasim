@@ -22,26 +22,28 @@ export class BotPilot {
     const zone = FIELD.flightZone;
     // Predictive boundary: where will I be in 1.5 s? Turn radius is about 13 m and stalls throw the plane around, so keep a wide margin from the safety line (z = 0).
     const fx = pos.x + plane.vel.x * 1.5, fz = pos.z + plane.vel.z * 1.5, fy = pos.y + plane.vel.y * 1.2;
-    const out = Math.abs(fx) > zone.w * 0.4 || fz < 38 || pos.z < 31 || fz > zone.d * 0.92 || pos.y > 20;
+    const out = Math.abs(fx) > zone.w * 0.4 || fz < 44 || pos.z < 36 || fz > zone.d * 0.92 || pos.y > 20;
     const goAround = landing && (pos.z < 38 || (plane.vel.z < 0 && pos.z < 50));     // too close to the line while landing: power on, turn away
     if (goAround) _aim.set(0, 14, 62);
     else if (landing) _aim.set(0, 0, FIELD.flightZone.d * 0.55);                 // bots land mid-zone, far from the safety line; the +20 landing bonus (§4.7) is for humans
     else if (target && !out) _aim.copy(target.pos).addScaledVector(target.vel, clamp(best / speed, 0, 1.0));
     else _aim.copy(CENTER);
-    if (!landing) { _aim.y = clamp(_aim.y, 5, 16); if (_aim.z < 40 && !out) _aim.z = 40; }                                  // never aim near the safety line
+    if (!landing) { _aim.y = clamp(_aim.y, 7, 16); if (_aim.z < 46 && !out) _aim.z = 46; }                                  // never aim near the safety line
     const takeoff = pos.y < 7 && plane.airspeed < 13;                      // just thrown: level wings, gentle climb, full power
-    const low = !landing && !takeoff && (pos.y < 3 || fy < 2.5);
+    const low = !landing && !takeoff && (pos.y < 5 || fy < 4);
     _inv.copy(plane.quat).invert();
     _d.copy(_aim).sub(pos).applyQuaternion(_inv).normalize();
     let rollErr = Math.atan2(_d.x, _d.y);
     let pitchErr = Math.atan2(_d.y, Math.max(_d.z, 0.05));
     if (_d.z < 0) pitchErr = Math.sign(_d.y || 1) * 1.5;
     let elev = clamp(pitchErr * 1.6, -1, 1) * (0.25 + 0.75 * Math.max(0, Math.cos(rollErr)));
-    if (takeoff || low) {                                                   // wings level
+    if (takeoff || low) {                                                   // wings level (but still bank gently away from the boundary)
       _up.set(0, 1, 0).applyQuaternion(_inv); rollErr = Math.atan2(_up.x, _up.y);
-      elev = takeoff ? (plane.alpha > 0.15 ? 0 : 0.12) : 0.7;
+      if (out && Math.abs(rollErr) < 0.8) rollErr += _d.z > -0.5 ? clamp(_d.x * 1.5, -0.5, 0.5) : (_d.x >= 0 ? 0.5 : -0.5);
+      elev = takeoff ? (plane.alpha > 0.15 ? 0 : 0.12) : Math.min(0.7, clamp((0.15 - plane.alpha) * 7, 0, 1));
     }
     _fwd.set(0, 0, 1).applyQuaternion(plane.quat);
+    if (elev > 0) elev = Math.min(elev, clamp((0.16 - plane.alpha) * 7, 0, 1));    // angle-of-attack limiter: never pull into the stall
     if (_fwd.y > 0.6) elev = Math.min(elev, 0.2);                           // no steep climbs: they end in a stall
     if (!takeoff && !low && (plane.airspeed < (landing && !goAround ? 8 : 11) || Math.abs(plane.alpha) > 0.3)) {   // stall recovery: wings level, then nose slightly down
       _up.set(0, 1, 0).applyQuaternion(_inv); rollErr = Math.atan2(_up.x, _up.y);
