@@ -13,7 +13,8 @@ Early skeleton: not a game yet.
 - [x] Rules downloaded to [`papers/`](papers/) and extracted with citations: [`docs/rules.md`](docs/rules.md)
 - [x] Contest site built to scale from Fig. 1 of the rules (landing field 20 x 75 m, safety line, 7 start pits, readiness line)
 - [x] Stack: Vite + Three.js + Colyseus; two players see each other's placeholder planes
-- [ ] Real flight model (no stabilisation, §3.9)
+- [x] Flight model v0, no stabilisation (§3.9), first plane FW-190D from a real ACES plan; needs tuning
+- [x] RadioMaster support with calibration panel (key R), ported from the drone sim; keyboard fallback
 - [ ] Streamer and cut detection (§3.6, §4.11)
 - [ ] Fight phases, scoring, safety-line penalties (§4, §6)
 - [ ] Workshop: build and modify planes within the class limits (§3)
@@ -34,7 +35,13 @@ npm run server   # Colyseus on :2567
 npm run dev      # client on :5173
 ```
 
-Open http://localhost:5173. Arrows: pitch/roll, A/D: yaw, W/S: throttle. Without the server it runs offline.
+Open http://localhost:5173. With a radio (USB joystick mode): press R to map and calibrate it. Keyboard: arrows pitch/roll, A/D yaw, W/S throttle. Without the server it runs offline. `node test/flight.test.js` checks the flight model.
+
+## Docs
+
+- [`docs/rules.md`](docs/rules.md): the ACES rules, extracted with citations
+- [`docs/drone-sim-audit.md`](docs/drone-sim-audit.md): what was reused from the earlier drone sim
+- [`docs/models.md`](docs/models.md): what plane models are needed
 
 ## Rules and decisions
 

@@ -29,6 +29,15 @@ The original rule documents are saved, and committed, in `papers/` (PDFs plus an
 
 The game is a lure to get people flying ACES air combat in real life. The intro page must say so (done: `#intro` in `index.html`) and point to real-world resources: shops with ACES planes, documents, YouTube how-to-start videos, teams/clubs. Only verified links go on the page (currently just aircombat.eu). The rest is TODO: research it, download or read each source (global rule), keep it in `docs/fly-for-real.md`, then link it from the intro. No invented shops or links.
 
+## Decisions (Adam, 2026-10-04)
+
+- **Streamer / cut detection:** simplest version. The streamer follows the recorded trace of the plane's tail, with some extra wobble for turbulence. A cut is a streamer segment intersecting the enemy **prop disc** (§4.11). Rules details: several cuts in one fly-by count once; a cut together with a kill does not count.
+- **Classes:** electric only for now (§3.4 E). IC classes, WWI and EPA come later.
+- **Input:** Adam flies with a **RadioMaster**; the radio pipeline and calibration UI from the drone sim are ported (`client/input/`, panel on key R). Keyboard is the fallback. Not tested with real hardware yet.
+- **Physics:** the drone sim's quad physics does not transfer; new fixed-wing model in `shared/flight.js` (runs in Node and browser), params per plane in `shared/planes/`. See `docs/drone-sim-audit.md` for what else is reusable.
+- **Models:** Adam supplies them; see `docs/models.md`.
+- "Fly for real" research is tracked as GitHub issues, not done yet.
+
 ## Reference project
 
 `../symulator_fpv` (github.com/asdfgh0318/fpv_simulator): Three.js 0.160 via importmap, plain ES modules, no bundler. Worked well. Reuse ideas (input/gamepad mapping, rates, flight recorder, ghost, scenery loader), not necessarily code.
@@ -57,4 +66,6 @@ Still open:
 - 2026-10-04: Downloaded ACES rules to `papers/`, wrote `docs/rules.md`. Found ESA = ACES air combat.
 - 2026-10-04: Scaffold done: `shared/rules.js` (constants with § cites), `client/field.js` (Fig 1 site to scale), `client/main.js` (placeholder plane, offline-safe), `server/index.js` (Colyseus room, 7 clients §4.1, pose relay). `vite build` passes, server boots, headless screenshots OK. Two-client sync not yet tested.
 - 2026-10-04: Intro overlay with the "this game is bait" message. Flight area 150 x 100 m is a DESIGN value (rules silent).
-- 2026-10-04: Added README with screenshots.
+- 2026-10-04: Added README with screenshots. Pushed first commit to github.com/asdfgh0318/esasim.
+- 2026-10-04: Flight model v0 (`shared/flight.js`, `shared/planes/fw190d.js`, `test/flight.test.js`, all 6 checks pass). Params from the FW-190D plan (span 875 mm, 820 g, 9x4.7 prop). Thrust, drag, stability numbers are DESIGN guesses to tune with real stick time. Known weak spot: power-off glide is steep (about 5 m/s sink at 21 m/s, L/D around 4).
+- 2026-10-04: Ported the radio pipeline (`client/input/radio.js`, `radioUI.js`), client now flies the new model. Audit written: `docs/drone-sim-audit.md`. Plans for FW-190D and Fiat G.55 saved in `models/plans/`.
