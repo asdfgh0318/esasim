@@ -50,7 +50,6 @@ export class Fight {
 
   // reports: { [id]: { airborne, pos:[x,y,z], streamerIntact } } from the clients (pose of the plane and its streamer state).
   step(dt, reports = {}) {
-    this.events = [];
     this.clock += dt;
     for (const [id, r] of Object.entries(reports)) this._report(this.pilots.get(id), r, dt);
     if (this.phase === "prep" && (this.clock >= this.cfg.prep || this.allReady())) this._to("ready");
@@ -63,8 +62,9 @@ export class Fight {
       const allDown = [...this.pilots.values()].every((p) => !p.airborne);
       if (allDown || this.clock >= END_TIMEOUT) this._finish();
     }
-    return this.events;
+    return this.drain();
   }
+  drain() { const e = this.events; this.events = []; return e; }
 
   _report(p, r, dt) {
     if (!p || !r) return;

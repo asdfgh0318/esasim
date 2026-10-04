@@ -24,7 +24,9 @@ const get = (f, id) => f.pilots.get(id);
 // Flight points: +1 per 3 s, capped at 100 (§6).
 { const { f, run } = setup(); run(2.5, () => ({}));
   run(150, () => ({ a: air(), b: ground() })); check("flight time points 150 s = 50", f.flightPoints(get(f, "a")) === 50, `${f.flightPoints(get(f, "a"))}`);
-  run(149.5, () => ({ a: air(), b: ground() })); check("flight time points capped at 100", f.flightPoints(get(f, "a")) === 100, `${f.flightPoints(get(f, "a"))}`); }
+}
+{ const { f, run } = setup({ flight: 400 }); run(2.5, () => ({}));
+  run(310, () => ({ a: air(), b: ground() })); check("flight time points capped at 100 (§6)", f.flightPoints(get(f, "a")) === 100, `${f.flightPoints(get(f, "a"))}`); }
 
 // Cut +100, one attack = one cut (§4.11), attacker must be flying.
 { const { f, run } = setup(); run(2.5, () => ({ a: air(), b: air(25) }));

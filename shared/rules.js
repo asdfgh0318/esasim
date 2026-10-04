@@ -10,7 +10,7 @@ export const FIELD = {
   landingField: { w: 50, d: 20 },    // §2.2.2: 50 m long, 20 m deep from the safety line, inside the flight zone
   pitCount: 7,                       // §4.1: up to 7 pilots
   pitSpacing: 4,                     // §2.2.5: 3-5 m between pilots (middle value)
-  flightZone: { w: 100, d: 60 },     // DESIGN: §2.2.1 leaves the size to the organiser (§2 recommends a site >= 100 x 50 m)
+  flightZone: { w: 100, d: 80 },     // DESIGN: §2.2.1 leaves the size to the organiser (§2 recommends a site >= 100 x 50 m)
 };
 export const SCORING = {
   flightSecondsPerPoint: 3,          // §6

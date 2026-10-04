@@ -94,7 +94,7 @@ export class Plane {
     const along = this.vel.dot(fwd);
     const side = this.vel.clone().addScaledVector(fwd, -along); side.y = 0;
     this.vel.addScaledVector(side, -Math.min(1, 8 * dt));
-    this.vel.addScaledVector(fwd, -Math.sign(along) * Math.min(Math.abs(along), 0.4 * dt));
+    this.vel.addScaledVector(fwd, -Math.sign(along) * Math.min(Math.abs(along), 4 * dt));   // belly skid on grass: about 4 m/s² (DESIGN)
     // Gear holds the plane upright, nose may only rotate up.
     const e = new THREE.Euler().setFromQuaternion(this.quat, "YXZ");
     e.z *= 1 - Math.min(1, 10 * dt);
