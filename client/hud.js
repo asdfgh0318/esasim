@@ -26,6 +26,8 @@ const css = `
 #fh .tips ol{margin:6px 0 8px;padding-left:20px} #fh .tips li{margin:3px 0} #fh .tips button{padding:5px 12px;border:0;border-radius:6px;background:#2b3d5e;color:#fff;cursor:pointer}
 #fh .voice{position:absolute;left:12px;bottom:62px;pointer-events:auto}
 #fh .voice button{padding:5px 10px;border:0;border-radius:6px;background:#2b3d5e;color:#fff;cursor:pointer;font-size:12px} #fh .voice button.on{background:#2a8a56} #fh .voice button.err{background:#8a2a2a}
+#fh .matchbar{position:absolute;top:12px;right:176px;display:flex;gap:6px;pointer-events:auto}
+#fh .matchbar button{padding:6px 10px;font-size:12px;border:0;border-radius:6px;background:#2b3d5e;color:#fff;cursor:pointer} #fh .matchbar button#b-abort{background:#8a2a2a}
 #fh .help{position:absolute;right:12px;bottom:12px;font-size:11px;color:#9aa8bf;text-align:right}`;
 
 import { VTX_POWERS, CHANNELS } from "../shared/vtx.js";
@@ -41,6 +43,7 @@ export function mountHud(actions, planes) {
   el.innerHTML = `<div class="banner"><b id="fh-t">ESASIM</b><span id="fh-s"></span></div>
     <div class="score" id="fh-score"></div><div class="toasts" id="fh-toasts"></div>
     <div class="lobby" id="fh-lobby"><select id="b-plane" title="${t("planeTip")}"></select><button id="b-ws">${t("workshop")}</button><button id="b-ready">${t("ready")}</button><button id="b-invite" title="${t("inviteTip")}">${t("invite")}</button><select id="b-level" title="${t("levelTip")}"><option value="easy">${t("easy")}</option><option value="club" selected>${t("club")}</option><option value="ace">${t("ace")}</option></select><button id="b-bot">${t("addBot")}</button><button id="b-nobot">${t("rmBots")}</button><button id="b-start" class="go">${t("start")}</button></div>
+    <div class="matchbar" id="fh-match" style="display:none"><button id="b-abort">${t("abort")}</button><button id="b-leave">${t("leave")}</button></div>
     <div class="lobby" id="fh-replay" style="display:none"><button id="b-replay">${t("watch")}</button><button id="b-save">${t("saveReplay")}</button></div>
     <div class="batt" id="fh-batt"><div id="fh-batt-bar"></div><span id="fh-batt-t">${t("battery")}</span></div>
     <div class="orient" id="fh-orient"></div>
@@ -67,6 +70,8 @@ export function mountHud(actions, planes) {
   let tipsSeen = false; try { tipsSeen = localStorage.getItem("esasim-tips") === "1"; } catch { /* no storage */ }
   $("b-tips").onclick = () => { tipsSeen = true; $("fh-tips").style.display = "none"; try { localStorage.setItem("esasim-tips", "1"); } catch { /* ignore */ } };
   $("v-fov").onchange = () => actions.fov?.(Number($("v-fov").value));
+  $("b-abort").onclick = () => { if (confirm(t("abortAsk"))) actions.abort?.(); };
+  $("b-leave").onclick = () => actions.leave?.();
   $("b-voice").onclick = () => actions.voice?.();
   $("b-voice").textContent = t("voiceOff");
   let speaking = new Set();
@@ -83,7 +88,8 @@ export function mountHud(actions, planes) {
       $("fh-lobby").style.display = f.phase === "lobby" || f.phase === "prep" ? "flex" : "none";
       $("fh-tips").style.display = !tipsSeen && (f.phase === "lobby" || f.phase === "prep") ? "block" : "none";   // first-flight guide until dismissed
       $("fh-cta").style.display = f.phase === "results" ? "block" : "none";
-      const isHost = !snap.host || snap.host === meId;                              // only the host (the longest-present human) starts the fight and manages bots
+      const isHost = !snap.host || snap.host === meId;
+      $("fh-match").style.display = "flex"; $("b-abort").style.display = isHost && f.phase !== "lobby" ? "" : "none";             // End match: host only, once something is running; Leave: always                              // only the host (the longest-present human) starts the fight and manages bots
       $("b-bot").style.display = $("b-level").style.display = $("b-nobot").style.display = $("b-start").style.display = f.phase === "lobby" && isHost ? "" : "none";
       if (f.phase === "lobby" && !isHost) $("fh-s").textContent = t("waitHost", { name: f.pilots.find((p) => p.id === snap.host)?.name || t("theHost") });
       if (f.phase === "lobby" || f.phase === "results") { ready = false; $("b-ready").classList.remove("on"); }

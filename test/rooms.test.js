@@ -13,7 +13,7 @@ for (let i = 0; i < 50 && !ready; i++) await sleep(100);
 const join = async (pid, code, name = pid) => {
   const room = await new Client(`ws://localhost:${PORT}`).joinOrCreate("combat", { name, pid, code });
   const st = { room, snap: null, you: null, full: false };
-  room.onMessage("snap", (s) => { st.snap = s; }); room.onMessage("you", (y) => { st.you = y; }); room.onMessage("full", () => { st.full = true; }); room.onMessage("ping", (n) => room.send("pong", n));
+  room.onMessage("snap", (s) => { st.snap = s; }); room.onMessage("restart", () => {}); room.onMessage("you", (y) => { st.you = y; }); room.onMessage("full", () => { st.full = true; }); room.onMessage("ping", (n) => room.send("pong", n));
   return st;
 };
 try {
@@ -44,6 +44,12 @@ try {
     const aid = A.you.id, bid = B2.you.id;
     A.room.send("rtc", { to: bid, data: { join: true } }); A.room.send("rtc", { to: bid, data: { blob: "x".repeat(20000) } }); A.room.send("rtc", { to: Cc.you.id, data: { join: true } }); await sleep(400);
     check("rtc signalling reaches only the addressed pilot", got.B.length === 1 && got.B[0].from === aid && got.C.length === 0 && got.A.length === 0, `B=${got.B.length} C=${got.C.length} A=${got.A.length}`); }
+
+  // End match (issue #18): only the host can abort a running fight; everybody returns to the waiting room.
+  { A.room.send("start"); await sleep(400); const running = A.snap.fight.phase !== "lobby";
+    B2.room.send("abort"); await sleep(300); const stillRunning = A.snap.fight.phase !== "lobby";
+    A.room.send("abort"); await sleep(500);
+    check("only the host can end a running match, which returns to the lobby", running && stillRunning && A.snap.fight.phase === "lobby", `running=${running} afterGuest=${stillRunning} afterHost=${A.snap.fight.phase}`); }
 
   // A deliberate leave frees the box at once.
   B2.room.leave(); await sleep(500);

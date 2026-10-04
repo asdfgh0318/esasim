@@ -63,6 +63,7 @@ npm start        # game server (:2567) and client (http://localhost:5173) togeth
 - **Developing:** `npm start` runs the game server (:2567) and the Vite dev client (:5173) together; the dev client accepts any host name.
 - **Over the internet (not tested yet):** with `npm run play` only one port is needed, so one tunnel should be enough, for example `cloudflared tunnel --url http://localhost:2567`; your friend opens the https address it prints. I have not run a tunnel yet.
 - **Private rooms:** the lobby button "Private room" opens `?room=CODE` and then copies the invite link; the longest-present human is the host and is the only one who can start the fight or add bots. A pilot whose connection drops keeps the box and the contest score for 30 s and reconnects by itself.
+- **Ending a match:** the host has an "End match" button (back to the waiting room, the running fight is not scored) and every player has "Leave" (offline practice).
 - **Contest room:** add `&strict=1` to the room link (before anyone joins): the advanced physics editor is switched off, so everybody flies the ESA-checked workshop builds only.
 - Pilot names: add `&name=Alice`. The friend flies with the keyboard (WASD, Q/E, Shift/Ctrl, Space) or a USB radio (press R).
 

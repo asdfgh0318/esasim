@@ -41,6 +41,7 @@ class CombatRoom extends Room {
     this.onMessage("addBot", (c, m) => { if (isHost(c) && this.arena.fight.phase === "lobby") this.arena.addBot("Bot " + (this.arena.slots.size + 1), undefined, LEVELS[m?.level] ?? 0.7); });
     this.onMessage("removeBots", (c) => { if (isHost(c) && this.arena.fight.phase === "lobby") for (const s of [...this.arena.slots.values()]) if (s.bot) this.arena.remove(s.id); });
     this.onMessage("start", (c) => { if (isHost(c)) this.arena.fight.start(); });
+    this.onMessage("abort", (c) => { if (isHost(c) && this.arena.fight.phase !== "lobby") { this.arena.restart(); this.resultsAt = null; this.broadcast("restart", {}); } });   // host ends the match: back to the lobby, the aborted fight is not scored
     // Voice chat signalling only: the audio itself goes peer to peer (WebRTC). The server relays small handshake messages between two pilots of this room.
     this.onMessage("rtc", (c, m) => {
       if (!m || typeof m.to !== "string" || JSON.stringify(m.data ?? null).length > 12000) return;

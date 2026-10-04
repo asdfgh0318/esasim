@@ -73,6 +73,8 @@ const hud = mountHud({
   workshop: () => workshop.toggle(),
   voice: () => voice?.cycle(),
   fov: (v) => rig.setFov(v),
+  abort: () => room?.send("abort"),
+  leave: () => { const u = new URLSearchParams(location.search); u.set("offline", "1"); u.delete("room"); room?.leave(); location.search = u.toString(); },     // leave the room: reload into offline practice
   invite: () => {                                                                   // private room: first click opens a new code, in a room the click copies the invite link
     if (!roomCode) { const u = new URLSearchParams(location.search); u.set("room", Math.random().toString(36).slice(2, 6).toUpperCase()); location.search = u.toString(); return; }
     const link = `${location.origin}${location.pathname}?room=${roomCode}`;
@@ -244,7 +246,7 @@ function retry(t0) {
   if (Date.now() - t0 > 30000) { online = false; hud.toast(t("toast.noReconnect"), "bad"); hud.offline(); return; }
   new Client(serverUrl()).joinOrCreate("combat", joinOptions()).then((r) => { attach(r); hud.toast(t("toast.back"), "good"); }).catch(() => setTimeout(() => retry(t0), 2000));
 }
-new Client(serverUrl()).joinOrCreate("combat", joinOptions()).then((r) => {
+(params.has("offline") ? Promise.reject(new Error("offline")) : new Client(serverUrl()).joinOrCreate("combat", joinOptions())).then((r) => {
   attach(r);
   if (params.get("bots")) for (let i = 0; i < Number(params.get("bots")); i++) r.send("addBot");   // debug helpers for screenshots/tests
   if (params.has("autostart")) setTimeout(() => { r.send("ready", true); r.send("start"); }, 500);
