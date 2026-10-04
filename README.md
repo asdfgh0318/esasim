@@ -83,6 +83,8 @@ In a private room (`?room=CODE`) there is a "Voice: off" button. Click it once t
 
 The field of view is a setting, separately for the pilot view (40 to 90 degrees, default 60) and for the FPV camera (60 to 120 degrees, default 70), next to the video transmitter selectors. Keyboard sticks ramp up (about 0.3 s to full) and have expo, so a tap is a small input; press R for the radio panel, which has presets for a RadioMaster (AETR) and a gamepad (mode 2) plus calibration. The UI is Polish or English (`?lang=pl|en`, or the PL/EN button; Polish browsers start in Polish; the Polish text is a first draft). After every fight the results screen links to real ESA resources.
 
+Wings carry aerobatic stripes in each pilot's colour (white between the stripes on top, black underneath), so planes stay visible against sky and grass and top and bottom are easy to tell apart. Purely visual (`client/planeModel.js`).
+
 ## Models
 
 `models/scad/esa_plane.scad` is the source (needs `openscad`); `tools/build-models.sh` rebuilds the STLs in `public/models/`; `viewer.html?plane=all` previews them.
