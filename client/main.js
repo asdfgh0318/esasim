@@ -121,6 +121,12 @@ function saveReplay() {
 }
 
 // ---- network ----
+// ?server=HOST (port 2567), or a full ws:// / wss:// URL (needed behind a tunnel); default: the host that served this page.
+function serverUrl() {
+  const s = params.get("server");
+  if (s && /^wss?:\/\//.test(s)) return s;
+  return `${location.protocol === "https:" ? "wss" : "ws"}://${s || location.hostname}${s && s.includes(":") ? "" : ":2567"}`;
+}
 const nm = (id) => snapNames.get(id) || "?";
 function onEvent(e, fromReplay = false) {
   if (replay && !fromReplay) return;
@@ -159,7 +165,7 @@ function onSnap(snap, fromReplay = false) {
   for (const [id, o] of others) if (!seen.has(id)) { scene.remove(o.mesh); others.delete(id); }
   for (const [id, v] of views) if (!seen.has(id)) { v.dispose(); views.delete(id); }
 }
-new Client(`ws://${params.get("server") || location.hostname}:2567`).joinOrCreate("combat", { name: params.get("name") || "Pilot", plane: planeType, build }).then((r) => {
+new Client(serverUrl()).joinOrCreate("combat", { name: params.get("name") || "Pilot", plane: planeType, build }).then((r) => {
   room = r; online = true;
   r.onMessage("you", (y) => { me = y; rig.setPit(y.pit); setTint(myMesh, COLORS[y.pit % 7]); if (sim.held) home(); });
   r.onMessage("snap", (sn) => onSnap(sn)); r.onMessage("events", (ev) => { if (!replay) pendingEvents.push(...ev); ev.forEach((e) => onEvent(e)); });

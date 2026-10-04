@@ -52,6 +52,12 @@ npm start        # game server (:2567) and client (http://localhost:5173) togeth
 3. Cameras: **P** pilot view (default), **V** analog FPV. The video transmitter (power, channel) is switched with the selectors bottom left, with the model in your hand; a 5 W transmitter reaches far but swamps other pilots' video when it flies near their box.
 4. Others can join the same room from other browsers (`?server=<host>` if the server is on another machine). Without a server the page runs as offline practice.
 
+### Play with a friend
+
+- **Same network:** run `npm start`, find your address (`hostname -I`), and your friend opens `http://<your-address>:5173`. Both of you land in the same room (up to 7 pilots, bots included). Open ports 5173 and 2567 in your firewall if needed.
+- **Over the internet:** expose both ports with a tunnel, for example two [cloudflared](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/) quick tunnels (`cloudflared tunnel --url http://localhost:5173` and `cloudflared tunnel --url http://localhost:2567`). Your friend opens the first (https) address with `?server=wss://<second-address>` appended, e.g. `https://abc.trycloudflare.com/?server=wss://xyz.trycloudflare.com`.
+- Pilot names: add `&name=Alice`. The friend flies with the keyboard (WASD, Q/E, Shift/Ctrl, Space) or a USB radio (press R).
+
 Short phases for testing: `ESASIM_PREP=5 ESASIM_READY=2 ESASIM_FLIGHT=60 ESASIM_ROUNDS=1 npm run server`.
 
 ## Models
