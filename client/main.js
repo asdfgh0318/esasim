@@ -122,10 +122,11 @@ function saveReplay() {
 }
 
 // ---- network ----
-// ?server=HOST (port 2567), or a full ws:// / wss:// URL (needed behind a tunnel); default: the host that served this page.
+// ?server=HOST (port 2567), or a full ws:// / wss:// URL (needed behind a tunnel); default: the host that served this page (same port when the game server serves the page, port 2567 next to the Vite dev server).
 function serverUrl() {
   const s = params.get("server");
   if (s && /^wss?:\/\//.test(s)) return s;
+  if (!s && location.port !== "5173" && location.port !== "") return `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}`;   // page served by the game server itself (npm run play): same port
   return `${location.protocol === "https:" ? "wss" : "ws"}://${s || location.hostname}${s && s.includes(":") ? "" : ":2567"}`;
 }
 const nm = (id) => snapNames.get(id) || "?";

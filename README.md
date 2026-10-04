@@ -56,8 +56,9 @@ npm start        # game server (:2567) and client (http://localhost:5173) togeth
 
 ### Play with a friend
 
-- **Same network:** run `npm start`, find your address (`hostname -I`), and your friend opens `http://<your-address>:5173`. Both of you land in the same room (up to 7 pilots, bots included). Open ports 5173 and 2567 in your firewall if needed.
-- **Over the internet:** expose both ports with a tunnel, for example two [cloudflared](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/) quick tunnels (`cloudflared tunnel --url http://localhost:5173` and `cloudflared tunnel --url http://localhost:2567`). Your friend opens the first (https) address with `?server=wss://<second-address>` appended, e.g. `https://abc.trycloudflare.com/?server=wss://xyz.trycloudflare.com`.
+- **Same network (one port):** run `npm run play` (builds the client, then the game server serves it). Find your address (`hostname -I`) and your friend opens `http://<your-address>:2567`. Both of you land in the same room (up to 7 pilots, bots included). Open port 2567 in your firewall if needed. Tested: the page loads and connects through `localhost` and through the LAN address.
+- **Developing:** `npm start` runs the game server (:2567) and the Vite dev client (:5173) together; the dev client accepts any host name.
+- **Over the internet (not tested yet):** with `npm run play` only one port is needed, so one tunnel should be enough, for example `cloudflared tunnel --url http://localhost:2567`; your friend opens the https address it prints. I have not run a tunnel yet.
 - Pilot names: add `&name=Alice`. The friend flies with the keyboard (WASD, Q/E, Shift/Ctrl, Space) or a USB radio (press R).
 
 Short phases for testing: `ESASIM_PREP=5 ESASIM_READY=2 ESASIM_FLIGHT=60 ESASIM_ROUNDS=1 npm run server`.

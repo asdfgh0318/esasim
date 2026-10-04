@@ -1,3 +1,6 @@
+import { existsSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import express from "express";
 import { defineServer, defineRoom, Room } from "colyseus";
 import { Arena } from "../shared/arena.js";
 import { ESA_WWII } from "../shared/planes/esa-wwii.js";
@@ -40,6 +43,12 @@ class CombatRoom extends Room {
   onLeave(client) { this.arena.remove(client.sessionId); }
 }
 
-const server = defineServer({ rooms: { combat: defineRoom(CombatRoom) } });
+// One port for everything: if the client is built (`npm run build`, or `npm run play`), this server also serves it, so a friend only
+// needs http://<your-address>:2567 and no second port or tunnel. In development `npm start` serves the client with Vite instead.
+const dist = fileURLToPath(new URL("../dist", import.meta.url));
+const server = defineServer({
+  rooms: { combat: defineRoom(CombatRoom) },
+  express: (app) => { if (existsSync(dist)) { app.use(express.static(dist)); console.log("serving the built client from dist/"); } },
+});
 const port = Number(process.env.PORT) || 2567;
 server.listen(port).then(() => console.log(`ESASIM server on :${port}`));

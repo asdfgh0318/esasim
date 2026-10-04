@@ -8,7 +8,8 @@
     "build": "vite build",
     "server": "node server/index.js",
     "test": "node test/flight.test.js && node test/picasim.test.js && node test/cut.test.js && node test/fight.test.js && node test/workshop.test.js && node test/vtx.test.js && node test/audit.test.js && node test/series.test.js && node test/bot.test.js && node test/server.test.js",
-    "start": "node tools/start.mjs"
+    "start": "node tools/start.mjs",
+    "play": "vite build && node server/index.js"
   },
   "dependencies": {
     "@colyseus/schema": "^5.0.36",
@@ -16,7 +17,8 @@
     "@colyseus/ws-transport": "^0.18.4",
     "colyseus": "^0.18.9",
     "three": "^0.186.1",
-    "vite": "^8.3.2"
+    "vite": "^8.3.2",
+    "express": "^5.2.1"
   },
   "devDependencies": {
     "playwright-core": "^1.63.0"
