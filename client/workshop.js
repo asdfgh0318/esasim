@@ -15,7 +15,7 @@ const css = `
 #ws select{background:#0b1220;color:#e6edf7;border:1px solid #2b3d5e;border-radius:4px;padding:3px}
 #ws .ok{color:#2ad47a;margin-top:8px} #ws .bad{color:#ff7a7a;margin-top:4px} #ws button{margin:10px 8px 0 0;padding:7px 12px;border:0;border-radius:6px;background:#2b3d5e;color:#fff;cursor:pointer}
 #ws button.go{background:#d23b3b} #ws .hint{font-size:11px;color:#9aa8bf;margin-top:8px}`;
-const LABELS = { spanMm: [tr("w.span"), "mm"], batteryWh: [tr("w.battery"), "Wh"], propDiaIn: [tr("w.propD"), "in"], propPitchIn: [tr("w.propP"), "in"], ballastG: [tr("w.ballast"), "g"] };
+const LABELS = { spanMm: [tr("w.span"), "mm"], batteryWh: [tr("w.battery"), "Wh"], propDiaIn: [tr("w.propD"), "in"], propPitchIn: [tr("w.propP"), "in"], ballastG: [tr("w.ballast"), "g"], aileronDeg: [tr("w.aileron"), "°"], elevatorDeg: [tr("w.elevator"), "°"], rudderDeg: [tr("w.rudder"), "°"] };
 
 export function mountWorkshop(types, names, build) {
   document.head.append(Object.assign(document.createElement("style"), { textContent: css }));

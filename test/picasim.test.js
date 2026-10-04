@@ -22,7 +22,7 @@ const pitchDeg = (p) => deg(Math.asin(fwd(p).y));
   check("aerofoil: stalls (lift drops and drag rises past the stall range, AR 6)", cl(25) <= cl(9) && cd(25) > 5 * cd(5), `CL(9)=${cl(9).toFixed(2)} CL(25)=${cl(25).toFixed(2)}, CD(5)=${cd(5).toFixed(3)} CD(25)=${cd(25).toFixed(2)}`); }
 
 const base = mk();
-check("mass and CG", base.aero.mass > 0.30 && base.aero.mass < 0.36 && Math.abs(base.aero.comOffset.x) < 0.03, `${(base.aero.mass * 1000).toFixed(0)} g, CG x ${(base.aero.comOffset.x * 1000).toFixed(0)} mm`);
+check("mass and CG", base.aero.mass > 0.36 && base.aero.mass < 0.43 && Math.abs(base.aero.comOffset.x) < 0.03, `${(base.aero.mass * 1000).toFixed(0)} g, CG x ${(base.aero.comOffset.x * 1000).toFixed(0)} mm`);
 
 // power system: static thrust and electrical power at full throttle
 { const pl = fly(mk(), 200, 0, 1); run(pl, 1.5, (p) => { p.aero.comVel.set(0, 0, 0); p.aero.omegaB.set(0, 0, 0); p.aero.com.set(0, 0, 200); }); const e = pl.aero.engines[0];
@@ -58,6 +58,12 @@ check("mass and CG", base.aero.mass > 0.30 && base.aero.mass < 0.36 && Math.abs(
   check("roll rate with full aileron", peak > 150 && peak < 600, `${peak.toFixed(0)} deg/s`);
   const q = fly(mk(), 400, 14, 0.5); run(q, 0.5); let pk = 0; q.input.elevator = 1; run(q, 0.8, (p) => { pk = Math.max(pk, Math.abs(deg(p.omega.x))); });
   check("pitch rate with full elevator", pk > 70 && pk < 400, `${pk.toFixed(0)} deg/s`); }
+
+// servo throws (issue #20): a bigger throw gives a faster response, a smaller one a slower response
+{ const rate = (key, v, ax) => { const q = fly(mk({ [key]: v }), 400, 14, 0.5); run(q, 0.5); q.input[key === "aileronDeg" ? "aileron" : "elevator"] = 1; let pk = 0; run(q, 0.7, (p) => { pk = Math.max(pk, Math.abs(deg(p.omega[ax]))); }); return pk; };
+  const r15 = rate("aileronDeg", 15, "z"), r45 = rate("aileronDeg", 45, "z"), e15 = rate("elevatorDeg", 15, "x"), e45 = rate("elevatorDeg", 45, "x");
+  check("aileron throw: 45 degrees rolls faster than 15 degrees", r45 > r15 * 1.4, `${r15.toFixed(0)} -> ${r45.toFixed(0)} deg/s`);
+  check("elevator throw: 45 degrees pitches faster than 15 degrees", e45 > e15 * 1.3, `${e15.toFixed(0)} -> ${e45.toFixed(0)} deg/s`); }
 
 // hand launch (ESA 4.4) at full throttle, hands off: must climb away and not hit the ground
 { const pl = mk(); pl.pos.set(0, 1.4, -3); pl.held = true; pl.input.throttle = 1; pl.launch(); let minY = 99; run(pl, 6, (p) => { minY = Math.min(minY, p.pos.y); });

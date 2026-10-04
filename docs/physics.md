@@ -31,3 +31,14 @@ Two layers, both in the UI:
 ## Tests
 
 `npm test` includes `test/picasim.test.js` (aerofoil curves and stall, mass and CG, motor, glide, control directions, rates, hand launch, belly landing, battery, stall, all four planes, speed, parameter overrides) and the headless bot fight. The old lumped model in `shared/flight.js` is kept as a fallback and has its own tests (`test/flight.test.js`).
+
+## Foamy indoor-aerobat character (2026-10-04, issues #19 and #20)
+
+Adam asked for default planes that fly like a foamy indoor aerobatic plane, 20 % heavier than the first estimates, with proportionally more thrust, and for adjustable servo throws.
+
+- **Mass:** `FOAMY_MASS_PERCENT = 20` (`shared/picasim/esaDef.js`, `settings.extraMassPercent`): the default build weighs 393 g (was about 328 g), still inside ESA §3.6.2 (200-450 g).
+- **Thrust:** motor torque x 1.2^1.5 because prop thrust grows about with torque^(2/3); static thrust is now 6.3 N (about 640 g, thrust-to-weight 1.6, 114 W, about 8 min on a 15 Wh pack). DESIGN numbers.
+- **Throws:** aileron, elevator and rudder deflection at full stick are build parameters (`aileronDeg`, `elevatorDeg`, `rudderDeg`, 10-45 degrees, default 30 each, was 25/25/20), sliders in the workshop, saved with the build and sent to the server. They are not an ESA rule, so they do not affect legality, and contest rooms (`?strict=1`) allow them (they are not physics overrides). At full stick: roll about 490 deg/s, pitch about 270 deg/s with the default throws; 15 to 45 degrees of aileron changes the roll rate from about 260 to about 650 deg/s (`test/picasim.test.js`).
+- **Hand launch:** throw speed 10 m/s (was 9) so the heavier plane does not sag into the ground.
+- Not done: a real "foamy" airframe (much lower wing loading, very large control surfaces, 3D-style post-stall); the ESA 200 g minimum rules out an actual indoor foamy of 30-60 g, so the character comes from large authority and a high thrust-to-weight, not from the real mass.
+

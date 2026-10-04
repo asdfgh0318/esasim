@@ -39,7 +39,7 @@ export class PicaPlane {
   }
 
   // Hand launch (ESA §4.4): released at 1.5 m, thrown forward and slightly up.
-  launch(speed = 9, pitchUp = 0.2) {
+  launch(speed = 10, pitchUp = 0.22) {
     if (!this.held) return;
     this.held = false; this.onGround = false;
     this.pos.y = Math.max(this.pos.y, 1.5);

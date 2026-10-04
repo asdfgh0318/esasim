@@ -7,8 +7,8 @@ import { VTX_POWERS } from "./vtx.js";
 import { buildEsaDef, defMassKg, defSpanMm } from "./picasim/esaDef.js";
 import { isOverridePath } from "./picasim/overrides.js";
 
-export const DEFAULT_BUILD = { plane: "spitfire", spanMm: 800, batteryWh: 15, propDiaIn: 9, propPitchIn: 5, ballastG: 20, vtxMw: 25, vtxCh: -1 };   // vtxCh -1 = auto (the arena picks a free channel)
-export const RANGES = { spanMm: [650, 900, 10], batteryWh: [5, 20, 0.5], propDiaIn: [6, 11, 0.5], propPitchIn: [3, 7, 0.5], ballastG: [0, 250, 5] };
+export const DEFAULT_BUILD = { plane: "spitfire", spanMm: 800, batteryWh: 15, propDiaIn: 9, propPitchIn: 5, ballastG: 20, aileronDeg: 30, elevatorDeg: 30, rudderDeg: 30, vtxMw: 25, vtxCh: -1 };   // vtxCh -1 = auto (the arena picks a free channel)
+export const RANGES = { spanMm: [650, 900, 10], batteryWh: [5, 20, 0.5], propDiaIn: [6, 11, 0.5], propPitchIn: [3, 7, 0.5], ballastG: [0, 250, 5], aileronDeg: [10, 45, 1], elevatorDeg: [10, 45, 1], rudderDeg: [10, 45, 1] };
 const POWER_W = 120;            // DESIGN: motor power at full throttle (the kit motor "min 300 g thrust")
 
 export function clampBuild(b = {}) {
