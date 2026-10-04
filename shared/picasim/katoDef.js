@@ -13,12 +13,14 @@ export const KATO_PROP = { radius: 0.0762, pitch: 0.17, chord: 0.013 };   // an 
 // is scaled down (span 700-860 mm) and ballasted to the 200 g minimum (3.6.2). It stays a flyable practice plane in the meantime.
 export const KATO_DEFAULTS = { aileronDeg: 30, elevatorDeg: 30 };
 
-// Response tuning (ESASIM, not PicaSim; user report "elevator response is bad, cannot turn"): PicaSim's Kato sections are symmetric (CL0 = 0, CM0 = 0) and its
-// elevon lift coefficients are tiny (0.003-0.006/deg, our other planes use 0.02), so here it trims at zero lift: it dives hands-off, pulling does little
-// (80 deg/s) and a banked turn just spirals down (22 deg/s while losing 70 m). Real flying wings use cambered/reflexed sections, so the Kato gets CL0 0.3 and
-// CM0 0.01 (it then holds a stable glide hands-off at about 11 m/s, 5.5:1), 2x stronger elevons (lift and moment), elevator mix 0.8 and a smaller aileron
-// throw to keep the roll rate sane. Result at 800 mm, 14 m/s: pitch about 330 deg/s, roll about 420 deg/s, a banked turn about 120 deg/s.
-export const KATO_CL0 = 0.3, KATO_CM0 = 0.01, KATO_ELEVON_GAIN = 2, KATO_AILERON_DEG = 23;
+// Response tuning (ESASIM, not PicaSim). User report 1: "elevator response is bad, cannot turn". PicaSim's Kato sections are symmetric (CL0 = 0, CM0 = 0) and its
+// elevon lift coefficients are tiny (0.003-0.006/deg, our other planes use 0.02): a full pull pitched only about 80 deg/s and a banked turn spiralled down
+// (22 deg/s while losing 70 m). Fix: elevons x2 (lift and moment), elevator mix 0.8, aileron throw 23 degrees, a mild camber (CL0 0.1).
+// User report 2: "it pitches up constantly, the launch was good always". A first attempt with CL0 0.3 and reflex (CM0 0.01) trimmed so nose-high that it climbed
+// and stalled by itself. Sweeps showed a cliff: below CL0 0.14 the plane sinks into the ground within about a second hands-off, above it zooms up to 30+ m/s and
+// stalls; no hands-off powered flight was stable anywhere in the sweep. So the Kato is a stick-flown plane and gets only a mild camber: neutral stick is a gentle
+// sink, a little back stick holds it level, nothing pitches up by itself. Measured at 800 mm, 14 m/s: pitch about 290 deg/s, roll about 410 deg/s.
+export const KATO_CL0 = 0.1, KATO_CM0 = 0, KATO_ELEVON_GAIN = 2, KATO_AILERON_DEG = 23;
 
 const AEROFOILS = {
   "Kato-root": { CDFlying: 0.01, CDStalled: 1.0, CM0: 0, CMPerDeg: -0.006, refRe: 200000, CDPower: -0.15, minReFrac: 0.1, CL0: 0, CLPerDeg: 0.08,
@@ -39,7 +41,7 @@ export function buildKatoDef(b0 = {}) {
   const foils = structuredClone(AEROFOILS); for (const k of ["Kato-root", "Kato-tip"]) { foils[k].CL0 = b.cl0 ?? KATO_CL0; foils[k].CM0 = b.cm0 ?? KATO_CM0; }
   return applyOverrides({
     name: "Electric Kato (PicaSim)",
-    settings: { sizeScale: b.spanMm / KATO_SPAN_MM, massScale: 1, dragScale: 1, engineScale: 1, extraMassPercent: 0 },
+    settings: { sizeScale: b.spanMm / KATO_SPAN_MM, massScale: 1, dragScale: b.dragScale ?? 1, engineScale: 1, extraMassPercent: 0 },
     dynamics: { wingSpan: 1.21, wingChord: 0.39, CMRollFromY: 0 },
     aerofoils: foils,
     wings: [

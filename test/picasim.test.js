@@ -65,10 +65,11 @@ check("mass and CG", base.aero.mass > 0.36 && base.aero.mass < 0.43 && Math.abs(
   check("Kato at native size has PicaSim's numbers: 1.21 m span, about 423 g", Math.abs(defSpanMm(nat) - 1210) < 15 && Math.abs(defMassKg(nat) * 1000 - 423) < 3, `${defSpanMm(nat).toFixed(0)} mm, ${(defMassKg(nat) * 1000).toFixed(0)} g`);
   const mkK = (b = {}) => new PicaPlane({ def: buildKatoDef({ spanMm: 800, ...b }), batteryWh: 15, span: 0.8, id: "kato" });
   check("Kato at the default 800 mm: real battery and electronics keep their mass (ESA-legal 200-450 g)", defMassKg(buildKatoDef({ spanMm: 800 })) * 1000 > 200 && defMassKg(buildKatoDef({ spanMm: 800 })) * 1000 < 450, `${(defMassKg(buildKatoDef({ spanMm: 800 })) * 1000).toFixed(0)} g`);
-  // self-trimming: with the cambered section it holds a stable glide hands-off (user report: "cannot turn, elevator response bad")
-  { const pl = fly(mkK(), 600, 14, 0); const log = []; run(pl, 25, (p, t) => { if (t > 15 && Math.round(t * 240) % 120 === 0) log.push([p.vel.length(), -p.vel.y, pitchDeg(p)]); });
-    const v = log.reduce((x, c) => x + c[0], 0) / log.length, sk = log.reduce((x, c) => x + c[1], 0) / log.length, pmax = Math.max(...log.map((c) => Math.abs(c[2])));
-    check("Kato holds a stable hands-off glide (L/D above 4, no dive)", v / sk > 4 && v > 7 && v < 16 && pmax < 30, `${v.toFixed(1)} m/s, sink ${sk.toFixed(1)}, L/D ${(v / sk).toFixed(1)}, pitch within ${pmax.toFixed(0)} deg`); }
+  // user report: "it pitches up constantly". Neutral stick must never pitch the Kato up or let it climb away by itself, at cruise or at full throttle.
+  { let worst = -90, climbed = 0;
+    for (const thr of [0.6, 1]) { const pl = mkK(); pl.pos.set(0, 1.4, -3); pl.held = true; pl.input.throttle = thr; pl.launch(10, 0.12);
+      let down = false; run(pl, 4, (p) => { if (p.pos.y < 0.3) down = true; if (!down) { worst = Math.max(worst, pitchDeg(p)); climbed = Math.max(climbed, p.pos.y); } }); }   // up to the first touchdown (after it the plane just bounces)
+    check("Kato never pitches up or climbs on its own with the stick centred (launch at 60 % and 100 % throttle)", worst < 25 && climbed < 8, `highest pitch ${worst.toFixed(0)} deg, highest point ${climbed.toFixed(1)} m (stick-flown it holds height, see below)`); }
   // control response: the elevator must really pitch the plane, and a banked turn must turn
   { const q = fly(mkK(), 400, 14, 0.6); run(q, 0.5); let pk = 0; q.input.elevator = 1; run(q, 0.6, (p) => { pk = Math.max(pk, Math.abs(deg(p.omega.x))); });
     const r = fly(mkK(), 400, 14, 0.6); run(r, 0.5); let rk = 0; r.input.aileron = 1; run(r, 0.6, (p) => { rk = Math.max(rk, Math.abs(deg(p.omega.z))); });
