@@ -16,6 +16,7 @@ const mk = async (name) => {
   room.onMessage("events", (e) => st.events.push(...e));
   room.onMessage("snap", (s) => { st.snap = s; });
   room.onMessage("you", (y) => { st.you = y; });
+  room.onMessage("ping", (n) => room.send("pong", n));          // round-trip measurement for lag-compensated cuts
   return st;
 };
 const quat = [0, 0, 0, 1];                         // facing +z

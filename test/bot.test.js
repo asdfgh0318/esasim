@@ -22,6 +22,7 @@ const snap = a.fight.snapshot();
 console.log(`phase=${snap.phase} t=${t.toFixed(0)}s`, JSON.stringify(counts), snap.pilots.map((p) => `${p.name}:${p.score} (flight ${p.flight}, cuts ${p.cuts}, safety ${p.crossings})`).join(" | "), `maxSpeed=${maxSpeed.toFixed(1)}`);
 check("fight reaches results", snap.phase === "results", snap.phase);
 check("bots launch", counts.launch >= N, `${counts.launch} launches`);
+check("bots rarely crash and relaunch: at most one relaunch per bot in 5 minutes", counts.launch <= 2 * N, `${counts.launch} launches for ${N} bots`);
 check("bots rarely cross the safety line during the flight (§4.9): at most one slip in 5 minutes", safetyInFlight <= 1, `${safetyInFlight} in flight, ${counts.safety} in total`);
 check("all bots are down after the end signal", [...a.slots.values()].every((s) => !s.airborne), "all landed");
 check("and at most two slips overall", counts.safety <= 2, `${counts.safety} crossings`);

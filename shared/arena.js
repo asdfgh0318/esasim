@@ -22,10 +22,27 @@ const rightOf = (q) => new THREE.Vector3(1, 0, 0).applyQuaternion(q);
 // Small seeded generator (mulberry32) so a whole arena run is repeatable in tests; the server seeds it from the clock.
 function makeRng(seed) { let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
 const POSE_TIMEOUT = 1;                  // DESIGN: no pose for 1 s = the model is treated as down (closed tab, lost connection)
+// Lag compensation ("favour the shooter", docs/netcode.md). A human attacker sees the other streamers late: the snapshot travels to them
+// (one way), is shown INTERP_DELAY in the past (client/main.js INTERP_MS), and their pose needs another one-way trip back. So the server judges
+// the attacker's path against the victim's streamer as it was (round trip + INTERP_DELAY) ago, never more than MAX_VIEW_DELAY. Bots: no delay.
+export const LAG = { HISTORY: 1.0, INTERP_DELAY: 0.1, MAX_VIEW_DELAY: 0.25, MAX_RTT: 1.0 };   // seconds; all DESIGN values
+const d3 = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+// findCut returns the arc along the drawn polyline (wobble makes it a bit longer); convert it to the streamer's own length coordinate
+// (points are sampled every `spacing` metres from the tail), so the same cut position applies to the live streamer.
+function polyS(poly, arc, spacing) {
+  let acc = 0;
+  for (let i = 0; i < poly.length - 1; i++) {
+    const l = d3(poly[i], poly[i + 1]);
+    if (arc <= acc + l + 1e-9) return (i + (l > 0 ? (arc - acc) / l : 0)) * spacing;
+    acc += l;
+  }
+  return (poly.length - 1) * spacing;
+}
 
 export class Arena {
-  constructor({ params, fight = {}, rounds = 3, strict = false, seed = (Date.now() ^ 0x5bd1e995) >>> 0 }) {
+  constructor({ params, fight = {}, rounds = 3, strict = false, lagComp = true, seed = (Date.now() ^ 0x5bd1e995) >>> 0 }) {
     this.rand = makeRng(seed);
+    this.lagComp = lagComp;                                              // false = judge every cut against the live streamers (the old behaviour)
     this.strict = strict;                                                // contest room: the advanced physics editor is off, builds are limited to the workshop's ESA-checked options
     this.params = params;
     // Contest series (ESA §4.1): `rounds` fights, then a final; points of all fights add up (§4.1), ties by the final, then the best single fight (§4.16).
@@ -55,7 +72,7 @@ export class Arena {
     if (build) { params = toParams({ ...build, plane: type || build.plane }); ok = validate(params.build).ok; }
     const mw = bot ? randomPower(this.rand()) : (build?.vtxMw ?? 25), ch = !bot && build && build.vtxCh >= 0 ? build.vtxCh : this._freeChannel();
     p.illegal = !ok; s_illegal = !ok;                                    // workshop check (ESA §3.4, §3.6.2, §6)
-    const s = { id, name, bot, type, params, vtx: { mw, ch }, geom: this._geom(params), pit: p.pit, streamer: new Streamer({ seed: p.pit + 1 }), prev: null, cur: null, airborne: false, downT: -1, launchAt: 0, tail: [0, 0, 0], illegal: s_illegal, crossingsTotal: 0, dq: false, poseT: 0 };
+    const s = { id, name, bot, type, params, vtx: { mw, ch }, geom: this._geom(params), pit: p.pit, streamer: new Streamer({ seed: p.pit + 1 }), prev: null, cur: null, airborne: false, downT: -1, launchAt: 0, tail: [0, 0, 0], illegal: s_illegal, crossingsTotal: 0, dq: false, poseT: 0, rtt: 0, hist: [] };
     if (bot) { s.plane = createPlane(params); s.ai = new BotPilot({ skill: 0.7, seed: p.pit + 3 }); this._home(s); }
     this.slots.set(id, s); return s;
   }
@@ -90,6 +107,27 @@ export class Arena {
     s.airborne = !!m.airborne; s.vel = m.vel || [0, 0, 0];
     if (m.held && !s.wasHeld) s.streamer.reset(null);
     s.wasHeld = !!m.held;
+  }
+
+  // Round-trip time measured by the server (ping/pong in server/index.js), seconds. Clamped so a slow or lying client gains nothing past MAX_VIEW_DELAY.
+  setRtt(id, rtt) {
+    const s = this.slots.get(id); if (!s || s.bot || !Number.isFinite(rtt)) return;
+    s.rtt = Math.min(LAG.MAX_RTT, Math.max(0, rtt));
+  }
+  // How far in the past this pilot sees the other planes and streamers (seconds). Bots see the present.
+  viewDelay(s) { return s.bot ? 0 : Math.min(LAG.MAX_VIEW_DELAY, s.rtt + LAG.INTERP_DELAY); }
+
+  // The victim's streamer polyline as it was at arena time T, from the ~1 s history (interpolated between ticks). Only the current streamer
+  // (same `gen`) is used: after a reset the old one is gone, and T is clamped to the oldest point of the new one.
+  _rewound(v, T) {
+    const h = v.hist.filter((e) => e.gen === v.streamer.gen);
+    if (!h.length) return v.streamer.points(this.t);
+    if (T <= h[0].t) return h[0].pts;
+    const last = h[h.length - 1]; if (T >= last.t) return last.pts;
+    let i = h.length - 2; while (i > 0 && h[i].t > T) i--;
+    const a = h[i], b = h[i + 1], f = (T - a.t) / (b.t - a.t);
+    if (a.pts.length !== b.pts.length) return f < 0.5 ? a.pts : b.pts;
+    return a.pts.map((p, k) => [p[0] + (b.pts[k][0] - p[0]) * f, p[1] + (b.pts[k][1] - p[1]) * f, p[2] + (b.pts[k][2] - p[2]) * f]);
   }
 
   _tail(s) {
@@ -127,17 +165,26 @@ export class Arena {
     for (const s of this.slots.values()) {                                         // tails and streamers
       if (!s.cur) continue;
       this._tail(s); s.streamer.push(s.tail);
+      s.hist.push({ t: this.t, gen: s.streamer.gen, pts: s.streamer.points(this.t) });     // history for lag-compensated cuts
+      while (s.hist.length > 1 && s.hist[1].t <= this.t - LAG.HISTORY) s.hist.shift();
     }
     const reports = {};
     for (const s of this.slots.values()) if (s.cur) reports[s.id] = { airborne: s.airborne, pos: s.cur.pos, streamerIntact: s.streamer.intact };
-    // Cuts: every airborne attacker against every other streamer (ESA §4.11), swept between the two last frames.
+    // Cuts: every airborne attacker against every other streamer (ESA §4.11), swept between the two last frames. Lag-compensated: a human
+    // attacker's path is tested against the victim's streamer as that attacker saw it (now - viewDelay); a hit cuts the LIVE streamer at
+    // the same distance from the tail. Only the still-attached part counts (§4.11): a hit beyond the live length (already cut off) is ignored.
+    // One attack = one cut is enforced by fight.cut (§4.11).
     if (phase === "flight") {
       for (const a of this.slots.values()) {
         if (!a.airborne || !a.cur || !a.prev || fl.pilots.get(a.id)?.disqualified) continue;
+        const delay = this.lagComp ? this.viewDelay(a) : 0;
         for (const v of this.slots.values()) {
           if (v === a || !v.streamer.head || v.streamer.length < 0.3) continue;
-          const hit = findCut(a.prev, a.cur, a.geom, v.streamer.points(this.t));
-          if (hit) { v.streamer.cut(hit.arc); fl.cut(a.id, v.id); }
+          const poly = delay > 0 ? this._rewound(v, this.t - delay) : v.streamer.points(this.t);
+          const hit = findCut(a.prev, a.cur, a.geom, poly);
+          if (!hit) continue;
+          const at = polyS(poly, hit.arc, v.streamer.spacing);
+          if (at < v.streamer.length) { v.streamer.cut(at); fl.cut(a.id, v.id); }
         }
       }
     }

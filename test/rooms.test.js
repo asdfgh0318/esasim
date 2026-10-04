@@ -13,7 +13,7 @@ for (let i = 0; i < 50 && !ready; i++) await sleep(100);
 const join = async (pid, code, name = pid) => {
   const room = await new Client(`ws://localhost:${PORT}`).joinOrCreate("combat", { name, pid, code });
   const st = { room, snap: null, you: null, full: false };
-  room.onMessage("snap", (s) => { st.snap = s; }); room.onMessage("you", (y) => { st.you = y; }); room.onMessage("full", () => { st.full = true; });
+  room.onMessage("snap", (s) => { st.snap = s; }); room.onMessage("you", (y) => { st.you = y; }); room.onMessage("full", () => { st.full = true; }); room.onMessage("ping", (n) => room.send("pong", n));
   return st;
 };
 try {

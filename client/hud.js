@@ -20,38 +20,37 @@ const css = `
 #fh .vtxset select{background:#0b1220cc;color:#e6edf7;border:1px solid #2b3d5e;border-radius:6px;padding:3px}
 #fh .vtxset select:disabled{opacity:.45}
 #fh .vtx{position:absolute;left:50%;bottom:62px;transform:translateX(-50%);font:600 14px monospace;color:#9dff9d;text-shadow:0 0 4px #000;letter-spacing:1px}
+#fh .cta{position:absolute;left:50%;bottom:80px;transform:translateX(-50%);max-width:520px;text-align:center;background:#121c30ee;border:1px solid #2b3d5e;border-radius:10px;padding:10px 16px;pointer-events:auto}
+#fh .cta p{margin:6px 0;font-size:13px;color:#cfe0f5} #fh .cta a{color:#ffd166}
 #fh .help{position:absolute;right:12px;bottom:12px;font-size:11px;color:#9aa8bf;text-align:right}`;
 
 import { VTX_POWERS, CHANNELS } from "../shared/vtx.js";
+import { t, toggleLang } from "./i18n.js";
 const fmt = (s) => `${Math.floor(Math.max(0, s) / 60)}:${String(Math.floor(Math.max(0, s) % 60)).padStart(2, "0")}`;
-const TEXT = {
-  lobby: ["Waiting room", "Add bots or wait for pilots, press Ready, then Start. Practice flights are fine (Space = hand launch)."],
-  prep: ["Preparation", "Test flights allowed (ESA §4.2.1). Press Ready when you are set."],
-  ready: ["Readiness", "Models stay in the boxes (§4.2.2). Flight starts at the whistle."],
-  flight: ["FLIGHT", "Cut the others' streamers (+100). Keep your own. Stay in front of the safety line (-200)."],
-  ended: ["Flight over: land", "Landing in the landing field now gives +20 (§4.7)."],
-  results: ["Results", "A new fight starts in a moment."],
-};
+const TEXT = Object.fromEntries(["lobby", "prep", "ready", "flight", "ended", "results"].map((k) => [k, [t("t." + k), t("s." + k)]]));
+// Call to action after a fight: only links I fetched and read (docs/fly-for-real.md).
+const CTA = [["ctaKits", "https://www.ef3m.pl/pl/c/Samoloty-rc-Aircombat-ESA/40"], ["ctaGuide", "https://www.ef3m.pl/pl/n/Aircombat-ESA-samoloty-rc-do-walk-powietrznych/44"], ["ctaTeams", "http://www.aircombat.pl/ACES/forum/viewforum.php?f=6"], ["ctaRules", "http://www.aircombat.pl/ACES/forum/viewtopic.php?t=21"]];
 
 export function mountHud(actions, planes) {
   document.head.append(Object.assign(document.createElement("style"), { textContent: css }));
   const el = document.createElement("div"); el.id = "fh";
   el.innerHTML = `<div class="banner"><b id="fh-t">ESASIM</b><span id="fh-s"></span></div>
     <div class="score" id="fh-score"></div><div class="toasts" id="fh-toasts"></div>
-    <div class="lobby" id="fh-lobby"><select id="b-plane" title="Your plane (reloads the page)"></select><button id="b-ws">Workshop</button><button id="b-ready">Ready</button><button id="b-invite" title="Open a private room and copy its invite link">Private room</button><button id="b-bot">Add bot</button><button id="b-nobot">Remove bots</button><button id="b-start" class="go">Start fight</button></div>
-    <div class="lobby" id="fh-replay" style="display:none"><button id="b-replay">Watch replay</button><button id="b-save">Save replay (JSON)</button></div>
-    <div class="batt" id="fh-batt"><div id="fh-batt-bar"></div><span id="fh-batt-t">battery</span></div>
+    <div class="lobby" id="fh-lobby"><select id="b-plane" title="${t("planeTip")}"></select><button id="b-ws">${t("workshop")}</button><button id="b-ready">${t("ready")}</button><button id="b-invite" title="${t("inviteTip")}">${t("invite")}</button><button id="b-bot">${t("addBot")}</button><button id="b-nobot">${t("rmBots")}</button><button id="b-start" class="go">${t("start")}</button></div>
+    <div class="lobby" id="fh-replay" style="display:none"><button id="b-replay">${t("watch")}</button><button id="b-save">${t("saveReplay")}</button></div>
+    <div class="batt" id="fh-batt"><div id="fh-batt-bar"></div><span id="fh-batt-t">${t("battery")}</span></div>
     <div class="orient" id="fh-orient"></div>
     <div class="vtxset" id="fh-vtxset"><span>VTX</span><select id="v-pow"></select><select id="v-ch"></select></div>
     <div class="vtx" id="fh-vtx" style="display:none"></div>
-    <div class="help">Space launch · WASD pitch/roll · Q/E yaw · Shift/Ctrl throttle · P pilot view · V FPV · R radio</div>`;
+    <div class="help"><button id="b-lang" style="pointer-events:auto;font-size:11px;padding:1px 6px;margin-right:8px;border:0;border-radius:4px;background:#2b3d5e;color:#fff;cursor:pointer">${t("lang")}</button>${t("help")}</div>
+    <div class="cta" id="fh-cta" style="display:none"></div>`;
   document.body.append(el);
   const $ = (id) => el.querySelector("#" + id);
   let ready = false;
   const pw = $("v-pow"), vc = $("v-ch");
   pw.innerHTML = VTX_POWERS.map((p) => `<option value="${p}">${p >= 1000 ? p / 1000 + " W" : p + " mW"}${p === 25 ? " race" : ""}</option>`).join("");
   vc.innerHTML = CHANNELS.map((c, i) => `<option value="${i}">${c}</option>`).join("");
-  pw.title = "Video transmitter power (change with the model in your hand)"; vc.title = "Video channel";
+  pw.title = t("vtxPow"); vc.title = t("vtxCh");
   pw.onchange = vc.onchange = () => actions.vtx(Number(pw.value), Number(vc.value));
   const sel = $("b-plane");
   sel.innerHTML = planes.types.map((t) => `<option value="${t}" ${t === planes.current ? "selected" : ""}>${planes.names[t]}</option>`).join("");
@@ -59,36 +58,39 @@ export function mountHud(actions, planes) {
   $("b-ws").onclick = () => actions.workshop();
   $("b-replay").onclick = () => actions.replay(); $("b-save").onclick = () => actions.saveReplay();
   $("b-ready").onclick = () => { ready = !ready; $("b-ready").classList.toggle("on", ready); actions.ready(ready); };
+  $("b-lang").onclick = toggleLang;
+  $("fh-cta").innerHTML = `<b>${t("ctaT")}</b><p>${t("ctaP")}</p>` + CTA.map(([k, u]) => `<a href="${u}" target="_blank" rel="noopener">${t(k)}</a>`).join(" · ");
   $("b-invite").onclick = actions.invite; $("b-bot").onclick = actions.addBot; $("b-nobot").onclick = actions.removeBots; $("b-start").onclick = actions.start;
 
   return {
-    offline() { $("fh-t").textContent = "Offline practice"; $("fh-s").textContent = "No server: fly freely (Space = hand launch). Run npm run server for fights."; $("fh-lobby").style.display = "none"; $("fh-score").style.display = "none"; },
+    offline() { $("fh-t").textContent = t("offlineT"); $("fh-s").textContent = t("offlineS"); $("fh-lobby").style.display = "none"; $("fh-score").style.display = "none"; },
     update(snap, meId) {
       const f = snap.fight, sr = snap.series || { label: "", prior: {}, winner: null }, [title, sub] = TEXT[f.phase] || ["", ""];
-      $("fh-t").textContent = `${sr.label ? sr.label + " · " : ""}${f.left > 0 ? `${title}  ${fmt(f.left)}` : title}`;
-      $("fh-s").textContent = f.phase === "results" && sr.winner ? `Contest over. Winner: ${sr.winner.name} with ${sr.winner.total} points.` : sub;
+      $("fh-t").textContent = `${sr.label ? sr.label.replace(/^Round/, t("round")).replace(/^Final/, t("final")) + " · " : ""}${f.left > 0 ? `${title}  ${fmt(f.left)}` : title}`;
+      $("fh-s").textContent = f.phase === "results" && sr.winner ? t("contestOver", { name: sr.winner.name, pts: sr.winner.total }) : sub;
       $("fh-lobby").style.display = f.phase === "lobby" || f.phase === "prep" ? "flex" : "none";
+      $("fh-cta").style.display = f.phase === "results" ? "block" : "none";
       const isHost = !snap.host || snap.host === meId;                              // only the host (the longest-present human) starts the fight and manages bots
       $("b-bot").style.display = $("b-nobot").style.display = $("b-start").style.display = f.phase === "lobby" && isHost ? "" : "none";
-      if (f.phase === "lobby" && !isHost) $("fh-s").textContent = `Waiting for ${f.pilots.find((p) => p.id === snap.host)?.name || "the host"} to start the fight. Press Ready, practice flights are fine.`;
+      if (f.phase === "lobby" && !isHost) $("fh-s").textContent = t("waitHost", { name: f.pilots.find((p) => p.id === snap.host)?.name || t("theHost") });
       if (f.phase === "lobby" || f.phase === "results") { ready = false; $("b-ready").classList.remove("on"); }
       const rows = [...f.pilots].sort((a, b) => ((sr.prior[b.id] || 0) + b.score) - ((sr.prior[a.id] || 0) + a.score)).map((p) =>
-        `<tr class="${p.id === meId ? "me" : ""}"><td>${p.bot ? "🤖 " : ""}${p.name.replace(/</g, "")}${p.illegal ? " (ILLEGAL)" : p.disqualified ? " (DQ)" : p.airborne ? " ✈" : ""}</td><td>${p.flight}</td><td>${p.cuts}</td><td>${p.crossings ? "-" + 200 * p.crossings : "0"}</td><td>${p.score}</td><td><b>${(sr.prior[p.id] || 0) + p.score}</b></td></tr>`).join("");
-      $("fh-score").innerHTML = `<table><tr><th>Pilot</th><th>time</th><th>cuts</th><th>line</th><th>fight</th><th>sum</th></tr>${rows}</table>`;
+        `<tr class="${p.id === meId ? "me" : ""}"><td>${p.bot ? "🤖 " : ""}${p.name.replace(/</g, "")}${p.illegal ? ` (${t("ill")})` : p.disqualified ? " (DQ)" : p.airborne ? " ✈" : ""}</td><td>${p.flight}</td><td>${p.cuts}</td><td>${p.crossings ? "-" + 200 * p.crossings : "0"}</td><td>${p.score}</td><td><b>${(sr.prior[p.id] || 0) + p.score}</b></td></tr>`).join("");
+      $("fh-score").innerHTML = `<table><tr>${t("th").map((h) => `<th>${h}</th>`).join("")}</tr>${rows}</table>`;
     },
-    replayBar(show, playing) { $("fh-replay").style.display = show ? "flex" : "none"; $("b-replay").textContent = playing ? "Stop replay" : "Watch replay"; },
+    replayBar(show, playing) { $("fh-replay").style.display = show ? "flex" : "none"; $("b-replay").textContent = playing ? t("stopReplay") : t("watch"); },
     vtx(q, inter) {
       const el = $("fh-vtx"); if (q == null) { el.style.display = "none"; return; }
       el.style.display = "block"; el.style.color = q > 0.5 ? "#9dff9d" : q > 0.2 ? "#ffd166" : "#ff6a6a";
       const bars = `${"█".repeat(Math.ceil(q * 5))}${"░".repeat(5 - Math.ceil(q * 5))}`;
-      let t = q < 0.03 ? "SIGNAL LOST" : `VTX ${bars} ${Math.round(q * 100)}%`;
-      if (inter && inter.level > 0.1 && inter.name) { t += `   ⚠ INTERFERENCE ${Math.round(inter.level * 100)}%: ${inter.name} (${inter.ch}, ${inter.mw >= 1000 ? inter.mw / 1000 + " W" : inter.mw + " mW"})`; if (inter.level > 0.5) el.style.color = "#ff6a6a"; }
-      el.textContent = t;
+      let txt = q < 0.03 ? t("lost") : `VTX ${bars} ${Math.round(q * 100)}%`;
+      if (inter && inter.level > 0.1 && inter.name) { txt += `   ⚠ ${t("interf")} ${Math.round(inter.level * 100)}%: ${inter.name} (${inter.ch}, ${inter.mw >= 1000 ? inter.mw / 1000 + " W" : inter.mw + " mW"})`; if (inter.level > 0.5) el.style.color = "#ff6a6a"; }
+      el.textContent = txt;
     },
     setVtx(mw, ch) { if (document.activeElement !== pw && Number(pw.value) !== mw) pw.value = String(mw); if (document.activeElement !== vc && Number(vc.value) !== ch) vc.value = String(ch); },
     vtxEnabled(on) { if (pw.disabled === on) { pw.disabled = vc.disabled = !on; } },
     orient(t) { const e = $("fh-orient"); if (e.textContent !== t) e.textContent = t; },
-    battery(p, dead) { $("fh-batt-bar").style.width = Math.round(p * 100) + "%"; $("fh-batt-bar").style.background = p > 0.25 ? "#2ad47a" : "#ff5a5a"; $("fh-batt-t").textContent = dead ? "battery empty!" : `battery ${Math.round(p * 100)}%`; },
+    battery(p, dead) { $("fh-batt-bar").style.width = Math.round(p * 100) + "%"; $("fh-batt-bar").style.background = p > 0.25 ? "#2ad47a" : "#ff5a5a"; $("fh-batt-t").textContent = dead ? t("batteryEmpty") : `${t("battery")} ${Math.round(p * 100)}%`; },
     toast(text, kind = "") {
       const t = document.createElement("div"); t.className = "toast " + kind; t.textContent = text; $("fh-toasts").append(t);
       setTimeout(() => t.remove(), 4000);

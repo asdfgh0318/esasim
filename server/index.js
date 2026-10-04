@@ -10,6 +10,7 @@ import { FIGHT } from "../shared/rules.js";
 // (streamers, cuts, safety line, scoring) and simulates the bots. Phase lengths can be shortened with env vars for tests.
 const env = (k, d) => (process.env[k] ? Number(process.env[k]) : d);
 const TICK = 1 / 30, SEND_EVERY = 2, RESULTS_SECONDS = 20, RECONNECT_SECONDS = 30, EMPTY_ROOM_SECONDS = 120;
+const PING_EVERY = 1;                          // seconds between round-trip measurements (lag-compensated cuts, docs/netcode.md)
 const CONSENTED = 4000;                       // Colyseus close code for a deliberate leave
 const cleanPid = (v, fallback) => "p-" + (String(v || fallback).replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 32) || fallback);
 
@@ -25,6 +26,14 @@ class CombatRoom extends Room {
     const pid = (c) => c.userData?.pid;
     const isHost = (c) => pid(c) === this.hostId();                                // only the host starts the fight and manages bots
     this.onMessage("pose", (c, m) => this.arena.setPose(pid(c), m));
+    // Round trip measured by the server on its own clock: it sends "ping" n, the client echoes "pong" n. A client can only make its
+    // round trip look longer (by answering late), and the arena clamps the resulting rewind (LAG.MAX_VIEW_DELAY in shared/arena.js).
+    this.onMessage("pong", (c, n) => {
+      const u = c.userData; if (!u || !u.ping || n !== u.ping.n) return;
+      const rtt = (performance.now() - u.ping.at) / 1000; u.ping = null;
+      u.rtt = u.rtt == null ? rtt : u.rtt * 0.8 + rtt * 0.2;                          // smoothed (EWMA); the first sample is taken as is
+      this.arena.setRtt(u.pid, u.rtt);
+    });
     this.onMessage("vtx", (c, m) => this.arena.setVtx(pid(c), m));
     this.onMessage("ready", (c, v) => this.arena.fight.setReady(pid(c), v !== false));
     this.onMessage("addBot", (c) => { if (isHost(c) && this.arena.fight.phase === "lobby") this.arena.addBot("Bot " + (this.arena.slots.size + 1)); });
@@ -44,6 +53,11 @@ class CombatRoom extends Room {
     if (events.length) this.broadcast("events", events);
     if (this.arena.fight.phase === "results" && this.resultsAt !== null && this.arena.t - this.resultsAt > RESULTS_SECONDS) { this.arena.restart(); this.resultsAt = null; this.broadcast("restart", {}); }
     if (++this.tick % SEND_EVERY === 0) this.broadcast("snap", { ...this.arena.snapshot(), host: this.hostId() });
+    if (this.tick % Math.round(PING_EVERY / TICK) === 0) for (const c of this.clients) {
+      const u = c.userData; if (!u) continue;
+      u.pingN = (u.pingN || 0) + 1; u.ping = { n: u.pingN, at: performance.now() };      // an unanswered ping is simply replaced (no penalty, no change)
+      c.send("ping", u.pingN);
+    }
   }
 
   // A pilot is identified by a stable id kept in the browser (`pid`), not by the socket, so a dropped player (or a page reload) takes the

@@ -18,12 +18,13 @@ export class Streamer {
     this.phase = seed * 1.7;
     this.head = null;
     this.trace = [];             // older tail positions, oldest first
+    this.gen = 0;                // which streamer this is: +1 on every reset, so a rewound (lag-compensated) copy never mixes an old streamer with a new one
   }
 
   get intact() { return this.length >= this.nominal - 1e-6; }   // §4.10: shortened = lost
 
   reset(tail) {                                                 // new streamer attached on the ground (§4.4)
-    this.length = this.nominal; this.head = tail ? [...tail] : null; this.trace = [];
+    this.length = this.nominal; this.head = tail ? [...tail] : null; this.trace = []; this.gen++;
   }
 
   // Call every frame with the current tail position.

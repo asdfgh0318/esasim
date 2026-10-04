@@ -211,6 +211,7 @@ function attach(r) {
   r.onMessage("you", (y) => { me = y; rig.setPit(y.pit); setTint(myMesh, COLORS[y.pit % 7]); if (sim.held) home(); });
   r.onMessage("snap", (sn) => onSnap(sn)); r.onMessage("events", (ev) => { if (!replay) pendingEvents.push(...ev); ev.forEach((e) => onEvent(e)); });
   r.onMessage("restart", () => { home(); hud.toast("New fight"); });
+  r.onMessage("ping", (n) => r.send("pong", n));                                     // server measures the round trip for lag-compensated cuts (docs/netcode.md)
   r.onMessage("full", () => { online = false; room = null; hud.toast("Room is full (7 boxes). Playing offline."); hud.offline(); });
   r.onLeave((code) => {                                                              // dropped connection: try to come back to the same box within 30 s (the server keeps it)
     if (room !== r) return;
