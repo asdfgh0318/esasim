@@ -242,7 +242,7 @@ export class Arena {
     this.fight = new Fight(this.fightCfg);
     for (const s of this.slots.values()) {
       this.fight.addPilot(s.id, { name: s.name || s.id, bot: s.bot, pit: s.pit, priorCrossings: s.crossingsTotal, disqualified: s.dq, illegal: s.illegal });   // §4.9, §6 carried through the contest
-      if (s.bot) this._home(s); else { s.airborne = false; s.streamer.reset(null); }
+      if (s.bot) { this._home(s); s.launchAt = 0; s.downT = -1; } else { s.airborne = false; s.streamer.reset(null); }   // a bot launches as soon as the new fight's flight part starts (launchAt of the last fight was late in the clock and made bots wait until the end)
     }
   }
 
