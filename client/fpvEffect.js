@@ -7,6 +7,7 @@ export const FpvShader = {
   vertexShader: "varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }",
   fragmentShader: `
     uniform sampler2D tDiffuse; uniform sampler2D tFeedB; uniform float time; uniform float noise; uniform float interf; uniform float aspect; uniform vec2 texel; varying vec2 vUv;
+    float h2(vec2 p){ return fract(sin(dot(p, vec2(41.3, 289.1))) * 43758.5453); }
     float hash(vec2 p){ return fract(sin(dot(p, vec2(12.9898, 78.233)) + time * 1.7) * 43758.5453); }
     void main(){
       vec2 uv = vUv; float n = noise;
@@ -18,11 +19,14 @@ export const FpvShader = {
       // a touch of sharpening while the link is good (unsharp mask), fading out as the signal degrades
       vec3 bl = 0.25 * (texture2D(tDiffuse, uv + vec2(texel.x, 0.0)).rgb + texture2D(tDiffuse, uv - vec2(texel.x, 0.0)).rgb + texture2D(tDiffuse, uv + vec2(0.0, texel.y)).rgb + texture2D(tDiffuse, uv - vec2(0.0, texel.y)).rgb);
       c += (c - bl) * 0.45 * (1.0 - n);
-      if (interf > 0.01) {                                                                    // a neighbour at 100 mW max: only scattered single pixels flicker (about a tenth of the first version)
-        vec2 px = floor(vUv * vec2(aspect * 540.0, 540.0));
-        float hit = step(hash(px + floor(time * 20.0)), 0.0004 * interf);                       // a handful of pixels per frame, anywhere on the picture
-        float v = hash(px + 3.7);
-        c = mix(c, vec3(0.5 + 0.5 * (v - 0.5) * 2.0), hit * 0.8);
+      if (interf > 0.01) {                                                                    // a neighbour at 100 mW max: now and then a short horizontal glitch line, nothing else
+        float win = floor(time * 4.0);                                                          // events live for a quarter of a second
+        float ev = step(h2(vec2(win, 91.0)), 0.035 * interf);                                   // rare: about one event every 7 s at full interference, one a minute at low levels
+        float ly = h2(vec2(win, 7.0)), lh = (1.0 + floor(h2(vec2(win, 3.0)) * 3.0)) / 540.0;    // 1 to 3 pixel rows tall
+        float x0 = h2(vec2(win, 13.0)) * 0.6, wl = 0.12 + h2(vec2(win, 17.0)) * 0.35;           // covering only part of the width
+        float on = ev * step(abs(vUv.y - ly), lh) * step(x0, vUv.x) * step(vUv.x, x0 + wl);
+        vec3 shifted = texture2D(tDiffuse, vUv + vec2((h2(vec2(win, 19.0)) - 0.5) * 0.02, 0.0)).rgb;
+        c = mix(c, shifted + 0.06, on * 0.85);
       }
       float l = dot(c, vec3(0.299, 0.587, 0.114));
       c = mix(vec3(l), c, 0.97 - 0.55 * n);                                                    // washed-out colour

@@ -322,7 +322,7 @@ renderer.setAnimationLoop((t) => {
       level = inter.level; info = { level, name: snapNames.get(inter.source) || "?", ch: CHANNELS[src.vtx.ch] || "?", mw: src.vtx.mw };
       const m = src.mesh;
     }
-    fpvPass.uniforms.noise.value = Math.max(1 - q, level * 0.06); fpvPass.uniforms.interf.value = level; fpvPass.uniforms.tFeedB.value = feedB.texture;
+    fpvPass.uniforms.noise.value = (1 - q) ** 2;   // a good link stays clean: degradation only builds up when the signal is really poor (0.87 quality -> 0.02, 0.5 -> 0.25) fpvPass.uniforms.interf.value = level; fpvPass.uniforms.tFeedB.value = feedB.texture;
     fpvPass.uniforms.time.value = t / 1000; fpvPass.uniforms.aspect.value = innerWidth / innerHeight; fpvPass.uniforms.texel.value = [1 / (innerWidth * renderer.getPixelRatio()), 1 / (innerHeight * renderer.getPixelRatio())];
     hud.vtx(q, info); fpvPass.enabled = true; composer.render();
   } else { hud.vtx(null); renderer.render(scene, camera); }
