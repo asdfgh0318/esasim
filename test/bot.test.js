@@ -28,4 +28,13 @@ check("all bots are down after the end signal", [...a.slots.values()].every((s) 
 check("and at most two slips overall", counts.safety <= 2, `${counts.safety} crossings`);
 check("bots fly most of the time", snap.pilots.every((p) => p.flight >= 40), snap.pilots.map((p) => p.flight).join(","));
 check("bots score cuts", counts.cut >= 1, `${counts.cut} cuts`);
+
+// The Kato flying wing has its own bot profile: three Kato bots fly a whole fight without crashing during the flight and with few safety-line slips.
+{ const k = new Arena({ params: ESA_WWII, seed: 1, fight: { prep: 1, ready: 1 } });
+  for (let i = 0; i < 3; i++) k.addBot("K" + (i + 1), "kato");
+  k.fight.start(); let tt = 0, downs = 0, slips = 0, cutsK = 0;
+  while (k.fight.phase !== "results" && tt < 500) { for (const e of k.step(1 / 30)) { if (e.type === "land" && k.fight.phase === "flight" && k.fight.flightT < 298) downs++; if (e.type === "safety") slips++; if (e.type === "cut") cutsK++; } tt += 1 / 30; }
+  const pts = [...k.fight.pilots.values()].map((p) => k.fight.flightPoints(p));
+  check("Kato bots fly the whole flight without crashing", downs === 0 && Math.min(...pts) >= 90, `${downs} crashes during the flight, flight points ${pts.join(",")}`);
+  check("Kato bots rarely cross the safety line and do cut", slips <= 1 && cutsK >= 1, `${slips} slips, ${cutsK} cuts`); }
 process.exit(fail ? 1 : 0);

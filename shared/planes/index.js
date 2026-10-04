@@ -15,5 +15,5 @@ export const PLANES = {
     noseZ: -0.125 * KS, wingLeZ: 0.0, tailZ: -0.22 * KS, propDiaIn: 0.16 * KS / 0.0254, propPitchIn: 0.18 * KS / 0.0254 },
 };
 export const PLANE_IDS = Object.keys(PLANES);
-export const BOT_PLANE_IDS = PLANE_IDS.filter((id) => id !== "kato");   // the bot pilot is tuned for conventional planes, not for the flying wing
+export const BOT_PLANE_IDS = PLANE_IDS;   // bots fly every plane; the flying wing has its own bot profile (shared/bot.js KATO_TUNE)
 export const planeParams = (id) => PLANES[id] || ESA_WWII;

@@ -112,7 +112,7 @@ const toResults = (h) => { h.run(40, () => { h.pose("a", 20, false); h.pose("b",
 { const a = new Arena({ params: ESA_WWII, seed: 3 }); const sl = a.addHuman("k", "K", "kato", { ...DEFAULT_BUILD, plane: "kato" });
   check("a Kato build joins the arena as a legal plane (default 800 mm)", sl && sl.type === "kato" && !a.fight.pilots.get("k").illegal && sl.params.mass > 0.2 && sl.params.mass < 0.45, `type ${sl?.type}, ${(sl?.params.mass * 1000).toFixed(0)} g, illegal=${a.fight.pilots.get("k")?.illegal}`);
   for (let i = 0; i < 8; i++) a.addBot();
-  check("bots are never given the Kato", [...a.slots.values()].filter((x) => x.bot).every((x) => x.type !== "kato"), [...a.slots.values()].filter((x) => x.bot).map((x) => x.type).join(","));
+  check("bots rotate through all planes, the Kato included", ["spitfire", "hurricane", "fw190", "yak3", "kato"].every((t) => [...a.slots.values()].some((x) => x.bot && x.type === t)), [...a.slots.values()].filter((x) => x.bot).map((x) => x.type).join(","));
   const o = new Arena({ params: ESA_WWII, seed: 3 }).addHuman("o", "O", "kato", { ...DEFAULT_BUILD, plane: "kato", spanMm: 1210 > 900 ? 900 : 900, ballastG: 0 });
   check("the workshop span scales the Kato (geometry and mass)", o.params.span === 0.9 && o.params.mass > sl.params.mass * 0.9, `${o.params.span} m, ${(o.params.mass * 1000).toFixed(0)} g`); }
 

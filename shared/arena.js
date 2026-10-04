@@ -74,7 +74,7 @@ export class Arena {
     const mw = bot ? randomPower(this.rand()) : (build?.vtxMw ?? 25), ch = !bot && build && build.vtxCh >= 0 ? build.vtxCh : this._freeChannel();
     p.illegal = !ok; s_illegal = !ok;                                    // workshop check (ESA §3.4, §3.6.2, §6)
     const s = { id, name, bot, type, params, vtx: { mw, ch }, geom: this._geom(params), pit: p.pit, streamer: new Streamer({ seed: p.pit + 1 }), prev: null, cur: null, airborne: false, downT: -1, launchAt: 0, tail: [0, 0, 0], illegal: s_illegal, crossingsTotal: 0, dq: false, poseT: 0, rtt: 0, hist: [] };
-    if (bot) { s.plane = createPlane(params); s.ai = new BotPilot({ skill, seed: p.pit + 3 }); this._home(s); }
+    if (bot) { s.plane = createPlane(params); s.ai = new BotPilot({ skill, seed: p.pit + 3, plane: type, tune: this.botTune }); this._home(s); }
     this.slots.set(id, s); return s;
   }
   addHuman(id, name, type, build) { return this._slot(id, name, false, type, build); }
