@@ -33,6 +33,16 @@ ESA itself is a Polish class; I found no evidence it is flown by that name elsew
 | International ACES national sites (Austria, Czech, Germany, Finland, Italy, Netherlands, Poland, Sweden and more) | http://aircombat.eu/nationalACES.htm | `papers/aircombat.eu_nationalACES.htm` (local) |
 | Second copy of the ESA 2024 rules (bemowskie.pl, Warsaw contest organiser) | https://bemowskie.pl/wp-content/uploads/2024/09/Regulamin-Aircombat-ESA-2024.pdf | Byte-identical to the forum PDF (`cmp`), which confirms the document is the circulated version |
 
+### Third pass (2026-10-04, evidence in `papers/world/EXTRACTS.md`)
+
+| What | Link | Evidence |
+|---|---|---|
+| **EPA rules, German translation of the Czech rules valid since 2006** (7 min flight, up to 850 mm and 520 g, same points as ESA, safety line 10 m from the pilots; version 0.8 of 31.01.2013) | http://aircombat.eu/rules/2013_EPA_Rules_Deutsch_V0-8.pdf | `papers/world/EPA_Rules_Deutsch_V0-8_2013.pdf`, quotes in `EXTRACTS.md` |
+| Czech ACES association (ACES WWII 2023 rules, calendar; next event listed when fetched: 17.10.2026 Budkovice, "Bitva o radar") | https://www.aircombat.cz/pravidla/ | `papers/world/cz_aircombat_pravidla.html` (ACES 1:12, not ESA) |
+| Czech overview of electric combat (ESA, EPA, WW1+) next to ACES and slope combat (old page, news until 2013) | https://www.rcweb.cz/kombat.htm | `papers/world/cz_rcweb_kombat.html` |
+
+Not retrieved (not cited): epacombat.cz (435-byte reply), rc-aircombat.de, DMFV Aircombat rules pages. Findings: ESA looks like a descendant of the Czech EPA rules; Poland, Germany/Austria and the Czech Republic all fly electric foam streamer combat.
+
 ## Plans and 3D models
 
 - The ACES forum has many **3D-printed models** (Fiat G.55, Hellcat, Mustang, Tempest, Ki-61 and more) shared by one builder, with a thread of announcements (https://www.aircombat.pl/ACES/forum/viewtopic.php?t=5, updated 27.01.2026). **These are ACES-class (1:12, up to about 1.5 kg; the thread mentions a 1.7 kg multi-engine limit), not ESA.** The files sit behind forum threads; I did not download any.
@@ -55,5 +65,5 @@ ESA itself is a Polish class; I found no evidence it is flown by that name elsew
 ## Next
 
 1. More videos (Eskadra Kraków DIY videos) and a check of the free-plan sites.
-2. The German EPA/ESA rules (rc-aircombat.de) and the Czech/Slovak scenes.
+2. The Czech ESA/EPA rule sites and the Slovak scene, and a newer EPA rules version than 0.8 (2013).
 3. ESA-class (not ACES) 3D models, if any exist.

@@ -1,0 +1,343 @@
+                                 Aircombat Reglement der Klasse
+                              EPA (Electric “Polystyrene” Air Combat)
+
+        (Sinngemäße Übersetzung des seit 2006 gültigen Reglements aus CZ)
+
+Änderungen bzw. Erweiterungen des CZ EPA Reglements.
+Technische Regeln sind unverändert, es wurden nur die Regeln angepasst, die
+ein einfacheres Umgehen mit den Klassen WW1 und WW2 bei gemeinsam
+durchgeführten Wettkämpfen ermöglicht.
+
+1.     EPA - Electric “Polystyrene” Air Combat
+
+1.1. EPA
+Die R/C Air Combat Klasse EPA ist entwickelt worden, um den Luftkampf des 2. Weltkrieges aus historischer Perspektive
+in einem erfreulichen, sicheren und maßstäblichen Wettbewerb nachzustellen. Er soll interessant für die Zuschauer und
+herausfordernd für die Teilnehmer sein.
+
+1.2. Generelle Regeln
+Die FAI und gesetzlichen Regeln bestimmen im Allgemeinen die Rahmenbedingungen
+des R/C Fluges, der Flugzeuge und des Zubehörs.
+Der Wettbewerbsteilnehmer ist allein verantwortlich für die Lufttüchtigkeit des A/C Modells, das er im Wettbewerb
+einsetzt. Der Veranstalter und der Hauptschiedsrichter regeln die Frequenzkontrolle während des Wettbewerbs.
+
+1.3. Sicherheit
+Sicherheit hat immer höchste Priorität. Jede Handlung eines Wettbewerbsteilnehmers, die der Hauptschiedsrichter oder
+der Veranstalter als gefährlich erachtet, kann zur sofortigen Disqualifikation des Teilnehmers von dem Wettbewerb
+führen. Ein noch unbekannter Pilot kann zu einem Testflug aufgefordert werden, um zu belegen, dass er ein EPA
+Aircombat Flugmodell sicher fliegen kann.
+
+2. Wettbewerbsgelände
+
+
+
+
+2.1. Wettbewerbsgelände
+Die Zeichnung unten zeigt eine typische Aufteilung für ein Flugfeld eines größeren Wettbewerbes. Eine Safetyline muss
+die fliegenden Modelle in einen sicheren Abstand zu den Piloten halten. Wenn es der zur Verfügung stehende Platz
+ermöglicht, sollten die maximal praktikablen Abstände zwischen dem Flugbereich und dem Sicherheitszaun genutzt
+werden.
+
+2.2.1 Flight Area (Flugzone)
+Die Flugzone ist nur vor der Sicherheitslinie. Flugzeuge, die außerhalb der Landungszone landen, dürfen nur nach einem
+Fight und nachdem keine weiteren Modelle in der Luft sind, zurückgeholt werden.
+2.2.2 Landing Zone (Landefeld)
+Ein Landefeld ist vom Wettbewerbsveranstalter klar auszuzeichnen. Nur von dort dürfen A/C Modelle für einen Restart
+geborgen werden. Siehe § 4.6 Restarts
+
+                                                            1
+2.2.3 Safetyline
+Die Sicherheitslinie ist parallel mit einem Abstand von 10 m zu der Piloten-Linie. Sobald die Sicherheitslinie gezogen ist,
+muss sie bei allen Flügen (Von der offiziellen Eröffnung bis zur Schließung durch den Veranstalter) eingehalten werden.
+Die Sicherheitslinien-Strafpunkte werden auch vor, zwischen und nach den Wertungsflügen vergeben, egal aus welchem
+Grund auch immer diese Linie verletzt wird.
+
+2.3 Start Pits (Pilotenstartposition) and readiness Line (Vorbereitungslinie)
+Die Start Pits haben mind. 3-5 m Abstand. Die Readiness-Linie ist mit 10 m Abstand parallel zur Piloten-Linie. Bei
+„Readiness” müssen Piloten und Helfer hinter diese Linie. Bei kleinen Veranstaltungen kann die Saftetyline als
+Readinessline verwendet werden.
+
+2.4 Audience (Publikum)
+Das Publikum soll sich in sicherer Entfernung hinter der Safety-Linie aufhalten oder mit Sicherheitseinrichtungen, wie
+Netzen, geschützt sein. Die vom Netz geschützte Fläche hängt von den örtlichen Gegebenheiten ab. Der ungeschützte
+Bereich soll für das Publikum abgesperrt sein. In diesem Bereich besteht Helmtragepflicht. Pressevertreter mit
+entsprechendem Helm dürfen diesen Bereich betreten.
+
+2.5 Erste Hilfe
+Auf dem Wettbewerbsgelände ist ein Erste-Hilfe-Punkt mit der nötigen Ausstattung zur sofortigen Verfügung einzurichten.
+
+
+
+3. Ausrüstung
+
+3.1. Das Aircombat Modell
+Für die Klasse EPA WW2 muss das Modell ein maßstäblicher Nachbau eines Militärflugzeuges aus dem Zeitraum von
+1935 bis 1945 sein.
+
+Für die Klasse EPA WW1 muss das Modell ein maßstäblicher Nachbau eines Militärflugzeuges aus dem Zeitraum von
+1914 bis 1918 sein.
+
+Die Abmessungen des Aircombat Modells sind wie folgt festgelegt:
+
+• Maximale Flügelspannweite für einmotorige Modelle von 850mm
+• Maximale Flügelspannweite für doppelmotorige Modelle von 1000mm
+• Mindeste Flügelspannweite für alle Modelle von 800mm
+Entsprechend der gewählten Spannweite müssen alle anderen Bauteile des Modelles im gleichen Maßstab gebaut
+werden. Eine maximale Abweichung von 2cm wird toleriert. Ein dreidimensionaler Aufbau des Rumpfes ist nicht
+vorgeschrieben, solange die Toleranz eingehalten wird. Die Länge des Modells wird von der hintersten Kante bis zum
+Propeller gemessen. Bei Modellen ohne Frontpropeller gilt die vorderste Modellkante.
+
+Es dürfen keine herausstehenden Teile an den Flügeln und Leitwerken vorhanden sein,
+auch wenn dies beim Original so war.
+
+Das Modell sollte aus EPP oder einem ähnlichen Material gebaut werden, wobei eine Bespannung der Oberflächen
+oder jegliche andere Methode die Oberflächen zu versiegeln nicht erlaubt ist.
+
+Eine Verstärkung der Tragflächen-und Leitwerknasenleiste durch "harte" Materialien ist nicht erlaubt.
+Eine Schutzschicht an den vorderen Kanten des Modells mit Glasgewebeband oder Textilband bis zu einer Tiefe von
+10mm, ist jedoch zugelassen.
+Das Modell soll wie das Original aussehen; incl. Bemalung und Markierungen. (Auf Hakenkreuze sollte verzichtet
+werden, sofern sie nicht in abgewandelter Form angebracht werden.)
+
+Der Wettbewerbsteilnehmer hat von seinem Modell eine Dreiseitenansicht des Vorbildes (mind. 1:72 scale) mitzubringen,
+damit die Maße vom Veranstalter überprüft werden können.
+
+Der Wettbewerbsteilnehmer muss nicht der Erbauer des Modells sein.
+
+
+
+
+                                                             2
+Streamerfänger sind nur am Flügel erlaubt. Der erlaubte Bereich ist bei einmotorigen Modellen eine DIN A4 Länge (29,5
+cm) neben dem Rumpf oder bei mehrmotorigen Modellen eine DIN A4 Länge (29,5 cm) ab der ersten Motorgondel nach
+außen. (Es darf Schleifpapier bis zu einer Dicke von F 40 oder vergleichbares Material verwendet werden.)
+
+3.2. Motoren
+Nur die Verwendung von Bürsten- oder Bürstenlosen Elektro-Motoren ist erlaubt.
+
+3.3. Akku Spezifikation
+Zur Verwendung in einem EPA Modell sind nur Lixx Akkus mit einer maximalen Zellenanzahl von 3 oder NiCd/NiMh mit
+einer maximalen Zellenanzahl von 9 erlaubt.
+
+3.4. Akku Kapazität
+Für Modelle mit einem Bürstenlosen Motor bei 2 Zellen Lixx maximal 1.800mAh und mit 3 Zellen Lixx maximal 1350mAh.
+Für Modelle mit einem Bürstenlosen Motor bis zu 7 Zellen NiCd/NiMh 1.800mAh und mit mehr als 7 Zellen NiCd/NiMh
+maximal 1.350mAh.
+
+Für Modelle mit einer Bürstenlosen Doppelmotorisierung gilt bei gleicher Zellenanzahl wie o.a. eine Obergrenze von
+maximal 2.500mAh.
+
+Für Modelle mit einem Bürsten-Motor bei 2 Zellen Lixx maximal 2.100mAh und mit 3 Zellen Lixx maximal 1500mAh.
+Für Modelle mit einem Bürsten-Motor bis zu 7 Zellen NiCd/NiMh 2.100mAh und mit mehr als 7 Zellen NiCd/NiMh maximal
+1.500mAh.
+Für Modelle mit einer Bürsten-Motor Doppelmotorisierung gilt bei gleicher Zellenanzahl wie o.a. eine Obergrenze von
+maximal 3.000mAh.
+
+3.5. Propeller
+Nur allgemein frei verfügbar zu kaufende Propeller dürfen benutzt werden. Es muss möglich sein, diese in einem
+normalen Hobby-Geschäft zu kaufen. Alle Propeller, die auf unseren Modellen verwendet werden, müssen ein sicheres
+Design für den Verwendungszweck und die nutzbare Motorendrehzahl haben.
+
+3.6. Gewicht des Modells
+Das maximale Gewicht eines EPA Aircombat Modells beträgt 520g.
+
+3.7. Streamer
+Der Streamer ist 10m in einem Stück lang. Die Längentoleranz ist max. +/-0,5m. Er ist 10-15mm breit. Das Material soll
+gut zu schneiden sein und Feuchtigkeit widerstehen. Beide Enden des Streamers sind auf etwa 50cm zu markieren.
+Die Streamermarkierung am A/C Modell muss am Leitwerksende zu sehen sein.
+
+3.8. Helm
+Ein Helm ist von jeder Person, die sich vor dem Zuschauerbereich befindet, zu tragen. Der Helm muss den oberen Teil
+des Kopfes bedecken und einen Einschlag eines A/C Modells aushalten.
+
+3.9. Radio equipment (Remote Control Set)
+Die Fernsteuerungsanlage muss eine gültige Europäische Zertifizierung haben. Der Wettbewerbsteilnehmer
+ist für die ordnungsgemäße Funktion seiner Fernsteuerung verantwortlich.
+
+4. Der Wettkampf
+
+4.1. Wettkampf Gliederung
+Jeder „Fight” besteht aus mindestens zwei und maximal sieben Piloten, die gegeneinander fliegen. Wenn alle Piloten
+mind. einen „Fight“ geflogen sind, nennt man es Runde. In der nächsten Runde soll die Pilotenzusammenstellung
+verändert werden, um möglichst viele verschiedene Piloten gegeneinander fliegen zu lassen. Die Zahl, der zu fliegenden
+Runden soll in der Wettkampfausschreibung genannt werden. Die empfohlene Rundenzahl ist 3.
+Nach den Wettbewerbsrunden wird das Finale geflogen. Die sieben punktbesten Piloten ziehen in das Finale ein.
+Der Pilot mit den meisten Punkten nach dem Finale ist der Sieger. Bei Punktgleichheit zählt das beste Einzelergebnis.
+
+4.2. Fights
+Ein „Fight“ beinhaltet drei Abschnitte. Preparation (Vorbereitung); Readiness (Bereitschaft); Flight Part (Flugzeit)
+
+4.2.1. Preparation (Vorbereitung)
+Der Ausrichter bestimmt die Vorbereitungszeit. Es werden 7 min bei kleineren Wettbewerben empfohlen.
+
+                                                              3
+Der Hauptschiedsrichter bläst ein Dreifachsignal und ruft „seven minutes to readiness“. In der Vorbereitungszeit dürfen
+Testflüge gemacht werden. 30 Sekunden vor Ende der Vorbereitungszeit bläst der Hauptschiedsrichter ein
+Doppelsignal und ruft: „30 seconds to readiness“.
+
+4.2.2. Readiness (Bereitschaft)
+Die Bereitschaftszeit folgt unmittelbar an die Vorbereitungszeit, der Hauptschiedsrichter
+ruft: „Readiness“. In der Bereitschaftszeit befinden sich alle Piloten und Helfer hinter der
+Readinesslinie. Die Länge der Readiness Zeit bestimmt der Hauptschiedsrichter.
+
+4.2.3. Flight (Flugzeit)
+Der Hauptschiedsrichter startet mit dem langen Signal die Flugzeit. Die Piloten und ihr Helfer dürfen zu ihrem A/C laufen
+und es starten. Die Flugzeit endet mit einem langen Signal nach 420 Sekunden. Danach können die Piloten nach
+eigenem Ermessen vor der Sicherheitslinie landen. Sobald alle A/C gelandet sind, beginnt die Vorbereitungszeit der
+nächsten Pilotengruppe.
+
+4.3. Helfer
+Jeder Pilot darf einen Helfer haben. Nur ein Helfer darf in der Flugzeit bei seinem Piloten verbleiben.
+
+4.4. Start
+Es darf nur in dem Bereich zwischen der Piloten- und der Sicherheitslinie gestartet werden. Wenn der Streamer beim
+Start nicht intakt ist, zählt kein Punkt. Das Modell muss landen und mit einem intakten Streamer starten.
+
+4.5. Flugzeit Punkte
+Die maximale Flugzeit beträgt 420 Sekunden. Ein Punkt wird für drei Flugsekunden gegeben. Den ersten Punkt bekommt
+man für die erste Flugsekunde, das geht dann bis zu den maximalen 138 Flugpunkten.
+
+4.6. Restarts
+Die Zahl der Restarts ist nicht begrenzt. Wenn der Pilot während eines Fights sein A/C Modell aus der Landezone holen
+möchte, braucht er die Erlaubnis des Hauptschiedsrichters. Der Hauptschiedsrichter gibt ein Signal und nachdem alle
+Piloten informiert sind, darf das Modell geholt werden. Der Restart muss von dem Startpit ausgeführt werden, der auch zu
+Beginn des Fights verwendet wurde. Der Startbereich ist zwischen dem Startpit und der Sicherheitslinie.
+
+4.7. Modell Reparatur
+Bevor ein repariertes Modell erneut am Wettkampf teilnehmen kann, muss es vom Hauptschiedsrichter auf seine korrekte
+Funktionsweise überprüft werden.
+
+4.8. Modell Wechsel
+In einem Fight darf nur dasselbe A/C Modell benutzt werden. Ein anderes Modell darf
+erst im nächsten Fight verwendet werden. Das A/C Modell ist definiert mit den Hauptbauteilen Rumpf und Flügel.
+
+4.9. Crossing of lines (Überqueren von Linien)
+Ein Überqueren von Linien durch ein A/C Modell kann im Flug oder am Boden geschehen. In der Luft muss das A/C
+Modell klar über der Linie geflogen sein. Am Boden zählt es, wenn der Motor des Modells über die Linie gerät. Bei
+mehrmotorigen Modellen genügt es, wenn ein Motor über die Linie gerät.
+
+4.10. Safety line crossing (Verletzung der Sicherheitslinie)
+Wenn ein Pilot während eines Wettbewerbes die Sicherheitslinie mit seinem A/C Modell zum ersten Mal kreuzt, bekommt
+er eine Minus-Punkt-Strafe. Beim zweiten Mal muss der Pilot sofort von dem Wettbewerb disqualifiziert werden. Wenn er
+das Modell noch fliegt, so hat er sofort zu Landen. Er behält seine positiven wie negativen Punkte, die er bis zu dem
+Zeitpunkt erhalten hat.
+
+4.11. Lost Streamer (Verlust des Streamers)
+Der Wettbewerbsteilnehmer ist verantwortlich dafür, dass er mit einem angebrachten und in voller Länge ausgerollten
+Streamer startet. Nach der Landung wird der Streamer geprüft. Ist das A/C Modell mindestens 10 Sekunden geflogen
+und der Streamer in Ordnung, bekommt er die Punkte (+50) gutgeschrieben. Wird der Streamer bei der
+Landung verloren, so muss der Pilot dieses mit dem Auffinden des verlorenen Streamers belegen.
+
+4.12. Streamer Cut
+Ein Wettbewerbsteilnehmer, der einem gegnerischem A/C den Streamer in der Luft abschneidet, erhält +100 Punkte.
+Verbleibt ein Streamer eines gegnerischem A/C an seinem Modell, gilt folgendes: Wird der erbeutete Streamer gecuttet,
+so bekommt der cuttende Wettbewerber die +100 Punkte. Der gecuttete Wettbewerber verliert nicht seine Punkte. Cuts
+zählen nur bei Streamern, die direkt am gegnerischen A/C Modell hängen. Wird bei einem Anflug der Streamer mehrfach
+
+
+                                                               4
+oder mehrere (der eigene und erbeutete Streamer) gecuttet, so zählt dieses nur als ein Cut. Kommt es bei einem Anflug
+zeitgleich zu einem Cut und einer Kollision, zählt dieser Cut nicht.
+
+4.13 Modell Bewertung
+• Teilnehmer, die ein mehrmotoriges Modell oder einen Doppeldecker in einem Fight nutzen, erhalten 25 Extra Punkte.
+• Teilnehmer, die ein Modell mit einem sog. Flatline Rumpf nutzen, erhalten 25 Punkte Abzug.
+
+4.14. Collision
+Wenn zwei oder mehrere A/C in der Luft kollidieren, ist folgendes Vorgehen angeordnet: Der Wettbewerber, dessen A/C
+sicher weiter fliegen kann, darf in der Luft bleiben, um weitere Punkte zu erhalten. Es gibt keine Kill- oder Trostpunkte.
+Die Flugzeit stoppt, sobald der Rumpf den Boden berührt.
+.
+4.15. Non-engagement rule (Hasenfußregel)
+Wenn sich ein Wettbewerber mehr als 30 Sekunden aus dem Kampf heraushält, wird er vom Hauptschiedsrichter
+verwarnt. Hält er sich wiederum 30 Sekunden aus dem Kampf heraus, so erhält er –50 Punkte aus der Non-engement-
+rule. Wenn der Pilot dem Hauptschiedsrichter mitteilt, dass er technische Probleme hat, so hat er
+unverzüglich in einer Weise zu landen, das weder die Mitbewerber noch die Zuschauer gefährdet werden.
+
+4.16. Tie (Unentschieden)
+Wenn zwei Piloten nach dem Finale punktgleich sind, so gewinnt der Pilot mit der höheren Finalpunktzahl. Sind diese
+auch identisch, zählt die höhere Einzelpunktzahl aus den Vorrunden.
+
+4.17. Frequenzen
+Jeder Wettbewerber muss in der Lage sein mindestens zwischen zwei Fernsteuerfrequenzen wählen zu können. Wenn
+es zu einer Frequenzkollision im Finale kommt, so muss der Teilnehmer mit der geringeren Punktzahl den Kanal
+wechseln. Für den Wechsel wird eine extra Zeit gegeben. Erst danach beginnt die Vorbereitungszeit. Der Teilnehmer, der
+wechseln muss, hat weitere Frequenzkollisionen
+zu verhindern.
+
+4.18. Einfluss der Wetterbedingungen
+Wenn sich das Wetter oder die Wettbewerbsbedingungen verschlechtern, kann der Veranstalter eine Pilotenbesprechung
+einberufen. Dort kann eine Verschiebung, eine Beendigung, eine Aufhebung oder eine Entscheidung zur Bewertung der
+bisherigen Ergebnisse beschlossen werden.
+
+4.19. Protest
+Jeder Wettbewerber hat das Recht gegen eine Schiedsrichter-Entscheidung zu protestieren. Der Protest wird in einer
+Teilnehmerversammlung entschieden. Diese wird sobald es geht einberufen. Eine Protestgebühr wird erhoben. Wird dem
+Protest stattgegeben, wird die Gebühr zurückerstattet.
+
+5. Judges
+
+5.1. Main Judge (Hauptschiedsrichter)
+Der Hauptschiedsrichter ist verantwortlich für den zeitlichen Gesamtablauf des
+Wettbewerbes. Er überwacht zudem, dass sich die Teilnehmer während des Fights
+hinter der Sicherheitslinie aufhalten.
+Betrug oder der Versuch des Betruges wird mit der Disqualifikation vom Wettbewerb
+bestraft. Die Hauptschiedsrichterentscheidung soll mit einem Pilotenentscheid bestätigt
+werden.
+
+5.2. Safety Judge (Sicherheitsschiedsrichter)
+Der Safety Judge ist verantwortlich für die allgemeine Sicherheit auf dem Wettbewerb. In Sicherheitsfragen ist seine
+Autorität höher als die vom Hauptschiedsrichter. Er soll vor Sicherheitsgefahren warnen. Er positioniert sich so, dass er
+das Verletzen der Sicherheitslinie klar einsehen kann. Er achtet darauf, das sich niemand ohne Helm im
+gefährdetem Bereich aufhält.
+
+5.3. Pilot Judge
+Der Pilotenrichter muss die Punkte des Piloten auf dem Scoreboard registrieren. Er protokolliert die Flugzeit des Piloten.
+Außerdem ist er zuständig für die Registrierung von: Verletzung der Sicherheitslinie (mit dem Safety Judge) und
+„Hasenfuß“ Strafen. Er registriert Cuts und kontrolliert das A/C Modell mit Streamer vor und direkt nach dem Fight. Falls
+sich Streamer oder Teile davon am Modell befinden vermerkt er dieses auf dem Scoreboard. Dieses findet mit
+
+
+
+                                                             5
+Einverständnis des Piloten statt. Die Piloten und der Pilotenrichter bestätigen das Ergebnis mit ihrer Unterschrift auf dem
+Scoreboard. Ist die Situation unklar, hat der Hauptschiedsrichter eine sofortige Entscheidung zu fällen.
+
+6. Punkte
+Crossing of the Safety line                              - 200
+Hasenfuss                                                - 50
+Eigener Streamer nach Figth i.O.                         + 50
+Modell Bewertung für mehrmotoriges Modell                + 25
+Modell Bewertung für Doppeldecker                        + 25
+Modell Bewertung Flatline Rumpf                          - 25
+Cut eines Streamers                                      + 100
+Flugzeit alle 3 Sekunden + 1
+
+
+Versionsstand 0.8 vom 31.01.2013
+
+
+Änderungen zur Version 0.7:
+
+2.1 Schaubild Wettbewerbsgelände gegen Schaubild aus den WW2 Regeln ausgetauscht
+
+2.4 Mindestentfernung von 60m für Zuschauer gestrichen.
+
+2.4 Pressevertreter mit entsprechendem Helm dürfen diesen Bereich betreten, hinzugefügt.
+
+3.1 Ob Piloten auch mit einem maßstäblichen Nachbau eines Militärflugzeuges aus dem Zeitraum von 1914 -1918
+starten dürfen, wird vor dem Wettkampf durch Abstimmung der teilnehmenden Piloten durchgeführt. (Prinzip der
+einfachen Mehrheit).
+Wurde gestrichen, stattdessen:
+Für die Klasse EPA WW2 muss das Modell ein maßstäblicher Nachbau eines Militärflugzeuges aus dem Zeitraum von
+1935 bis 1945 sein.
+Für die Klasse EPA WW1 muss das Modell ein maßstäblicher Nachbau eines Militärflugzeuges aus dem Zeitraum von
+1914 bis 1918 sein.
+
+5.2 Safety Commissar durch Safety Judge ersetzt
+
+
+
+
+                                                             6
+
