@@ -19,7 +19,7 @@
 - **Four modelled planes** (Spitfire, Hurricane, FW 190, Yak-3), built in OpenSCAD to ESA kit proportions.
 - **Pursuit bots**, so you can test alone. Add up to six. Gusty air is shared by all planes.
 - **Hand launch** like real WWII ESA, from your start box. **Pilot camera** standing at your start box and following the plane (default), or **analog-style FPV** (V): scanlines, snow and tearing grow with distance from you, ending in signal lost.
-- **Textured sky** (procedural clouds and sun) and a **beginner orientation widget** in the top-right corner: your plane as you see it from the start box, with a yellow nose arrow, red (left) and green (right) wing lights and a plain-language label ("Nose toward you · banked left").
+- **Textured sky** (procedural clouds and sun) and a **beginner orientation widget** in the top-right corner: your plane as you see it from the start box, with a yellow nose arrow, an orange sphere (left) and a blue cube (right) on the wing tips and a plain-language label ("Nose toward you · banked left").
 - **Analog FPV and video interference**: every plane carries a video transmitter (power 25 mW to 5 W, channel R1-R8). Range grows with power. Another pilot's transmitter near your start box, especially a 5 W one that forgot race mode, swamps your feed and you see *their* camera rolling through yours. Switch power and channel live (model in your hand). This is a sim effect, ESA has no VTX rules.
 - **Replay**: after a fight, watch it back (scoreboard and events included) or save it as JSON, useful as evidence for protests (§4.19).
 - **RadioMaster support** (any USB joystick-mode radio) with mapping and calibration (key R), ported from the author's earlier drone sim. Keyboard works too.

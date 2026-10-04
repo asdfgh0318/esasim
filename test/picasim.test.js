@@ -29,6 +29,16 @@ check("mass and CG", base.aero.mass > 0.30 && base.aero.mass < 0.36 && Math.abs(
   check("motor: static thrust at full throttle", e.thrust > 3.5 && e.thrust < 9, `${e.thrust.toFixed(1)} N (${(e.thrust / 9.81 * 1000).toFixed(0)} g), ${(e.W * 9.55).toFixed(0)} rpm, ${e.electricPower.toFixed(0)} W`);
   check("motor: electrical power is plausible for a 15 Wh pack", e.electricPower > 60 && e.electricPower < 200, `${e.electricPower.toFixed(0)} W`); }
 
+// level-flight top speed and cruise at full throttle (DESIGN numbers, not measured on a real plane): a vertical-speed controller holds the height
+{ const pl = fly(mk(), 500, 16, 1); const upB = new THREE.Vector3(), inv = new THREE.Quaternion(); let sp = 0, n = 0, maxAlt = 0, minAlt = 1e9;
+  run(pl, 40, (p, t) => {
+    inv.copy(p.quat).invert(); upB.set(0, 1, 0).applyQuaternion(inv);
+    p.input.elevator = Math.max(-0.4, Math.min(0.4, -p.vel.y * 0.05 - (p.pos.y - 500) * 0.005));     // +1 = stick back = nose up; descending (vy < 0) or below the target pulls up
+    p.input.aileron = Math.max(-1, Math.min(1, -Math.atan2(upB.x, upB.y) * 1.5));
+    if (t > 25) { sp += p.vel.length(); n++; maxAlt = Math.max(maxAlt, p.pos.y); minAlt = Math.min(minAlt, p.pos.y); } });
+  const v = sp / n;
+  check("level flight at full throttle: a plausible top speed for an ESA foam plane (10-30 m/s)", v > 10 && v < 30 && maxAlt - minAlt < 20, `${v.toFixed(1)} m/s (${(v * 3.6).toFixed(0)} km/h), height band ${(maxAlt - minAlt).toFixed(0)} m`); }
+
 // glide: stable, a reasonable glide ratio, no NaN
 { const pl = fly(mk(), 300, 11, 0); const log = []; run(pl, 16, (p, t) => { if (t > 10 && Math.round(t * 240) % 60 === 0) log.push([p.vel.length(), -p.vel.y]); });
   const v = log.reduce((a, b) => a + b[0], 0) / log.length, s = log.reduce((a, b) => a + b[1], 0) / log.length;

@@ -3,8 +3,8 @@ import * as THREE from "three";
 import { createPlane } from "./planeModel.js";
 
 // Beginner orientation widget (top-right corner): a small copy of your plane shown the way the pilot sees it from the start box,
-// so "nose toward me / away / left / right / upside down" is obvious. Red = left wing tip, green = right wing tip (like navigation lights),
-// yellow arrow = nose. The model's +x axis is the plane's LEFT (see shared/flight.js), so the red light sits at +x.
+// so "nose toward me / away / left / right / upside down" is obvious. Orange sphere = left wing tip, blue cube = right wing tip (colour and shape differ for colour-blind players),
+// yellow arrow = nose. The model's +x axis is the plane's LEFT (see shared/flight.js), so the left marker sits at +x.
 const SIZE = 150, MARGIN = 10;
 
 export function createOrientationWidget(type, tint) {
@@ -19,8 +19,9 @@ export function createOrientationWidget(type, tint) {
   arrow.rotation.x = Math.PI / 2; arrow.position.z = 0.62; g.add(arrow);
   const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.28, 8), new THREE.MeshBasicMaterial({ color: 0xffd166 }));
   shaft.rotation.x = Math.PI / 2; shaft.position.z = 0.36; g.add(shaft);
-  const lamp = (x, color) => { const m = new THREE.Mesh(new THREE.SphereGeometry(0.05, 12, 12), new THREE.MeshBasicMaterial({ color })); m.position.set(x, 0.01, 0); g.add(m); };
-  lamp(0.42, 0xff3030); lamp(-0.42, 0x30ff60);                 // +x = left wing tip = red, -x = right wing tip = green
+  // Colour-blind friendly: left = orange SPHERE, right = blue CUBE (shape and colour differ; the old red/green pair is the hardest to tell apart).
+  const lamp = (x, color, geo) => { const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color })); m.position.set(x, 0.01, 0); g.add(m); };
+  lamp(0.42, 0xff7a1a, new THREE.SphereGeometry(0.06, 14, 14)); lamp(-0.42, 0x2aa8ff, new THREE.BoxGeometry(0.1, 0.1, 0.1));   // +x = left wing tip, -x = right wing tip
   const cam = new THREE.PerspectiveCamera(32, 1, 0.1, 20); cam.position.set(0, 0, 2.5);
   const f = new THREE.Vector3(), up = new THREE.Vector3(), ref = new THREE.Quaternion(), m4 = new THREE.Matrix4(), tmp = new THREE.Quaternion();
 
