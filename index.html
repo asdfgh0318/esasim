@@ -1,13 +1,13 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ESASIM: ESA air combat</title>
+<link rel="icon" href="data:,"><title>ESASIM: ESA air combat</title>
 <style>html,body{margin:0;height:100%;background:#0b1220;overflow:hidden;font:14px system-ui,sans-serif}
 #intro{position:fixed;inset:0;display:grid;place-items:center;background:rgba(8,14,26,.82);color:#e6edf7;z-index:5}
 #intro .card{max-width:560px;margin:16px;padding:24px 28px;background:#121c30;border:1px solid #2b3d5e;border-radius:12px;line-height:1.5}
 #intro h1{margin:0 0 4px;font-size:26px} #intro h2{font-size:15px;margin:18px 0 6px;color:#9cc9ee}
 #intro ul{margin:0;padding-left:20px} #intro a{color:#ffd166}
 #intro button{margin-top:18px;padding:10px 22px;font-size:16px;border:0;border-radius:8px;background:#d23b3b;color:#fff;cursor:pointer}
-#hud{position:fixed;left:12px;top:10px;color:#e6edf7;text-shadow:0 1px 2px #000}</style></head>
+</style></head>
 <body>
 <div id="intro"><div class="card">
 <h1>ESASIM</h1>
@@ -23,5 +23,5 @@
 <li>Worldwide: <a href="http://aircombat.eu/nationalACES.htm" target="_blank" rel="noopener">ACES national sites</a>. More soon.</li>
 </ul>
 <button id="play">Fly</button>
-</div></div><div id="hud">ESASIM · arrows: pitch/roll · A/D: yaw · W/S: throttle</div>
+</div></div>
 <script type="module" src="/client/main.js"></script><script>document.getElementById("play").onclick=()=>document.getElementById("intro").remove();if(new URLSearchParams(location.search).has("nointro"))document.getElementById("intro").remove();</script></body></html>

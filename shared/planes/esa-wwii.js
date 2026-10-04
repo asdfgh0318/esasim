@@ -10,7 +10,7 @@ export const ESA_WWII = {
   maxRpm: 13000,         // rpm DESIGN; pitch speed = 23.7 m/s (no rpm limit in ESA)
   staticThrust: 6,       // N   DESIGN (about 1.5 thrust/weight, 15 Wh battery §3.4)
   cl0: 0.25, clAlpha: 4.0, alphaStall: 0.26,   // DESIGN: foam, thin flat-ish section
-  cd0: 0.05, oswald: 0.75,                      // DESIGN: foam fuselage and exposed parts
+  cd0: 0.042, oswald: 0.75,                      // DESIGN: foam fuselage and exposed parts
   // Body geometry along +z from the centre of gravity, metres. DESIGN (foam fighter, about 0.65 m long).
   noseZ: 0.22,           // prop disc position
   wingLeZ: 0.06,         // wing leading edge (ESA §3.1 allows sandpaper cutters on it)

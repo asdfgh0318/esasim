@@ -2,85 +2,145 @@ import * as THREE from "three";
 import { Client } from "@colyseus/sdk";
 import { buildField } from "./field.js";
 import { Plane } from "../shared/flight.js";
-import { pitX, FIELD } from "../shared/rules.js";
+import { Streamer } from "../shared/streamer.js";
 import { ESA_WWII } from "../shared/planes/esa-wwii.js";
+import { FIELD, pitX } from "../shared/rules.js";
 import { RadioInput } from "./input/radio.js";
 import { mountRadioUI } from "./input/radioUI.js";
+import { StreamerView } from "./streamerView.js";
+import { CameraRig } from "./camera.js";
+import { mountHud } from "./hud.js";
 
+const params = new URLSearchParams(location.search);
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x9cc9ee);
 scene.fog = new THREE.Fog(0x9cc9ee, 150, 600);
 scene.add(new THREE.HemisphereLight(0xffffff, 0x446644, 1.2), buildField());
-
-const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 1500);
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(innerWidth, innerHeight);
 document.body.append(renderer.domElement);
 addEventListener("resize", () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
 
-function makePlane(color) {   // placeholder mesh until Adam's models arrive (1:12 warbird is ~0.85 m long)
-  const p = new THREE.Group();
-  p.add(new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, 0.85), new THREE.MeshLambertMaterial({ color })));
-  p.add(new THREE.Mesh(new THREE.BoxGeometry(0.875, 0.02, 0.16), new THREE.MeshLambertMaterial({ color })));
-  const tail = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.02, 0.1), new THREE.MeshLambertMaterial({ color }));
-  tail.position.set(0, 0, -0.38);
-  p.add(tail);
-  return p;
+// Placeholder mesh until real models arrive (about 0.65 m long, 0.8 m span like the generic ESA plane).
+const COLORS = [0xd23b3b, 0x3b6bd2, 0x2aa84a, 0xe0b000, 0x9b4bd0, 0x22b8c4, 0xe07a30];
+function makePlane(color) {
+  const g = new THREE.Group(), mat = new THREE.MeshLambertMaterial({ color });
+  g.add(new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.08, 0.65), mat));
+  g.add(new THREE.Mesh(new THREE.BoxGeometry(ESA_WWII.span, 0.015, 0.13), mat));
+  const tail = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.015, 0.08), mat); tail.position.set(0, 0, -0.3); g.add(tail);
+  const fin = new THREE.Mesh(new THREE.BoxGeometry(0.015, 0.1, 0.09), mat); fin.position.set(0, 0.05, -0.3); g.add(fin);
+  return g;
 }
+
+// ---- state ----
 const sim = new Plane(ESA_WWII);
-sim.pos.set(0, 1.4, FIELD.pilotLineZ);          // held in the pilot's hand at the pilot line, start box 4 (ESA §2.2.5, §4.4)
-const me = makePlane(0xd23b3b);
-scene.add(me);
-camera.position.set(0, 1.8, FIELD.pilotLineZ - 4);
-const TOP = new URLSearchParams(location.search).has("top"); // debug: plan view of the site
-if (TOP) { camera.position.set(0, 90, 10); camera.lookAt(0, 0, 10); camera.far = 2000; camera.updateProjectionMatrix(); }
-const others = new Map();
-
-const radio = new RadioInput();
-const updateRadioUI = mountRadioUI(radio);
+let me = { id: null, pit: 3 };
+let phase = "lobby", snapNames = new Map(), online = false;
+const myMesh = makePlane(COLORS[me.pit]); scene.add(myMesh);
+const others = new Map(), views = new Map();   // id -> { mesh, pos, quat } / StreamerView
+const localStreamer = new Streamer({ seed: 9 }); // offline only
+const rig = new CameraRig(camera);
+const radio = new RadioInput(), updateRadioUI = mountRadioUI(radio);
 const keys = new Set();
-addEventListener("keydown", (e) => { keys.add(e.code); if (e.code === "Space") sim.launch(); });
+let room = null, landedAt = -1, kbThrottle = 0;
+
+const hud = mountHud({
+  ready: (v) => room?.send("ready", v), addBot: () => room?.send("addBot"), removeBots: () => room?.send("removeBots"), start: () => room?.send("start"),
+});
+
+function home() {                                  // plane back in the pilot's hand at the start box (ESA §4.4, §4.6)
+  sim.pos.set(pitX(me.pit), 1.4, FIELD.pilotLineZ); sim.vel.set(0, 0, 0); sim.quat.identity(); sim.omega.set(0, 0, 0);
+  sim.held = true; sim.onGround = false; sim.input.throttle = 0; kbThrottle = 0; landedAt = -1;
+  localStreamer.reset([sim.pos.x, sim.pos.y, sim.pos.z + ESA_WWII.tailZ]);
+}
+home();
+const canLaunch = () => sim.held && (!online || phase === "lobby" || phase === "prep" || phase === "flight");   // §4.2: no launches in readiness
+addEventListener("keydown", (e) => {
+  keys.add(e.code);
+  if (e.code === "Space") { if (canLaunch()) { sim.launch(); } else if (sim.held) hud.toast("Not now: launch is allowed in the flight part (§4.2.3)"); }
+});
 addEventListener("keyup", (e) => keys.delete(e.code));
-const hud = document.getElementById("hud");
-let kbThrottle = 0;
 
-let room = null;
-new Client(`ws://${location.hostname}:2567`).joinOrCreate("combat").then((r) => {
-  room = r;
-  r.onMessage("pit", (i) => { if (sim.held) { sim.pos.x = pitX(i); camera.position.x = pitX(i); } });
-  r.onMessage("poses", (poses) => {
-    for (const [id, p] of Object.entries(poses)) {
-      if (id === r.sessionId) continue;
-      let o = others.get(id);
-      if (!o) { o = makePlane(0x3b6bd2); others.set(id, o); scene.add(o); }
-      o.position.fromArray(p.pos); o.quaternion.fromArray(p.quat);
-    }
-    for (const [id, o] of others) if (!(id in poses)) { scene.remove(o); others.delete(id); }
-  });
-}).catch(() => console.warn("no server: offline mode"));
+// ---- network ----
+const nm = (id) => snapNames.get(id) || "?";
+function onEvent(e) {
+  const mine = e.id === me.id;
+  if (e.type === "cut") hud.toast(`${nm(e.id)} cut ${nm(e.victim)}'s streamer  +${e.pts}`, mine ? "good" : e.victim === me.id ? "bad" : "");
+  else if (e.type === "safety") hud.toast(`${nm(e.id)} crossed the safety line  ${e.pts}`, "bad");
+  else if (e.type === "disqualified") hud.toast(`${nm(e.id)} disqualified: second crossing (§4.9)`, "bad");
+  else if (e.type === "warning" && mine) hud.toast("Non-engagement warning: go fight (§4.14)", "bad");
+  else if (e.type === "non-engagement") hud.toast(`${nm(e.id)} non-engagement  ${e.pts}`, "bad");
+  else if (e.type === "landing-bonus") hud.toast(`${nm(e.id)} landed in the field  +${e.pts}`, "good");
+  else if (e.type === "protected") hud.toast(`${nm(e.id)} kept the streamer  +${e.pts}`, "good");
+  else if (e.type === "phase" && e.phase === "flight") hud.toast("FLIGHT!", "good");
+  else if (e.type === "phase" && e.phase === "ended") hud.toast("Flight over: land now", "");
+}
+function onSnap(snap) {
+  phase = snap.fight.phase;
+  snapNames = new Map(snap.fight.pilots.map((p) => [p.id, p.name]));
+  hud.update(snap, me.id);
+  const seen = new Set();
+  for (const p of snap.planes) {
+    seen.add(p.id);
+    let v = views.get(p.id);
+    if (!v) { v = new StreamerView(scene, COLORS[p.pit % 7]); views.set(p.id, v); }
+    v.update(p.streamer);
+    if (p.id === me.id) continue;
+    let o = others.get(p.id);
+    if (!o) { o = { mesh: makePlane(COLORS[p.pit % 7]), pos: new THREE.Vector3(...p.pos), quat: new THREE.Quaternion() }; o.mesh.position.copy(o.pos); scene.add(o.mesh); others.set(p.id, o); }
+    o.pos.set(...p.pos);
+    const z = new THREE.Vector3(...p.fwd), x = new THREE.Vector3(...p.right), y = new THREE.Vector3().crossVectors(z, x);
+    o.quat.setFromRotationMatrix(new THREE.Matrix4().makeBasis(x, y, z));
+  }
+  for (const [id, o] of others) if (!seen.has(id)) { scene.remove(o.mesh); others.delete(id); }
+  for (const [id, v] of views) if (!seen.has(id)) { v.dispose(); views.delete(id); }
+}
+new Client(`ws://${params.get("server") || location.hostname}:2567`).joinOrCreate("combat", { name: params.get("name") || "Pilot" }).then((r) => {
+  room = r; online = true;
+  r.onMessage("you", (y) => { me = y; rig.setPit(y.pit); myMesh.children.forEach((c) => c.material.color.setHex(COLORS[y.pit % 7])); if (sim.held) home(); });
+  r.onMessage("snap", onSnap); r.onMessage("events", (ev) => ev.forEach(onEvent));
+  r.onMessage("restart", () => { home(); hud.toast("New fight"); });
+  if (params.get("bots")) for (let i = 0; i < Number(params.get("bots")); i++) r.send("addBot");   // debug helpers for screenshots/tests
+  if (params.has("autostart")) setTimeout(() => { r.send("ready", true); r.send("start"); }, 500);
+}).catch(() => { console.warn("no server: offline practice"); hud.offline(); });
 
+// ---- loop ----
 const STEP = 1 / 240;
 let last = performance.now(), acc = 0, sent = 0;
 renderer.setAnimationLoop((t) => {
-  acc += Math.min((t - last) / 1000, 0.1); last = t;
+  const frame = Math.min((t - last) / 1000, 0.1); last = t; acc += frame;
   const k = (c) => (keys.has(c) ? 1 : 0);
-  if (radio.poll()) {                                   // radio wins when connected
-    Object.assign(sim.input, radio.channels);
-  } else {                                              // keyboard fallback
-    kbThrottle = THREE.MathUtils.clamp(kbThrottle + (k("KeyW") - k("KeyS")) * 0.4 * (1 / 60), 0, 1);
-    sim.input.throttle = kbThrottle;
-    sim.input.elevator = k("ArrowDown") - k("ArrowUp");  // stick back = nose up
-    sim.input.aileron = k("ArrowRight") - k("ArrowLeft");
-    sim.input.rudder = k("KeyD") - k("KeyA");
+  if (radio.poll()) Object.assign(sim.input, radio.channels);
+  else {
+    kbThrottle = THREE.MathUtils.clamp(kbThrottle + (k("KeyW") - k("KeyS")) * 0.4 * frame, 0, 1);
+    sim.input.throttle = kbThrottle; sim.input.elevator = k("ArrowDown") - k("ArrowUp");
+    sim.input.aileron = k("ArrowRight") - k("ArrowLeft"); sim.input.rudder = k("KeyD") - k("KeyA");
   }
   while (acc >= STEP) { sim.step(STEP); acc -= STEP; }
-  me.position.copy(sim.pos); me.quaternion.copy(sim.quat);
-  if (!TOP) {
-    const back = new THREE.Vector3(0, 1.0, -3.5).applyQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), new THREE.Euler().setFromQuaternion(sim.quat, "YXZ").y)).add(sim.pos);
-    camera.position.lerp(back, 0.08); camera.lookAt(sim.pos);
+  const airborne = !sim.held && !sim.onGround && sim.pos.y > 0.2;
+  if (!sim.held && !airborne && landedAt < 0) landedAt = t;                          // touchdown: fetch the model after a moment
+  if (landedAt >= 0 && t - landedAt > 4000) home();
+  myMesh.position.copy(sim.pos); myMesh.quaternion.copy(sim.quat);
+  for (const o of others.values()) { o.mesh.position.lerp(o.pos, 1 - Math.exp(-14 * frame)); o.mesh.quaternion.slerp(o.quat, 1 - Math.exp(-14 * frame)); }
+  if (!online) {                                                                     // offline: draw my own streamer locally
+    const f = new THREE.Vector3(0, 0, 1).applyQuaternion(sim.quat);
+    localStreamer.push([sim.pos.x + f.x * ESA_WWII.tailZ, sim.pos.y + f.y * ESA_WWII.tailZ, sim.pos.z + f.z * ESA_WWII.tailZ]);
+    let v = views.get("local"); if (!v) { v = new StreamerView(scene, COLORS[me.pit]); views.set("local", v); }
+    v.update(localStreamer.points(t / 1000).flat());
   }
-  hud.textContent = `ESASIM · ${radio.connected ? "radio" : "Space: hand launch, arrows pitch/roll, A/D yaw, W/S throttle"} · R: radio setup · ${sim.airspeed.toFixed(0)} m/s · ${sim.pos.y.toFixed(0)} m · thr ${(sim.input.throttle * 100).toFixed(0)}%`;
+  if (params.has("top")) { camera.position.set(0, 90, 15); camera.lookAt(0, 0, 15); camera.fov = 55; camera.updateProjectionMatrix(); } else {
+    let focus = sim.pos;
+    if (sim.held && others.size) {                                           // own model still in the hand: watch the airborne plane nearest to the middle of the action
+      const air = [...others.values()].filter((o) => o.pos.y > 1);
+      if (air.length) { const c = new THREE.Vector3(); air.forEach((o) => c.add(o.pos)); c.divideScalar(air.length); focus = air.reduce((best, o) => (o.pos.distanceTo(c) < best.pos.distanceTo(c) ? o : best)).mesh.position; }
+    }
+    rig.update(sim, frame, focus);
+  }
+  if (room && t - sent > 50) {
+    sent = t;
+    room.send("pose", { pos: sim.pos.toArray(), quat: sim.quat.toArray(), airborne, held: sim.held });
+  }
   updateRadioUI();
-  if (room && t - sent > 50) { sent = t; room.send("pose", { pos: sim.pos.toArray(), quat: sim.quat.toArray() }); }
   renderer.render(scene, camera);
 });

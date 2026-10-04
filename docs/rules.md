@@ -75,17 +75,23 @@ There is no stabilisation clause in ESA; ACES §3.9 (no electronic stabilisation
 
 (Source: §6. The table lists the landing bonus twice in the PDF; WWII is +20 in both places. The forum thread discusses a typo/vote about it; WWII stayed +20 in 2022.)
 
-## Mapping to the sim (draft)
+## Mapping to the sim (implemented)
 
-| Rule | Sim idea |
-|---|---|
-| 10 m streamer, 1 cm | Trailing chain; cut = segment crosses the enemy prop disc (Adam's decision) |
-| Safety line half-plane | Server check, plane position beyond z = 0 toward pilots; second crossing = disqualified |
-| Hand launch | Plane is held at the pit, launched with a throw (Space) |
-| 5 min flight, 100 points full | Server timer, 1 point per 3 s |
-| Landing bonus +20 | Land in the 50 x 20 m field after the end signal, last launch ≥ 10 s before the signal |
-| Mass ≤ 450 g, ≤ 15 Wh, span 700-860 mm | Workshop validation (later) |
-| Foam only, soft leading edge | Workshop rule; affects durability model if any |
+| Rule | Where | Notes |
+|---|---|---|
+| 10 m x 1 cm streamer (§3.7) | `shared/streamer.js` | Follows the tail's recorded trace plus turbulence wobble that grows toward the free end. Drawn wider (VISUAL). |
+| Cut = prop or leading edge through the streamer (§4.11) | `shared/cut.js` | Swept prop capsule and swept wing-edge quad, 3 cm forgiveness (DESIGN). Only attached streamers count. Several cuts in one attack = one (2 s window, DESIGN). |
+| Safety line half-plane, 2nd crossing disqualifies (§4.9) | `shared/fight.js` | Plane position beyond z = 0 toward the pilots after having been on the field side. Applies in all flights (§2.2.4). Wing/tail tolerance not modelled. |
+| Hand launch from the start box (§4.4) | `shared/flight.js` `launch()`, `client/main.js` | Not allowed in readiness (§4.2.2). |
+| 5 min flight, 100 points full (§4.5, §6) | `shared/fight.js` | +1 per 3 s airborne in the flight part. |
+| Preparation 5 min, readiness, flight (§4.2) | `shared/fight.js` | Everyone ready skips the rest of the preparation. Readiness length 10 s (DESIGN). |
+| Protection +50 needs >= 10 s airborne (§4.10) | `shared/fight.js` | Awarded at the end if the streamer was never shortened, also across relaunches. |
+| Landing in the 50 x 20 m field after the end +20, last launch >= 10 s before (§4.7, §6) | `shared/fight.js` | |
+| Non-engagement 30 s warning + 30 s penalty (§4.14) | `shared/fight.js` | "In combat" = within 30 m of an airborne opponent (DESIGN); timer paused when nobody else is airborne. |
+| Collisions: no penalty, time stops when the fuselage hits the ground (§4.13) | `shared/fight.js`, `client/main.js` | Touching the ground ends the flight; the model returns to the box after 4 s (DESIGN, stands for fetching it, §4.6). |
+| Max 7 pilots (§4.1) | `shared/fight.js`, `server/index.js` | |
+| No stabilisation (ACES §3.9 via ESA §1.2) | `shared/flight.js` | |
+| Not implemented | | "Pilot in zone" permission and its penalties (§4.6, §4.15, §6), stuck streamers on a model (§4.11), WWI ground posts and ground launch, weight and battery checks (workshop), judges, protests. |
 
 ## Open points
 

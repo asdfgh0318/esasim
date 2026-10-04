@@ -21,6 +21,7 @@ export class Plane {
     this.airspeed = 0; this.alpha = 0; this.beta = 0;
     this.wind = new THREE.Vector3();           // world frame; turbulence plugs in here
     this._v = new THREE.Vector3(); this._f = new THREE.Vector3(); this._dq = new THREE.Quaternion();
+    this._lift = new THREE.Vector3(); this._fwd = new THREE.Vector3(); this._side = new THREE.Vector3(); this._ax = new THREE.Vector3(); this._e = new THREE.Euler();   // temporaries: no allocation per step
   }
 
   // Max speed the prop can pull the air: rpm x pitch. ESA has no rpm/pitch limit (§3.5); this is a plane parameter.
@@ -31,7 +32,7 @@ export class Plane {
     if (!this.held) return;
     this.held = false; this.onGround = false;
     this.pos.y = Math.max(this.pos.y, 1.5);
-    this.quat.multiply(this._dq.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -pitchUp)); // nose up
+    this.quat.multiply(this._dq.setFromAxisAngle(this._ax.set(1, 0, 0), -pitchUp)); // nose up
     this.vel.set(0, 0, speed).applyQuaternion(this.quat);
     this.omega.set(0, 0, 0);
   }
@@ -59,7 +60,7 @@ export class Plane {
 
     // Forces in the body frame.
     const f = this._f.set(0, 0, 0);
-    const liftDir = new THREE.Vector3(0, vb.z, -vb.y).normalize();         // perpendicular to flow, in the symmetry plane
+    const liftDir = this._lift.set(0, vb.z, -vb.y).normalize();         // perpendicular to flow, in the symmetry plane
     f.addScaledVector(liftDir, qbar * p.wingArea * cl);
     f.addScaledVector(vb, -qbar * p.wingArea * cd / V);                   // drag opposes the flow
     f.x += -qbar * p.wingArea * 0.8 * beta;                               // side force
@@ -90,13 +91,13 @@ export class Plane {
     this.pos.y = GEAR_HEIGHT;
     if (this.vel.y < 0) this.vel.y = 0;
     // Wheels: strong sideways friction, light rolling friction.
-    const fwd = new THREE.Vector3(0, 0, 1).applyQuaternion(this.quat); fwd.y = 0; fwd.normalize();
+    const fwd = this._fwd.set(0, 0, 1).applyQuaternion(this.quat); fwd.y = 0; fwd.normalize();
     const along = this.vel.dot(fwd);
-    const side = this.vel.clone().addScaledVector(fwd, -along); side.y = 0;
+    const side = this._side.copy(this.vel).addScaledVector(fwd, -along); side.y = 0;
     this.vel.addScaledVector(side, -Math.min(1, 8 * dt));
     this.vel.addScaledVector(fwd, -Math.sign(along) * Math.min(Math.abs(along), 4 * dt));   // belly skid on grass: about 4 m/s² (DESIGN)
     // Gear holds the plane upright, nose may only rotate up.
-    const e = new THREE.Euler().setFromQuaternion(this.quat, "YXZ");
+    const e = this._e.setFromQuaternion(this.quat, "YXZ");
     e.z *= 1 - Math.min(1, 10 * dt);
     e.x = Math.min(0.03, Math.max(-0.45, e.x));
     this.quat.setFromEuler(e);
