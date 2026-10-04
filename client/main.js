@@ -62,6 +62,11 @@ const hud = mountHud({
   ready: (v) => room?.send("ready", v), addBot: () => room?.send("addBot"), removeBots: () => room?.send("removeBots"), start: () => room?.send("start"),
   plane: (t) => { saveBuild({ ...build, plane: t }); const u = new URLSearchParams(location.search); u.set("plane", t); location.search = u.toString(); },
   workshop: () => workshop.toggle(),
+  invite: () => {                                                                   // private room: first click opens a new code, in a room the click copies the invite link
+    if (!roomCode) { const u = new URLSearchParams(location.search); u.set("room", Math.random().toString(36).slice(2, 6).toUpperCase()); location.search = u.toString(); return; }
+    const link = `${location.origin}${location.pathname}?room=${roomCode}`;
+    (navigator.clipboard?.writeText(link) || Promise.reject()).then(() => hud.toast("Invite link copied: " + link, "good")).catch(() => hud.toast("Invite link: " + link));
+  },
   vtx: (mw, ch) => setVtx(mw, ch),
   replay: () => (replay ? stopReplay() : startReplay()), saveReplay: () => saveReplay(),
 }, { types: PLANE_TYPES, names: PLANE_NAMES, current: planeType });
@@ -168,12 +173,30 @@ function onSnap(snap, fromReplay = false) {
   for (const [id, o] of others) if (!seen.has(id)) { scene.remove(o.mesh); others.delete(id); }
   for (const [id, v] of views) if (!seen.has(id)) { v.dispose(); views.delete(id); }
 }
-new Client(serverUrl()).joinOrCreate("combat", { name: params.get("name") || "Pilot", plane: planeType, build }).then((r) => {
+// Stable pilot id per browser tab (sessionStorage: survives a reload, two tabs stay two pilots) and an optional private room code (?room=ABCD).
+const pid = (() => { try { let v = sessionStorage.getItem("esasim-pid"); if (!v) { v = Math.random().toString(36).slice(2, 12); sessionStorage.setItem("esasim-pid", v); } return v; } catch { return Math.random().toString(36).slice(2, 12); } })();
+const roomCode = (params.get("room") || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8);
+{ const bi = document.getElementById("b-invite"); if (bi) bi.textContent = roomCode ? "Copy invite link" : "Private room"; }
+const joinOptions = () => ({ name: params.get("name") || "Pilot", plane: planeType, build, pid, code: roomCode });
+function attach(r) {
   room = r; online = true;
   r.onMessage("you", (y) => { me = y; rig.setPit(y.pit); setTint(myMesh, COLORS[y.pit % 7]); if (sim.held) home(); });
   r.onMessage("snap", (sn) => onSnap(sn)); r.onMessage("events", (ev) => { if (!replay) pendingEvents.push(...ev); ev.forEach((e) => onEvent(e)); });
   r.onMessage("restart", () => { home(); hud.toast("New fight"); });
   r.onMessage("full", () => { online = false; room = null; hud.toast("Room is full (7 boxes). Playing offline."); hud.offline(); });
+  r.onLeave((code) => {                                                              // dropped connection: try to come back to the same box within 30 s (the server keeps it)
+    if (room !== r) return;
+    room = null;
+    if (code === 4000) return;
+    hud.toast("Connection lost, reconnecting...", "bad"); retry(Date.now());
+  });
+}
+function retry(t0) {
+  if (Date.now() - t0 > 30000) { online = false; hud.toast("Could not reconnect. Playing offline.", "bad"); hud.offline(); return; }
+  new Client(serverUrl()).joinOrCreate("combat", joinOptions()).then((r) => { attach(r); hud.toast("Reconnected", "good"); }).catch(() => setTimeout(() => retry(t0), 2000));
+}
+new Client(serverUrl()).joinOrCreate("combat", joinOptions()).then((r) => {
+  attach(r);
   if (params.get("bots")) for (let i = 0; i < Number(params.get("bots")); i++) r.send("addBot");   // debug helpers for screenshots/tests
   if (params.has("autostart")) setTimeout(() => { r.send("ready", true); r.send("start"); }, 500);
 }).catch(() => { console.warn("no server: offline practice"); hud.offline(); });

@@ -38,7 +38,7 @@ export function mountHud(actions, planes) {
   const el = document.createElement("div"); el.id = "fh";
   el.innerHTML = `<div class="banner"><b id="fh-t">ESASIM</b><span id="fh-s"></span></div>
     <div class="score" id="fh-score"></div><div class="toasts" id="fh-toasts"></div>
-    <div class="lobby" id="fh-lobby"><select id="b-plane" title="Your plane (reloads the page)"></select><button id="b-ws">Workshop</button><button id="b-ready">Ready</button><button id="b-bot">Add bot</button><button id="b-nobot">Remove bots</button><button id="b-start" class="go">Start fight</button></div>
+    <div class="lobby" id="fh-lobby"><select id="b-plane" title="Your plane (reloads the page)"></select><button id="b-ws">Workshop</button><button id="b-ready">Ready</button><button id="b-invite" title="Open a private room and copy its invite link">Private room</button><button id="b-bot">Add bot</button><button id="b-nobot">Remove bots</button><button id="b-start" class="go">Start fight</button></div>
     <div class="lobby" id="fh-replay" style="display:none"><button id="b-replay">Watch replay</button><button id="b-save">Save replay (JSON)</button></div>
     <div class="batt" id="fh-batt"><div id="fh-batt-bar"></div><span id="fh-batt-t">battery</span></div>
     <div class="orient" id="fh-orient"></div>
@@ -59,7 +59,7 @@ export function mountHud(actions, planes) {
   $("b-ws").onclick = () => actions.workshop();
   $("b-replay").onclick = () => actions.replay(); $("b-save").onclick = () => actions.saveReplay();
   $("b-ready").onclick = () => { ready = !ready; $("b-ready").classList.toggle("on", ready); actions.ready(ready); };
-  $("b-bot").onclick = actions.addBot; $("b-nobot").onclick = actions.removeBots; $("b-start").onclick = actions.start;
+  $("b-invite").onclick = actions.invite; $("b-bot").onclick = actions.addBot; $("b-nobot").onclick = actions.removeBots; $("b-start").onclick = actions.start;
 
   return {
     offline() { $("fh-t").textContent = "Offline practice"; $("fh-s").textContent = "No server: fly freely (Space = hand launch). Run npm run server for fights."; $("fh-lobby").style.display = "none"; $("fh-score").style.display = "none"; },
@@ -68,7 +68,9 @@ export function mountHud(actions, planes) {
       $("fh-t").textContent = `${sr.label ? sr.label + " · " : ""}${f.left > 0 ? `${title}  ${fmt(f.left)}` : title}`;
       $("fh-s").textContent = f.phase === "results" && sr.winner ? `Contest over. Winner: ${sr.winner.name} with ${sr.winner.total} points.` : sub;
       $("fh-lobby").style.display = f.phase === "lobby" || f.phase === "prep" ? "flex" : "none";
-      $("b-bot").style.display = $("b-nobot").style.display = $("b-start").style.display = f.phase === "lobby" ? "" : "none";
+      const isHost = !snap.host || snap.host === meId;                              // only the host (the longest-present human) starts the fight and manages bots
+      $("b-bot").style.display = $("b-nobot").style.display = $("b-start").style.display = f.phase === "lobby" && isHost ? "" : "none";
+      if (f.phase === "lobby" && !isHost) $("fh-s").textContent = `Waiting for ${f.pilots.find((p) => p.id === snap.host)?.name || "the host"} to start the fight. Press Ready, practice flights are fine.`;
       if (f.phase === "lobby" || f.phase === "results") { ready = false; $("b-ready").classList.remove("on"); }
       const rows = [...f.pilots].sort((a, b) => ((sr.prior[b.id] || 0) + b.score) - ((sr.prior[a.id] || 0) + a.score)).map((p) =>
         `<tr class="${p.id === meId ? "me" : ""}"><td>${p.bot ? "🤖 " : ""}${p.name.replace(/</g, "")}${p.illegal ? " (ILLEGAL)" : p.disqualified ? " (DQ)" : p.airborne ? " ✈" : ""}</td><td>${p.flight}</td><td>${p.cuts}</td><td>${p.crossings ? "-" + 200 * p.crossings : "0"}</td><td>${p.score}</td><td><b>${(sr.prior[p.id] || 0) + p.score}</b></td></tr>`).join("");
