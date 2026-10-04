@@ -35,7 +35,7 @@ try {
   const iv = setInterval(() => {
     k++; az += 15 * 0.05;
     A.room.send("pose", { pos: [0, 10, az], quat, airborne: true, held: false });
-    B.room.send("pose", { pos: [7 * Math.sin(k * 0.3), 10, az - 4.2 - 3 * Math.min(k / 50, 1)], quat: quatX, airborne: true, held: false });
+    B.lastPos = [7 * Math.sin(k * 0.3), 10, az - 4.2 - 3 * Math.min(k / 50, 1)]; B.room.send("pose", { pos: [7 * Math.sin(k * 0.3), 10, az - 4.2 - 3 * Math.min(k / 50, 1)], quat: quatX, airborne: true, held: false });
   }, 50);
   await sleep(2500);
   clearInterval(iv);
@@ -43,7 +43,11 @@ try {
   check("a cut is scored when B crosses A's streamer", cuts.length >= 1 && cuts[0].pts === 100, `${cuts.length} cut events`);
 
   // Safety line: B flies at z=10 then at z=-1 -> -200.
-  B.room.send("pose", { pos: [30, 10, 10], quat, airborne: true, held: false }); await sleep(150);
+  // (the server rejects teleports, so B flies there at about 30 m/s in 20 Hz steps)
+  const last = B.lastPos || [0, 10, az]; let bp = [last[0], 10, last[2]];
+  for (let i = 0; i < 40; i++) { const to = [30, 10, 10], d = [to[0] - bp[0], 0, to[2] - bp[2]], n = Math.hypot(d[0], d[2]); if (n < 1.5) break; bp = [bp[0] + d[0] / n * 1.5, 10, bp[2] + d[2] / n * 1.5]; B.room.send("pose", { pos: bp, quat, airborne: true, held: false }); await sleep(50); }
+  B.room.send("pose", { pos: [30, 10, 10], quat, airborne: true, held: false }); await sleep(100);
+  B.room.send("pose", { pos: [30, 10, 5], quat, airborne: true, held: false }); await sleep(150);
   B.room.send("pose", { pos: [30, 10, -1], quat, airborne: true, held: false }); await sleep(250);
   const sl = B.events.filter((e) => e.type === "safety");
   check("safety line crossing detected (-200)", sl.length >= 1 && sl[0].pts === -200, `${sl.length} events`);

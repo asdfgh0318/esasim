@@ -65,6 +65,10 @@ npm start        # game server (:2567) and client (http://localhost:5173) togeth
 
 Short phases for testing: `ESASIM_PREP=5 ESASIM_READY=2 ESASIM_FLIGHT=60 ESASIM_ROUNDS=1 npm run server`.
 
+## Controls and language
+
+Keyboard sticks ramp up (about 0.3 s to full) and have expo, so a tap is a small input; press R for the radio panel, which has presets for a RadioMaster (AETR) and a gamepad (mode 2) plus calibration. The UI is Polish or English (`?lang=pl|en`, or the PL/EN button; Polish browsers start in Polish; the Polish text is a first draft). After every fight the results screen links to real ESA resources.
+
 ## Models
 
 `models/scad/esa_plane.scad` is the source (needs `openscad`); `tools/build-models.sh` rebuilds the STLs in `public/models/`; `viewer.html?plane=all` previews them.

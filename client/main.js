@@ -11,6 +11,7 @@ import { mountRadioUI } from "./input/radioUI.js";
 import { StreamerView } from "./streamerView.js";
 import { CameraRig } from "./camera.js";
 import { mountHud } from "./hud.js";
+import { t } from "./i18n.js";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
@@ -55,6 +56,9 @@ const localStreamer = new Streamer({ seed: 9 }); // my own streamer, drawn local
 const rig = new CameraRig(camera);
 const radio = new RadioInput(), updateRadioUI = mountRadioUI(radio);
 const keys = new Set();
+const kbStick = { aileron: 0, elevator: 0, rudder: 0 };
+const ramp = (cur, target, dt) => { const step = (target === 0 ? 6.5 : 3.3) * dt, d = target - cur; return Math.abs(d) <= step ? target : cur + Math.sign(d) * step; };
+const expo = (v) => Math.sign(v) * (0.4 * Math.abs(v) + 0.6 * Math.abs(v) ** 3);                  // 0.5 stick -> 0.275, full stick -> 1
 let room = null, landedAt = -1, kbThrottle = 0, myVtx = { mw: build.vtxMw || 25, ch: Math.max(0, build.vtxCh) };
 const feedB = new THREE.WebGLRenderTarget(640, 360), camB = new THREE.PerspectiveCamera(70, 16 / 9, 0.1, 1500);   // another pilot's video feed
 // Flight recorder (ESA §4.19: protests are decided by vote, so a replay is the evidence): snapshots and events of the last fight.
@@ -67,7 +71,7 @@ const hud = mountHud({
   invite: () => {                                                                   // private room: first click opens a new code, in a room the click copies the invite link
     if (!roomCode) { const u = new URLSearchParams(location.search); u.set("room", Math.random().toString(36).slice(2, 6).toUpperCase()); location.search = u.toString(); return; }
     const link = `${location.origin}${location.pathname}?room=${roomCode}`;
-    (navigator.clipboard?.writeText(link) || Promise.reject()).then(() => hud.toast("Invite link copied: " + link, "good")).catch(() => hud.toast("Invite link: " + link));
+    (navigator.clipboard?.writeText(link) || Promise.reject()).then(() => hud.toast(t("toast.copied") + link, "good")).catch(() => hud.toast(t("toast.link") + link));
   },
   vtx: (mw, ch) => setVtx(mw, ch),
   replay: () => (replay ? stopReplay() : startReplay()), saveReplay: () => saveReplay(),
@@ -87,7 +91,7 @@ const canLaunch = () => sim.held && !meDq && (!online || phase === "lobby" || ph
 addEventListener("keydown", (e) => {
   keys.add(e.code);
   if (e.code === "Space" || e.code.startsWith("Arrow")) e.preventDefault();       // a focused button must not swallow Space
-  if (e.code === "Space") { if (canLaunch()) { if (!radio.connected) kbThrottle = 1; sim.launch(); hud.toast(radio.connected ? "Launched" : "Launched at full throttle (Ctrl to reduce)"); } else if (sim.held) hud.toast("Not now: launch is allowed in the flight part (§4.2.3)"); }
+  if (e.code === "Space") { if (canLaunch()) { if (!radio.connected) kbThrottle = 1; sim.launch(); hud.toast(radio.connected ? t("launched") : t("launchedFull")); } else if (sim.held) hud.toast(t("notNow")); }
 });
 addEventListener("keyup", (e) => keys.delete(e.code));
 addEventListener("blur", () => keys.clear());                               // no stuck keys after switching windows
@@ -95,7 +99,7 @@ document.addEventListener("click", (e) => { if (e.target.closest?.("button")) e.
 
 // ---- video transmitter, switchable live like the power switch at the pits (only with the model in the hand) ----
 function setVtx(mw, ch) {
-  if (!sim.held) { hud.toast("Change the video transmitter with the model in your hand"); hud.setVtx(myVtx.mw, myVtx.ch); return; }
+  if (!sim.held) { hud.toast(t("vtxHand")); hud.setVtx(myVtx.mw, myVtx.ch); return; }
   myVtx = { mw, ch: ch < 0 ? myVtx.ch : ch };                                           // auto keeps the channel the arena picked
   saveBuild({ ...build, vtxMw: mw, vtxCh: ch });
   room?.send("vtx", { mw, ch });
@@ -115,7 +119,7 @@ function startReplay() {
   replay = { i: 0, t0: performance.now() }; myMesh.visible = false;
   for (const [, o] of others) scene.remove(o.mesh); others.clear();
   for (const [, v] of views) v.dispose(); views.clear();
-  hud.toast("Replay"); hud.replayBar(true, true);
+  hud.toast(t("replay")); hud.replayBar(true, true);
 }
 function stopReplay() {
   replay = null; myMesh.visible = true;
@@ -141,15 +145,15 @@ const nm = (id) => snapNames.get(id) || "?";
 function onEvent(e, fromReplay = false) {
   if (replay && !fromReplay) return;
   const mine = e.id === me.id;
-  if (e.type === "cut") hud.toast(`${nm(e.id)} cut ${nm(e.victim)}'s streamer  +${e.pts}`, mine ? "good" : e.victim === me.id ? "bad" : "");
-  else if (e.type === "safety") hud.toast(`${nm(e.id)} crossed the safety line  ${e.pts}`, "bad");
-  else if (e.type === "disqualified") hud.toast(`${nm(e.id)} disqualified: second crossing (§4.9)`, "bad");
-  else if (e.type === "warning" && mine) hud.toast("Non-engagement warning: go fight (§4.14)", "bad");
-  else if (e.type === "non-engagement") hud.toast(`${nm(e.id)} non-engagement  ${e.pts}`, "bad");
-  else if (e.type === "landing-bonus") hud.toast(`${nm(e.id)} landed in the field  +${e.pts}`, "good");
-  else if (e.type === "protected") hud.toast(`${nm(e.id)} kept the streamer  +${e.pts}`, "good");
-  else if (e.type === "phase" && e.phase === "flight") hud.toast("FLIGHT!", "good");
-  else if (e.type === "phase" && e.phase === "ended") hud.toast("Flight over: land now", "");
+  if (e.type === "cut") hud.toast(t("ev.cut", { a: nm(e.id), b: nm(e.victim), p: e.pts }), mine ? "good" : e.victim === me.id ? "bad" : "");
+  else if (e.type === "safety") hud.toast(t("ev.safety", { a: nm(e.id), p: e.pts }), "bad");
+  else if (e.type === "disqualified") hud.toast(t("ev.dq", { a: nm(e.id) }), "bad");
+  else if (e.type === "warning" && mine) hud.toast(t("ev.warn"), "bad");
+  else if (e.type === "non-engagement") hud.toast(t("ev.non", { a: nm(e.id), p: e.pts }), "bad");
+  else if (e.type === "landing-bonus") hud.toast(t("ev.land", { a: nm(e.id), p: e.pts }), "good");
+  else if (e.type === "protected") hud.toast(t("ev.prot", { a: nm(e.id), p: e.pts }), "good");
+  else if (e.type === "phase" && e.phase === "flight") hud.toast(t("ev.flight"), "good");
+  else if (e.type === "phase" && e.phase === "ended") hud.toast(t("ev.over"), "");
 }
 function onSnap(snap, fromReplay = false) {
   if (replay && !fromReplay) return;
@@ -204,25 +208,25 @@ function applyPlanes(planes, fromReplay = false) {
 // Stable pilot id per browser tab (sessionStorage: survives a reload, two tabs stay two pilots) and an optional private room code (?room=ABCD).
 const pid = (() => { try { let v = sessionStorage.getItem("esasim-pid"); if (!v) { v = Math.random().toString(36).slice(2, 12); sessionStorage.setItem("esasim-pid", v); } return v; } catch { return Math.random().toString(36).slice(2, 12); } })();
 const roomCode = (params.get("room") || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8);
-{ const bi = document.getElementById("b-invite"); if (bi) bi.textContent = roomCode ? "Copy invite link" : "Private room"; }
+{ const bi = document.getElementById("b-invite"); if (bi) bi.textContent = roomCode ? t("inviteCopy") : t("invite"); }
 const joinOptions = () => ({ name: params.get("name") || "Pilot", plane: planeType, build, pid, code: roomCode, strict });
 function attach(r) {
   room = r; online = true;
   r.onMessage("you", (y) => { me = y; rig.setPit(y.pit); setTint(myMesh, COLORS[y.pit % 7]); if (sim.held) home(); });
   r.onMessage("snap", (sn) => onSnap(sn)); r.onMessage("events", (ev) => { if (!replay) pendingEvents.push(...ev); ev.forEach((e) => onEvent(e)); });
-  r.onMessage("restart", () => { home(); hud.toast("New fight"); });
+  r.onMessage("restart", () => { home(); hud.toast(t("toast.newFight")); });
   r.onMessage("ping", (n) => r.send("pong", n));                                     // server measures the round trip for lag-compensated cuts (docs/netcode.md)
-  r.onMessage("full", () => { online = false; room = null; hud.toast("Room is full (7 boxes). Playing offline."); hud.offline(); });
+  r.onMessage("full", () => { online = false; room = null; hud.toast(t("toast.full")); hud.offline(); });
   r.onLeave((code) => {                                                              // dropped connection: try to come back to the same box within 30 s (the server keeps it)
     if (room !== r) return;
     room = null;
     if (code === 4000) return;
-    hud.toast("Connection lost, reconnecting...", "bad"); retry(Date.now());
+    hud.toast(t("toast.lost"), "bad"); retry(Date.now());
   });
 }
 function retry(t0) {
-  if (Date.now() - t0 > 30000) { online = false; hud.toast("Could not reconnect. Playing offline.", "bad"); hud.offline(); return; }
-  new Client(serverUrl()).joinOrCreate("combat", joinOptions()).then((r) => { attach(r); hud.toast("Reconnected", "good"); }).catch(() => setTimeout(() => retry(t0), 2000));
+  if (Date.now() - t0 > 30000) { online = false; hud.toast(t("toast.noReconnect"), "bad"); hud.offline(); return; }
+  new Client(serverUrl()).joinOrCreate("combat", joinOptions()).then((r) => { attach(r); hud.toast(t("toast.back"), "good"); }).catch(() => setTimeout(() => retry(t0), 2000));
 }
 new Client(serverUrl()).joinOrCreate("combat", joinOptions()).then((r) => {
   attach(r);
@@ -245,9 +249,11 @@ renderer.setAnimationLoop((t) => {
   else {                                          // keyboard, same layout as the author's drone sim: WASD pitch/roll, Q/E yaw, Shift/Ctrl throttle (arrows also pitch/roll)
     kbThrottle = THREE.MathUtils.clamp(kbThrottle + ((k("ShiftLeft") || k("ShiftRight")) - (k("ControlLeft") || k("ControlRight"))) * 0.5 * frame, 0, 1);
     sim.input.throttle = kbThrottle;
-    sim.input.elevator = (k("KeyS") || k("ArrowDown")) - (k("KeyW") || k("ArrowUp"));     // W/up = stick forward = nose down
-    sim.input.aileron = (k("KeyD") || k("ArrowRight")) - (k("KeyA") || k("ArrowLeft"));
-    sim.input.rudder = k("KeyE") - k("KeyQ");
+    // Keyboard sticks ramp up (about 0.3 s to full, back to centre in 0.15 s) and have expo, so a tap is a small input, not a snap roll.
+    kbStick.elevator = ramp(kbStick.elevator, (k("KeyS") || k("ArrowDown")) - (k("KeyW") || k("ArrowUp")), frame);     // W/up = stick forward = nose down
+    kbStick.aileron = ramp(kbStick.aileron, (k("KeyD") || k("ArrowRight")) - (k("KeyA") || k("ArrowLeft")), frame);
+    kbStick.rudder = ramp(kbStick.rudder, k("KeyE") - k("KeyQ"), frame);
+    sim.input.elevator = expo(kbStick.elevator); sim.input.aileron = expo(kbStick.aileron); sim.input.rudder = expo(kbStick.rudder);
   }
   sim.wind.set(...windAt(t / 1000, sim.pos.x, sim.pos.z));
   while (acc >= STEP) { sim.step(STEP); acc -= STEP; }

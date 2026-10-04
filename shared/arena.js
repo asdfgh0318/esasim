@@ -21,6 +21,7 @@ const rightOf = (q) => new THREE.Vector3(1, 0, 0).applyQuaternion(q);
 
 // Small seeded generator (mulberry32) so a whole arena run is repeatable in tests; the server seeds it from the clock.
 function makeRng(seed) { let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+const MAX_SPEED = 45;                    // DESIGN: m/s between two reported poses; the fastest bot dive is about 23 m/s
 const POSE_TIMEOUT = 1;                  // DESIGN: no pose for 1 s = the model is treated as down (closed tab, lost connection)
 // Lag compensation ("favour the shooter", docs/netcode.md). A human attacker sees the other streamers late: the snapshot travels to them
 // (one way), is shown INTERP_DELAY in the past (client/main.js INTERP_MS), and their pose needs another one-way trip back. So the server judges
@@ -99,14 +100,28 @@ export class Arena {
   }
 
   // Humans: pose reported by the client { pos:[x,y,z], quat:[x,y,z,w], airborne, held }.
+  // Anti-cheat basics (docs/netcode.md): flight stays client-authoritative, so the server only checks that a report is well formed and
+  // physically plausible. Message shape, speed between reports, and the "held" flag (plane in the hand at the pilot's own box).
   setPose(id, m) {
     const s = this.slots.get(id); if (!s || s.bot) return;
-    const q = new THREE.Quaternion().fromArray(m.quat);
+    const fin = (a, n) => Array.isArray(a) && a.length === n && a.every((v) => typeof v === "number" && Number.isFinite(v) && Math.abs(v) < 1e4);
+    if (!m || !fin(m.pos, 3) || !fin(m.quat, 4) || Math.hypot(...m.quat) < 1e-6) { s.badPoses = (s.badPoses || 0) + 1; return; }
+    const vel = fin(m.vel, 3) ? m.vel : [0, 0, 0], speed = Math.hypot(...vel);
+    const nearPit = Math.hypot(m.pos[0] - pitX(s.pit), m.pos[2] - FIELD.pilotLineZ) < 4 && m.pos[1] < 2.5;
+    const held = !!m.held && nearPit && speed < 5;                    // a plane in the hand is at its owner's box, not flying
+    if (s.cur && !held && !s.wasHeld) {                               // teleport / impossible speed: ignore the report (a lag spike of 2 s resyncs)
+      const gap = Math.min(Math.max(this.t - s.poseT, 0.05), 1), d = Math.hypot(m.pos[0] - s.cur.pos[0], m.pos[1] - s.cur.pos[1], m.pos[2] - s.cur.pos[2]);
+      if (d > MAX_SPEED * gap + 3 && (s.rejected = (s.rejected || 0) + 1) < 40) return;
+    }
+    s.rejected = 0;
+    const q = new THREE.Quaternion().fromArray(m.quat).normalize();
     s.cur = { pos: m.pos, fwd: fwdOf(q).toArray(), right: rightOf(q).toArray() };
     s.poseT = this.t;
-    s.airborne = !!m.airborne; s.vel = m.vel || [0, 0, 0];
-    if (m.held && !s.wasHeld) s.streamer.reset(null);
-    s.wasHeld = !!m.held;
+    s.airborne = !!m.airborne && !held && m.pos[1] > 0.2;            // sitting on the ground does not earn flight time
+    s.flying = !held && m.pos[1] > 0.6;                               // for the safety line: judged by the reported position whatever the airborne flag says
+    s.vel = vel;
+    if (held && !s.wasHeld) s.streamer.reset(null);
+    s.wasHeld = held;
   }
 
   // Round-trip time measured by the server (ping/pong in server/index.js), seconds. Clamped so a slow or lying client gains nothing past MAX_VIEW_DELAY.
@@ -140,7 +155,7 @@ export class Arena {
   step(dt) {
     this.t += dt; this.events = [];
     this.fight.drain();
-    for (const s of this.slots.values()) if (!s.bot && s.airborne && this.t - s.poseT > POSE_TIMEOUT) s.airborne = false;   // alt-tab / dead connection: no frozen plane scoring flight time
+    for (const s of this.slots.values()) if (!s.bot && (s.airborne || s.flying) && this.t - s.poseT > POSE_TIMEOUT) { s.airborne = false; s.flying = false; }   // alt-tab / dead connection: no frozen plane scoring flight time
     const fl = this.fight, phase = fl.phase;
     const enemiesOf = (me) => [...this.slots.values()].filter((o) => o !== me && o.airborne && (o.bot ? o.plane : o.cur)).map((o) => ({
       pos: o.bot ? o.plane.pos : new THREE.Vector3(...o.cur.pos),
@@ -169,7 +184,7 @@ export class Arena {
       while (s.hist.length > 1 && s.hist[1].t <= this.t - LAG.HISTORY) s.hist.shift();
     }
     const reports = {};
-    for (const s of this.slots.values()) if (s.cur) reports[s.id] = { airborne: s.airborne, pos: s.cur.pos, streamerIntact: s.streamer.intact };
+    for (const s of this.slots.values()) if (s.cur) reports[s.id] = { airborne: s.airborne, flying: s.airborne || !!s.flying, pos: s.cur.pos, streamerIntact: s.streamer.intact };
     // Cuts: every airborne attacker against every other streamer (ESA §4.11), swept between the two last frames. Lag-compensated: a human
     // attacker's path is tested against the victim's streamer as that attacker saw it (now - viewDelay); a hit cuts the LIVE streamer at
     // the same distance from the tail. Only the still-attached part counts (§4.11): a hit beyond the live length (already cut off) is ignored.

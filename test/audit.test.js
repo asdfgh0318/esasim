@@ -78,6 +78,24 @@ const toResults = (h) => { h.run(40, () => { h.pose("a", 20, false); h.pose("b",
   const ov = (strict) => new Arena({ params: ESA_WWII, strict, seed: 1 }).addHuman("a", "A", "spitfire", b).params.build.paramOverrides;
   check("strict room drops physics overrides, normal room keeps them", ov(true) === undefined && ov(false)?.["settings.dragScale"] === 1.5, `strict=${JSON.stringify(ov(true))} normal=${JSON.stringify(ov(false))}`); }
 
+// Anti-cheat basics (N3, N8): malformed reports, teleports, fake flags.
+{ const h = human(4); toFlight(h);
+  h.run(1, () => { h.pose("a", 20); h.pose("b", 20); });
+  const before = h.a.slots.get("a").cur.pos.join();
+  h.a.setPose("a", { pos: [NaN, 10, 20], quat: [0, 0, 0, 1], airborne: true }); h.a.setPose("a", { pos: [0, 10, 20], quat: [0, 0, 0, 0] }); h.a.setPose("a", null); h.a.setPose("a", { pos: [0, 10], quat: [0, 0, 0, 1] });
+  check("malformed pose reports are ignored", h.a.slots.get("a").cur.pos.join() === before && h.a.slots.get("a").badPoses === 4, `bad=${h.a.slots.get("a").badPoses}`);
+  h.a.step(1 / 30); h.a.setPose("a", { pos: [400, 10, 20], quat: [0, 0, 0, 1], airborne: true, held: false });
+  check("a teleport is ignored", h.a.slots.get("a").cur.pos[0] === 0, `x=${h.a.slots.get("a").cur.pos[0]}`); }
+{ const h = human(5); toFlight(h);                                                 // fake airborne:false while crossing the line still costs -200
+  const pz = (z) => h.a.setPose("a", { pos: [0, 10, z], quat: [0, 0, 0, 1], airborne: false, held: false, vel: [0, 0, 15] });
+  h.run(0.5, () => { pz(10); h.pose("b", 20); }); h.run(0.5, () => { pz(-1); h.pose("b", 20); });
+  check("claiming not airborne does not avoid the safety line (§4.9)", h.a.fight.pilots.get("a").crossings === 1, `crossings=${h.a.fight.pilots.get("a").crossings}`); }
+{ const h = human(6); toFlight(h);
+  h.run(3, () => { h.a.setPose("a", { pos: [0, 0.05, 20], quat: [0, 0, 0, 1], airborne: true, held: false }); h.pose("b", 20); });
+  check("airborne claimed while sitting on the ground earns no flight time", h.a.fight.pilots.get("a").airSeconds === 0, `${h.a.fight.pilots.get("a").airSeconds}`);
+  h.run(3, () => { h.a.setPose("a", { pos: [0, 12, 20], quat: [0, 0, 0, 1], airborne: true, held: true, vel: [0, 0, 15] }); h.pose("b", 20); });
+  check("held while flying is not honoured (no free streamer reset or invulnerability)", h.a.slots.get("a").wasHeld === false && h.a.fight.pilots.get("a").airSeconds > 2, `wasHeld=${h.a.slots.get("a").wasHeld}, air=${h.a.fight.pilots.get("a").airSeconds.toFixed(1)}`); }
+
 // Seeded arena: same seed, same bot VTX and channels.
 { const mk = (seed) => { const a = new Arena({ params: ESA_WWII, seed }); for (let i = 0; i < 4; i++) a.addBot(); return [...a.slots.values()].map((s) => `${s.vtx.mw}/${s.vtx.ch}`).join(","); };
   check("seeded arena is repeatable", mk(7) === mk(7) && mk(7) !== mk(8), mk(7)); }

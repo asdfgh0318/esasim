@@ -12,6 +12,13 @@ const defaults = () => ({
   deadband: 0.02,
 });
 
+// Mapping presets. "radiomaster": AETR on axes 0-3 (the radio in joystick mode). "gamepad": Xbox/PlayStation style pad, mode 2 sticks:
+// right stick = aileron + elevator, left stick = throttle (up) + rudder. A spring-centred pad throttle rests at half, so a radio is much nicer.
+export const PRESETS = {
+  radiomaster: { label: "RadioMaster / AETR", mapping: [0, 1, 2, 3], inverted: [false, false, false, false] },
+  gamepad: { label: "Gamepad (mode 2)", mapping: [2, 3, 1, 0], inverted: [false, false, true, false] },
+};
+
 export class RadioInput {
   constructor() {
     this.config = defaults();
@@ -84,4 +91,5 @@ export class RadioInput {
     try { const s = localStorage.getItem(KEY); if (s) this.config = { ...defaults(), ...JSON.parse(s) }; } catch { /* no storage */ }
   }
   reset() { this.config = defaults(); }
+  applyPreset(name) { const p = PRESETS[name]; if (p) { this.config.mapping = [...p.mapping]; this.config.inverted = [...p.inverted]; this.config.calibration = {}; } }
 }

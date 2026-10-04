@@ -1,4 +1,4 @@
-import { CHANNELS } from "./radio.js";
+import { CHANNELS, PRESETS } from "./radio.js";
 
 // Radio setup panel (toggle with R): raw axes, channel mapping and invert, calibration, mapped outputs, save/load.
 const css = `
@@ -16,6 +16,7 @@ export function mountRadioUI(radio) {
   el.innerHTML = `<h3>Radio</h3><div id="r-status" class="hint"></div>
   <h4>Raw axes</h4><div id="r-raw"></div>
   <h4>Channels</h4><div id="r-map"></div>
+  <div class="row"><span class="lbl">Preset</span><select id="r-preset"><option value="">choose...</option>${Object.entries(PRESETS).map(([k, p]) => `<option value="${k}">${p.label}</option>`).join("")}</select></div>
   <button id="r-cal">Start calibration</button><button id="r-save">Save</button><button id="r-reset">Reset</button>
   <div class="hint">Calibration: hands off the sticks for half a second after pressing Start, then move every stick to all extremes (and throttle full range), then press Stop.</div>`;
   document.body.append(el);
@@ -48,6 +49,7 @@ export function mountRadioUI(radio) {
     else { radio.startCalibration(); $("r-cal").textContent = "Stop calibration"; $("r-cal").classList.add("on"); }
   };
   $("r-save").onclick = () => { $("r-status").textContent = radio.save() ? "Saved." : "Could not save (storage blocked)."; };
+  $("r-preset").onchange = () => { if ($("r-preset").value) { radio.applyPreset($("r-preset").value); nAxes = -1; $("r-status").textContent = "Preset applied (press Save to keep it). Calibrate for best results."; } };
   $("r-reset").onclick = () => { radio.reset(); nAxes = -1; };
 
   return function update() {

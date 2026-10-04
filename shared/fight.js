@@ -89,7 +89,7 @@ export class Fight {
       if (this.phase === "ended" && !p.disqualified) this._landingBonus(p, r.pos);
       this.events.push({ type: "land", id: p.id });
     }
-    if (lineActive && p.airborne && r.pos) {                                 // §4.9 safety line: whole model beyond z = 0 toward the pilots
+    if (lineActive && (p.airborne || r.flying) && !p.disqualified && r.pos) {                                 // §4.9 safety line: whole model beyond z = 0 toward the pilots
       if (r.pos[2] >= FIELD.safetyLineZ) p.crossedField = true;
       else if (p.crossedField) {                                             // field side -> pilot side
         p.crossedField = false; p.crossings++;

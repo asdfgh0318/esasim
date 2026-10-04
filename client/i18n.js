@@ -25,6 +25,9 @@ const dict = {
     "toast.full": "Room is full (7 boxes). Playing offline.", "toast.lost": "Connection lost, reconnecting...", "toast.back": "Reconnected", "toast.noReconnect": "Could not reconnect. Playing offline.",
     "toast.newFight": "New fight", "toast.copied": "Invite link copied: ", "toast.link": "Invite link: ",
     "round": "Round", "final": "Final",
+    "ev.cut": "{a} cut {b}'s streamer  +{p}", "ev.safety": "{a} crossed the safety line  {p}", "ev.dq": "{a} disqualified: second crossing (§4.9)",
+    "ev.warn": "Non-engagement warning: go fight (§4.14)", "ev.non": "{a} non-engagement  {p}", "ev.land": "{a} landed in the field  +{p}", "ev.prot": "{a} kept the streamer  +{p}",
+    "ev.flight": "FLIGHT!", "ev.over": "Flight over: land now", "launched": "Launched", "notNow": "Not now: launch is allowed in the flight part (§4.2.3)", "launchedFull": "Launched at full throttle (Ctrl to reduce)", "vtxHand": "Change the video transmitter with the model in your hand", "replay": "Replay",
     "lang": "PL",
   },
   pl: {
@@ -51,6 +54,9 @@ const dict = {
     "toast.full": "Pokój pełny (7 boksów). Gra offline.", "toast.lost": "Utracono połączenie, łączę ponownie...", "toast.back": "Połączono ponownie", "toast.noReconnect": "Nie udało się połączyć. Gra offline.",
     "toast.newFight": "Nowa walka", "toast.copied": "Skopiowano link: ", "toast.link": "Link: ",
     "round": "Runda", "final": "Finał",
+    "ev.cut": "{a} uciął taśmę {b}  +{p}", "ev.safety": "{a} przekroczył linię bezpieczeństwa  {p}", "ev.dq": "{a} zdyskwalifikowany: drugie przekroczenie (§4.9)",
+    "ev.warn": "Ostrzeżenie za unikanie walki: leć walczyć (§4.14)", "ev.non": "{a} unikanie walki  {p}", "ev.land": "{a} wylądował na polu  +{p}", "ev.prot": "{a} zachował taśmę  +{p}",
+    "ev.flight": "LOT!", "ev.over": "Koniec lotu: lądować", "launched": "Wystartowano", "notNow": "Teraz nie: start jest dozwolony w części lotnej (§4.2.3)", "launchedFull": "Start na pełnym gazie (Ctrl zmniejsza)", "vtxHand": "Zmień nadajnik wideo z modelem w ręku", "replay": "Powtórka",
     "lang": "EN",
   },
 };

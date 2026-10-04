@@ -91,6 +91,11 @@ There is no stabilisation clause in ESA; ACES §3.9 (no electronic stabilisation
 | Collisions: no penalty, time stops when the fuselage hits the ground (§4.13) | `shared/fight.js`, `client/main.js` | Touching the ground ends the flight; the model returns to the box after 4 s (DESIGN, stands for fetching it, §4.6). |
 | Max 7 pilots (§4.1) | `shared/fight.js`, `server/index.js` | |
 | No stabilisation (ACES §3.9 via ESA §1.2) | `shared/flight.js` | |
+| Crossings count over the whole contest, the second one disqualifies for the remaining fights (§4.9 "podczas zawodów") | `shared/fight.js`, `shared/arena.js` | Since the audit round; earlier versions reset per fight. |
+| Illegal build = 0 points in every fight of the contest (§6) | `shared/arena.js` | Slot flag carried through `restart()`. |
+| A model flying when the flight part starts counts as launched at t = 0 (§4.2.1, §4.7, §4.10) | `shared/fight.js` `_carryFlights` | DESIGN: readiness does not force models down. |
+| Several streamers cut in one attack = one cut (§4.11) | `shared/fight.js` `cut` | Window per attacker (2 s, DESIGN), every victim still loses protection. |
+| Safety line judged by the reported position whatever the airborne flag says (§4.9) | `shared/arena.js`, `shared/fight.js` | Ground crossings and the wing/tail tolerance are still not modelled. |
 | Not implemented | | "Pilot in zone" permission and its penalties (§4.6, §4.15, §6), stuck streamers on a model (§4.11), WWI ground posts and ground launch, weight and battery checks (workshop), judges, protests. |
 
 ## Open points

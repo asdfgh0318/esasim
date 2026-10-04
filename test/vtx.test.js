@@ -21,6 +21,7 @@ check("random power: some blasters, mostly race mode", (() => { let b = 0, r = 0
 { const a = new Arena({ params: ESA_WWII }); const sl = a.addHuman("h", "H"); const before = { ...sl.vtx };
   a.setPose("h", { pos: [0, 1.4, -3], quat: [0, 0, 0, 1], airborne: false, held: true });
   check("pilot can switch power and channel in the hand", a.setVtx("h", { mw: 5000, ch: 6 }) && sl.vtx.mw === 5000 && sl.vtx.ch === 6, `${JSON.stringify(before)} -> ${JSON.stringify(sl.vtx)}`);
+  a.step(1);                                                                      // time passes between reports (the server rejects teleports)
   a.setPose("h", { pos: [0, 10, 20], quat: [0, 0, 0, 1], airborne: true, held: false });
   check("no switching in the air", a.setVtx("h", { mw: 25, ch: 0 }) === false && sl.vtx.mw === 5000, "ignored");
   a.setPose("h", { pos: [0, 1.4, -3], quat: [0, 0, 0, 1], airborne: false, held: true });

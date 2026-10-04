@@ -2,6 +2,10 @@
 
 Read-only audit of the code at commit `ef9e8c0`, the docs and `papers/poland/Regulamin_Aircombat_ESA_2024.txt`. Nothing in the code was changed. The rules PDF governs over this document. Where this document and `CLAUDE.md` disagree about decisions, `CLAUDE.md` (Adam's decisions) governs.
 
+## Status (updated 2026-10-04, same day)
+
+Done since this audit (see `CLAUDE.md` changelog for details): R1, R2, R3, R5, N4, N6, N3/N8 basics (message shape, teleports, fake flags), N1 (lag-compensated cuts, `docs/netcode.md`), N2 (own streamer local, remote interpolated), N5/N7 (reconnect, private rooms, host), E1 (CI), E2 (single-port serving, LAN tested, tunnel not tested), E5 wording, B1 (bots crash far less), P3/U4 (keyboard ramp and expo, gamepad presets), U1 (Polish UI draft), G1 (after-fight call to action), contest rooms without the physics editor (`?strict=1`). **Not done:** R4 (wing/tail tolerance, ground crossings), R6-R8, R9-R13, P1/P2/P5 (needs real plane measurements), B2/B3 (difficulty levels, tactics), U2/U3 (onboarding, sound), E3-E4, E6-E7, G2-G5, Paths B, C (rest), D.
+
 ## Verdict
 
 1. The core is good. The rules engine (`shared/fight.js`) follows ESA §6 closely, and every rule cites its §. It is pure logic with no network code, so it is easy to test, and 111 checks pass (`npm test`, 44 s, run today).
