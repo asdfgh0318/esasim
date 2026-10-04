@@ -10,8 +10,16 @@ class CombatRoom extends Room {
     this.onMessage("pose", (client, p) => { this.poses[client.sessionId] = p; });
     this.setSimulationInterval(() => this.broadcast("poses", this.poses), 50);
   }
-  onJoin(client) { console.log(client.sessionId, "joined"); }
-  onLeave(client) { delete this.poses[client.sessionId]; }
+  // One plane per start pit, first free pit (Fig 1, §4.1: up to 7 pilots).
+  onJoin(client) {
+    this.pits ??= {};
+    const taken = new Set(Object.values(this.pits));
+    let pit = 0; while (taken.has(pit)) pit++;
+    this.pits[client.sessionId] = pit;
+    client.send("pit", pit);
+    console.log(client.sessionId, "joined, pit", pit + 1);
+  }
+  onLeave(client) { delete this.poses[client.sessionId]; delete this.pits[client.sessionId]; }
 }
 
 const server = defineServer({ rooms: { combat: defineRoom(CombatRoom) } });

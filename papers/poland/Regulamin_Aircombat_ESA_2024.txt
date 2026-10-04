@@ -1,0 +1,378 @@
+  Regulamin zawodów i klas modeli latających ESA (Electric Simple Aircombat)
+1. R/C Air Combat
+1.1 R/C Air Combat
+   To dyscyplina modelarstwa lotniczego RC (Radio Control) mająca na celu odtworzenie walk powietrznych
+z okresu I i II Wojny Światowej w formie pasjonujących i bezpiecznych zawodów półmakiet modeli latających
+w interesującej dla widzów i dla zawodników formie rywalizacji sportowej.
+1.2 Podstawowe zasady
+    Wszystkie zasady FAI dotyczące modeli latających i ich wyposażenia R/C muszą być przestrzegane
+w klasie ESA z uwzględnieniem zmian podanych w tym regulaminie. Zawodnik jest osobiście odpowiedzialny
+za model latający użyty w zawodach oraz ewentualny szkody osobowe i materialne jakie może spowodować.
+Organizatorzy zawodów i sędzia główny zawodów są odpowiedzialni za zapewnienie bezpieczeństwa
+zawodników i publiczności w trakcie zawodów, przestrzeganie zapisów powyższego regulaminu, kontrolę
+częstotliwości nadajników podczas zawodów oraz dyscyplinę i sportowy charakter rywalizacji zawodników.
+Wszelkie zasady nie ujęte w tym regulaminie reguluje regulamin Aircombat ACES wraz z załącznikami.
+1.3 Bezpieczeństwo
+    Bezpieczeństwo ma zawsze najwyższy priorytet. Każde zachowanie lub zdarzenie uznane przez głównego
+sędziego lub organizatorów zawodów, jako niebezpieczne może spowodować natychmiastową
+dyskwalifikację zawodnika z zawodów. Każdy zawodnik może być poproszony o wykonanie lotu próbnego,
+aby udowodnił, że jest zdolny pilotować model samolotu wykonany zgodnie z n/n regulaminem.
+2. Miejsce zawodów
+   Wybór miejsca zawodów należy do organizatora.
+Zaleca się aby teren przeznaczony do rozegrania zawodów był nie mniejszy niż 100 x 50 m (orientacyjny
+wymiar boiska piłkarskiego) a pole lotu liczone po promieniu od miejsca startu, było wolne do drzew lub
+zabudowań na odległość większą niż 100m.
+2.1 Podział na strefy
+    Schemat poniżej pokazuje typowy, sugerowany układ pola lotów dla zawodów Aircombat ESA. Linia
+bezpieczeństwa jest graniczną wartością pola lotów która nie może być przekraczana w trakcie zawodów i ma
+na celu utrzymanie modeli w bezpiecznej odległości od linii pilotów i widzów
+Lina Bezpieczeństwa ma charakter umowny i winna być oznaczona na terenie zawodów biało czerwoną taśmą
+a w przestrzeni powietrznej rozumiana jest jako prostopadła do pola lotów półpłaszczyzna.
+Organizator odpowiada za kontrolę linii bezpieczeństwa (strefy lotu), która obowiązuje wszystkich
+zawodników od momentu otwarcia do momentu zakończenia zawodów. Organizator powinien pozostawić jak
+największą możliwą odległość między polem lotów a widzami. Sugerowane odległości są podane na
+schemacie poniżej:
+
+                                     ----------------- linia bezpieczeństwa: 0 m ------------------
+                                     --------------------- linia pilotów: 3 m -----------------------
+                                     ------------------ linia gotowości: 5 - 8 m --------------------
+                                     ----------------- strefa widzów: 10 - 15 m--------------------
+
+2.2.1. Strefa lotów
+    Strefa lotów jest zawsze przed linią bezpieczeństwa. Jest to obszar, w którym dopuszczone jest chwilowe
+lądowanie w czasie trwania walki. Jego wymiary określa organizator w zależności od terenu na jakim
+rozgrywane są zawody.
+Każdy model, który wyląduje poza strefą lotów nie może być podnoszony podczas walki lub dopóki inne
+modele są w powietrzu. Tylko modele lądujące w tej strefie mają zezwolenie na podniesienie w czasie walki
+i ponowny start (zgodnie z paragrafem 4.6).
+2.2.2. Pole lądowania
+    Prostokątny obszar o długość 50m i szerokości 20m (licząc od linii bezpieczeństwa) w strefie lotów
+wyznaczony przez Organizatora biało-czerwoną taśmą. Lądowanie modeli po sygnale zakończenia walki
+w tym obszarze jest premiowane dodatkowymi punktami.
+
+
+Regulamin zawodów i klas modeli latających ESA (obowiązuje od sezonu 2024)                              str. 1
+2.2.3. Pole celów naziemnych – słupki
+    W klasie modeli WWI przewiduje się rozlokowanie 6 słupków styropianowych o wymiarach 3x3x100 cm
+symulujących cele naziemne. W walce modele mogą atakować słupki co premiowane jest dodatkowymi
+punktami.
+Słupki powinny być tak rozlokowane w polu lądowania aby nie było możliwości poprowadzenia linii prostej
+przez trzy słupki a odległość między dowolnymi dwoma słupkami nie była mniejsza niż 10m
+Ataki na cele naziemne można przeprowadzać jedynie równolegle do linii bezpieczeństwa. Kierunek nalotu
+ustala sędzia główny zawodów, stosownie do warunków lokalnych i pogodowych.
+Zabronione są ataki prostopadłe do linii bezpieczeństwa.
+Zabronione jest atakowanie słupków w trakcie startu, cięcie słupka musi być poprzedzone min. 10 sekundami
+lotu od chwili ostatniego startu.
+Za cięcie słupka traktuje się również jego skuteczne uszkodzenie (obcięcie lub złamanie) ciągniętą taśmą.
+2.2.4. Linia bezpieczeństwa
+    Linia bezpieczeństwa biegnie równolegle do linii pilotów w odległości 3 metrów. Model nie może lecieć
+bliżej pilotów niż wskazuje ta linia. Każdy model, który przekroczy tę linię podlega karze i zasadom
+dyskwalifikacji. Ten punkt obowiązuje przez cały czas od otwarcia zawodów do oficjalnego zakończenia.
+Dotyczy to wszystkich lotów (walki, testowych, pokazowych), wszystkich modeli w każdym przypadku.
+2.2.5. linia gotowości + ewentualne Boksy Startowe
+    Boksy startowe powinny zapewniać odległość 3-5 metrów między pilotami. Linia gotowości powinna biec
+równolegle do linii pilotów w odległości 5-8 metrów. Wszyscy piloci i pomocnicy powinni startować zza tej
+linii.
+2.3 Publiczność
+    Publiczność powinna przebywać w bezpiecznej odległości, przynajmniej 10m za linią bezpieczeństwa lub
+być chroniona przez zabezpieczenia typu siatka. Obszar zabezpieczony przez siatkę jest definiowany, jako
+obszar zaczynający się przy siatce do odległości równej jej wysokości, tzn.: dla siatki 3m wysokiej, bezpieczny
+obszar to do 3-go metra za siatką.
+2.4 Pierwsza pomoc
+    Na miejscu zawodów powinien być oznaczony punkt pierwszej pomocy. W tym punkcie powinna być
+apteczka pierwszej pomocy dostępna w każdej chwili w razie wypadku.
+
+3 Modele i Wyposażenie w zależności od klasy
+3.1 Model
+    Materiał, z którego wykonany jest model to wszelkiego rodzaju pianki typu: EPP, styropian, styrodur,
+depron. Nie wolno stosować wzmocnień krawędzi natarcia oraz krawędzi spływu skrzydła oraz krawędzi
+stateczników żadnymi materiałami twardymi typu węgiel, szkło, drewno itp. Wolno stosować dźwigary
+i wzdłużne wzmocnienia skrzydeł, usterzenia i kadłuba za pomocą prętów (listew) węglowych, szklanych lub
+wykonanych z innych materiałów ale pierwszy pręt wzmacniajmy skrzydła i usterzenie musi być odsunięty
+o 10 mm od krawędzi natarcia. Model musi w całości być wykonany z "miękkiego" materiału.
+Zabronione jest stosowanie zacięć płata na natarciu.
+Dozwolone jest stosowanie wzmocnienia natarcia skrzydła przy pomocy taśmy foliowej lub foliowej zbrojonej
+włóknem. Można stosować elementy ułatwiające cięcie taśmy, czyli tzw. "karabiny" (np. wykonane
+z drobnego papieru ściernego, jako paski naklejone na natarciu lub z innego materiału ułatwiającego cięcie
+taśmy). Nie można stosować elementów wystających przed natarcie, wszelkiego rodzaju ostrzy czy elementów
+wykonanych z metalu, lub materiałów twardych.
+3.1.1. Model w klasie WW I
+    Model musi być półmakietą rzeczywistego wielopłatowego samolotu wojskowego wyprodukowanego do
+końca 1918r.
+Model musi być wyposażony w trwale umocowane podwozie stałe (pod warunkiem, że oryginał takie
+posiadał) Jeżeli jest to model prototypu lub wersji produkowanej po 1918r to oryginał lub pierwowzór musiał
+latać do 1918r.
+Model musi wyglądać podobnie do pierwowzoru włączając w to malowanie i oznaczenia. Zawodnik powinien
+posiadać na zawodach opublikowane trzy rzuty samolotu w skali co najmniej 1:72, aby udowodnić, że jego
+model jest zgodny z dokumentacją.
+W przypadku modelu samolotu z silnikiem gwiazdowym należy stosować jego imitację lub oprofilowanie.
+
+Regulamin zawodów i klas modeli latających ESA (obowiązuje od sezonu 2024)                            str. 2
+Rozpiętość modelu jednosilnikowego:               1000 mm
+Rozpiętość modelu wielosilnikowego:       1200 – 1400 mm
+Wszystkie powyższe wymiary nie mogą odbiegać od skali o więcej niż +/- 3 cm (wynika z przeliczenia skali
+do nominalnej rozpiętości).
+Żaden z płatów nośnych nie może mieć rozpiętości mniejszej niż 60% rozpiętości płata o największej
+rozpiętości (kryterium porównawczym są wymiary konstrukcji rzeczywistej).
+
+
+3.1.2. Model w klasie WW II
+    Model musi być półmakietą rzeczywistego samolotu wojskowego wyprodukowanego w latach 1935 – 1945.
+Jeżeli jest to model prototypu to oryginał musiał latać w danym okresie.
+Model musi wyglądać podobnie do pierwowzoru włączając w to malowanie i oznaczenia. Zawodnik powinien
+posiadać na zawodach opublikowane trzy rzuty samolotu w skali co najmniej 1:72, aby udowodnić, że jego
+model jest zgodny z dokumentacją.
+Rozpiętość modelu jednosilnikowego:           700 – 860 mm
+Rozpiętość modelu wielosilnikowego:           860 – 1000 mm
+Wszystkie pozostałe wymiary nie mogą odbiegać od skali o więcej niż +/- 3 cm (wynika z przeliczenia skali
+do nominalnej rozpiętości).
+3.2 Silnik
+    Silnik elektryczny dowolny (szczotkowy lub bezszczotkowy).
+3.3 Montaż napędu elektrycznego
+    Każdy model biorący udział w zawodach musi mieć możliwość szybkiego rozłączenia akumulatora od
+regulatora obrotów bez użycia narzędzi lub demontażu modelu na wypadek awarii.
+3.4 Zasilanie
+        Modele jednosilnikowe:
+Akumulatory max 15 Wh (np.: 11,1V*1350mAh/1000=14,98Wh lub 7,4V*2000mAh=14,8Wh)
+         Modele wielosilnikowe:
+Akumulatory max 28 Wh (np.: 2*11,1V*1250mAh/1000=27,75Wh lub 11,1V*2500mAh/1000=27,75Wh)
+Uwaga: V*mAh/1000=Wh - do obliczeń bierzemy znamionowe parametry akumulatorów!
+Każdy zawodnik zobowiązany jest do posiadania minimum 2 akumulatorów.
+3.5 Śmigła
+    Śmigła dowolne fabryczne, dobrane do modelu i silnika. Oś silnika nie może wystawać poza śmigło,
+tzn. zalecany jest montaż śmigła na prop saver lub użycie kołpaka.
+3.6 Masa modelu
+3.6.1. modele w klasie WW I
+        Jednosilnikowy:     min: 200 g                                       max: 800 g
+        Wielosilnikowy:                                                      max: 900 g
+3.6.2. modele w klasie WW II
+        Jednosilnikowy:      min: 200 g                                      max: 450 g
+        Wielosilnikowy:                                                      max: 600 g
+3.7 Taśma
+    Taśma wykonana z bibuły (krepiny). Długość taśmy: 10m, szerokość: 1cm, zaznaczona na końcu
+„ochrona” (20-30cm) np. pisakiem lub oznaczona poprzez zastosowanie bibuły (krepiny) w innym kolorze.
+3.8 Ochrona głowy
+    Każdy zawodnik i każda osoba będącą przed linią publiczności ma obowiązek posiadać i stosować kask
+ochronny. Kask powinien chronić głowę przed bezpośrednim trafieniem przez model.
+3.9 Wyposażenie radiowe
+    Każdy zawodnik powinien sprawdzić zasięg (działanie) swojego wyposażenia RC przed zawodami.
+Zawodnik jest odpowiedzialny za właściwe działanie swojego wyposażenia RC.
+
+
+
+Regulamin zawodów i klas modeli latających ESA (obowiązuje od sezonu 2024)                       str. 3
+4. ZAWODY
+4.1 Struktura podział na rundy
+    W każdej walce uczestniczy przynajmniej dwóch a najwięcej siedmiu pilotów, którzy latają każdy przeciw
+każdemu. Runda to wykonanie dokładnie jednej walki przez każdego z pilotów. Lista startowa kolejnych rund
+powinna być tak zmieniona, aby tak dużo pilotów jak to możliwe spotkało innych, aby każdy mógł walczyć
+z każdym.
+Liczba rund, jakie będą rozgrywane w danych zawodach powinny być określone przed zawodami.
+Rekomendowane jest rozgrywanie 3 rund.
+Zawody kończą się finałem, który jest następstwem po odbyciu wszystkich zapowiedzianych rund oraz
+podliczeniu i wyłonieniu najlepszych zawodników. W finale spotyka się siedmiu pilotów, którzy uzyskali
+największą liczbę punktów podczas rund. Pilot, który ma największą sumę punktów liczonych
+z poszczególnych rund wraz z dorobkiem walki finałowej wygrywa zawody.
+
+4.2 Walki
+    Walka jest rozumiana jako sportowa rywalizacja zawodników (pilotów) za pomocą swoich modeli Każda
+walka podzielona jest na trzy części: przygotowania, gotowości, lot.
+
+4.2.1. Część przygotowania
+    Długość czasu przygotowania jest ustalana przez organizatora, zaleca się pięć minut.
+Jest sygnalizowana przez głównego sędziego ogłoszeniem przygotowania do kolejnej walki.
+Podczas tej części można wykonywać loty testowe. 30 sekund przed końcem czasu przygotowania, główny
+sędzia ogłasza "30 sekund do startu” lub „Gotowość " co oznacza czas na stan gotowości.
+
+4.2.2. Część „gotowość”
+    Gotowość następuje bezpośrednio po czasie przygotowania i jest ogłaszana przez sędziego głównego
+zawołaniem. Podczas gotowości wszyscy piloci i pomocnicy powinni być na linii gotowości. Całe
+wyposażenie musi pozostać w boksach startowych,. Gotowość ma różny czas zależnie od decyzji sędziego
+głównego.
+
+4.2.3. Lot
+    Część lot zaczyna się, gdy główny sędzia daje jeden długi sygnał (gwizdkiem lub komendą słowną „start”).
+Piloci i pomocnicy mogą biec do swoich samolotów i startować. Czas lotu jest zgodny z paragrafem 4.5. Część
+lot kończy się, gdy główny sędzia da kolejny długi sygnał (gwizdkiem lub komendą słowną). Piloci muszą
+teraz zakończyć walkę i wylądować, gdy zdecydują, że mogą. Gdy tylko wyląduje ostatni model może być
+ogłoszony kolejny czas przygotowania.
+W klasie WWI w fazie lotu możliwy jest atak na słupki rozmieszczone nieregularnie w polu lądowań.
+
+4.3 Pomocnicy
+    Każdy zawodnik może mieć pomocnika. Tylko jeden pomocnik i pilot na jeden model może znajdować
+się na linii pilotów podczas lotu. W przypadku deszczu pomocnik lub sędzia powinien znajdować się przy
+modelu i zobowiązany jest do ochrony taśmy przed zamoczeniem.
+
+4.4 Start
+    Start z ręki jest dozwolony w obszarze między linią pilotów i linią bezpieczeństwa a start z ziemi modeli
+w klasie WWI tylko poza linią bezpieczeństwa.
+Jeśli model wystartuje bez taśmy lub z taśmą krótszą niż wymaga regulamin (dotyczy również sytuacji gdy
+taśma nie rozwinęła się po starcie), pilot musi natychmiast wylądować i przyczepić nową taśmę.
+Dopuszcza się udział pomocnika zawodnika przy starcie modelu (wyrzut z ręki, podtrzymanie taśmy) jednak
+nie dopuszcza się popychania modeli startujących z ziemi.
+Każdy zawodnik po starcie musi cofnąć się na linię pilotów aby nie przesłaniać pola lotów innym zawodnikom.
+W przypadku kapotażu modelu w klasie WWI, wejście w strefę lotu i ponowne ustawienie modelu do startu
+jest możliwe dopiero po starcie innych zawodników.
+Zawodnik jest odpowiedzialny za kontrolę stanu technicznego modelu i wykonanie startu w sposób
+niezagrażający bezpieczeństwu innych osób.
+
+
+
+
+Regulamin zawodów i klas modeli latających ESA (obowiązuje od sezonu 2024)                           str. 4
+4.5 Czas lotu
+    Maksymalny czas lotu jest określony dla poszczególnych klas:
+klasa modeli WW I:        7 minut
+klasa modeli WW II:       5 minut
+Punkty za czas lotu są przyznawane po przeliczeniu czasu podanego w karcie pilota (zgodnie z paragrafem 6).
+4.6 Ponowny start w trakcie walki
+    Nie jest określona maksymalna liczba startów podczas walki. Gdy pilot chce podjąć model ze strefy lotów
+(podczas walki) musi mieć pozwolenie od Sędziego Głównego lub Sędziego Bezpieczeństwa. Wydanie zgody
+następuje w sposób opisany w paragrafie 4.15 (wejście Pilota do strefy lotów) wydaje zgodę w sposób
+uzgodniony przed zawodami, np. poprzez komendę „pilot w strefie”). Wejście Pilota lub jego pomocnika
+w strefę lotów bez zgody sędziego głównego jest karane (zgodnie z paragrafem 6). Sędzia alarmuje pilotów
+i upewnia się, że są uprzedzeni o tej sytuacji.
+Ponowny start musi być wykonany z miejsca, gdzie odbywał się pierwszy start tj. wymagany jest powrót na
+linię pilotów.
+Ponowny start musi zostać wykonany kompletnym modelem. Jako kompletny model definiuje się płatowiec
+składający się z: kadłuba, skrzydeł (w takiej liczbie w jakiej model został dopuszczony do startu), silników
+(w takiej liczbie w jakiej model został dopuszczony do startu), podwozia oraz demontowalnej kabiny jeżeli
+takie elementy występują.
+4.7 Premia za lądowanie po sygnale zakończenia walki
+    Aby zaliczona była premia za lądowanie w polu lądowania po sygnale zakończenia walki, ostatni start
+musi się odbyć najpóźniej na 10 sek. przed sygnałem końca walki.
+
+4.8 Zmiana modelu
+    Podczas jednej walki można użyć jednego modelu. Nowy model można użyć w kolejnej walce.
+4.9 Przekroczenie linii bezpieczeństwa
+    Przekroczenie linii bezpieczeństwa rozumiane jest jako przekroczenie modelem wyznaczonej strefy
+bezpieczeństwa gdy model jest w powietrzu lub gdy porusza się na ziemi.
+Gdy model leci musi być wyraźnie cały poza linią bezpieczeństwa. Na ziemi liczy się położenie silnika. Jeśli
+model ma kilka silników liczy się ten, który przekroczył linię. Naruszenie linii skrzydłem lub ogonem
+z pozostawieniem silnika po stronie pola lotów traktowane jest na korzyść zawodnika jako brak przekroczenia
+linii bezpieczeństwa
+    Za pierwsze przekroczenie linii modelem podczas zawodów, pilot otrzymuje punkty karne. Po drugim
+przekroczeniu pilot otrzymuje punkty karne oraz musi natychmiast wylądować a czas jego dalszego lotu
+przestaje być punktowany. Zawodnik ukarany drugim przekroczeniem linii bezpieczeństwa zachowuje swój
+dorobek punktowy zdobyty do czasu drugiego przekroczenia linii bezpieczeństwa lecz nie może kontynuować
+zawodów - następuje dyskwalifikacja.
+4.10 Utrata taśmy
+    Zawodnik jest odpowiedzialny za to, aby wystartować z oznakowaną i całą taśmą przymocowaną do
+modelu. Po lądowaniu, utracona lub skrócona taśma liczy się jako utracona (zawodnik nie otrzymuje punktów
+za ochronę), wyjątek, gdy taśma zostanie utracona podczas lądowania, a zawodnik znajdzie brakującą taśmę.
+Aby otrzymać premię za ocalenie taśmy model musi być w powietrzu przez co najmniej 10 sekund.
+4.11 Cięcie taśmy
+    Zawodnik, który utnie taśmę przeciwnika w powietrzu otrzymuje punktu zgodnie z warunkami
+punktowania (paragraf 6). Jeśli do modelu przyczepiła się taśma przeciwnika to stosuje się następującą zasadę:
+Cięcie wykonane na tej taśmie liczy się jako normalne cięcie i zawodnik, który tego dokonał otrzymuje 100pkt.
+Utrata takiej przyczepionej taśmy nie powoduje utraty punktów za ochronę.
+Liczą się cięcia taśm przyczepionych do modelu (nie już spadających). Jeśli podczas jednego ataku jest ucięte
+kilka taśm, lub kilka jest zrobionych na tej samej taśmie to liczy się tylko jedno cięcie. Jeśli atakujący samolot
+jednocześnie utnie taśmę przeciwnika i go strąci wskutek kolizji podczas tego samego ataku/nalotu cięcie jest
+liczone pod warunkiem, że samolot, który uciął taśmę może kontynuować lot. Jeśli model spada/szybuje to
+nie ma punktów za to cięcie chyba, że powodem braku kontynuacji lotu jest wkręcenie taśmy w silnik co musi
+być potwierdzone przez sędziego.
+
+
+
+Regulamin zawodów i klas modeli latających ESA (obowiązuje od sezonu 2024)                               str. 5
+4.12 Zdjęcie taśmy
+   Nie dopuszcza się zdejmowania obciętych lub złapanych przypadkowo w czasie lotu taśm przeciwników.
+Zawodnik może wylądować w strefie lotów i przesunąć taśmy na modelu w kierunku kadłuba tj. osi wzdłużnej
+modelu, celem poprawy jego stateczności i parametrów lotu ale nie może ich usuwać z modelu. (nie dotyczy
+taśmy wkręconej w silnik)
+4.13 Kolizje
+   Nie ma żadnych punktów karnych za kolizje lub utratę modelu.
+Czas lotu powinien być mierzony do momentu, aż kadłub modelu spadnie na ziemię.
+4.14 Zasada braku zaangażowania (unikanie walki)
+    Jeśli pilot pozostaje poza walką dłużej niż 30 sekund, powinien być ostrzeżony przez głównego sędziego.
+Jeśli pilot nadal nie bierze udziału w walce przez kolejne 30 sekund po ostrzeżeniu, powinien otrzymać punkty
+karne (zgodnie z paragrafem 6). Pilot, który po pierwszym ostrzeżeniu powie sędziemu, że ma techniczne
+problemy powinien natychmiast próbować lądować swoim modelem w miejscu bezpiecznym dla zawodników
+i publiczności.
+4.15 Wejście Pilota do strefy lotów
+   Zamiar wejścia do strefy lotów Pilota lub jego pomocnika musi być zgłoszony Sędziemu Głównemu lub
+Sędziemu Bezpieczeństwa. Sygnalizacja wejścia do strefy lotów polega na:
+1.      Podejściu do linii bezpieczeństwa,
+2.      Podniesieniu ręki i ewentualnym ustnym oświadczeniu zamiaru przekroczenia linii bezpieczeństwa,
+3.      Wejście do strefy lotów może nastąpić jedynie po akceptacji Sędziego Głównego lub Sędziego
+        Bezpieczeństwa, co ogłaszane jest komendą "Pilot w strefie".
+4.16 Remis
+   Jeśli po walce finałowej piloci mają równą liczbę punktów wygrywa pilot, który zdobył więcej punktów
+w samym finale. Jeśli te wyniki są równe wygrywa pilot, który uzyskał wyższą liczbę punktów podczas jednej
+z walk na tych zawodach.
+4.17 Częstotliwości
+    Zawodnik musi być przygotowany do zmiany przynajmniej dwóch częstotliwości nadajnika. Przy kolizji
+kanałów podczas finału częstotliwość powinien zmienić zawodnik z mniejszym dorobkiem punktowym. Na
+tę zmianę musi być dany zawodnikowi dodatkowy czas. Także czas przygotowania dla walki finałowej nie
+może być włączony zanim ta zmiana nie zostanie dokonana. Zawodnik jest odpowiedzialny za wybór kanału
+tak, aby nie było kolizji kanałów po zmianie.
+4.18 Pogorszenie warunków/zakłócenia/skarga
+    Jeśli pogoda lub inne warunki podczas zawodów pogorszą się, lub uczestniczący zawodnicy skarżą się do
+organizatora na pogodę lub inne warunki, organizator powinien przeprowadzić głosowanie, aby większość
+pilotów zadecydowała czy zawody mają być przesunięte, odwołane i jak traktować dotychczasowe wyniki.
+4.19 Protest
+   Każdy zawodnik może wnieść protest przeciwko decyzji sędziów. Protest powinien być zawsze
+rozpatrzony przez głosowanie wśród zawodników a wynik rozstrzyga zwykła większość tzn. 50% + 1 głos.
+Rozpatrzenie protestu powinno być wykonane tak szybko jak to możliwe, jeżeli dotyczy to oprotestowanej
+rundy. Przed rozpatrzeniem protestu pobierana jest opłata równa podwójnej wartości opłaty startowej. Jeśli
+protest zostaje decyzją zawodników uznany za zasadny, opłata powinna być zwrócona.
+
+5 Sędziowie
+
+5.1 Sędzia Główny
+    Sędzia główny jest odpowiedzialny za kontrolę wagi modeli oraz pomiar czasu w trakcie rundy. Sędzia
+główny zobligowany jest do obserwacji całej walki a w przypadku braku sędziego liniowego za kontrolę strefy
+bezpieczeństwa. Sędzia główny jest także odpowiedzialny za utrzymanie zawodników przed linią
+bezpieczeństwa, gdy samoloty są w powietrzu.
+Sędzia Główny może nałożyć karę (zgodnie z paragrafem 6) za niestawienie się Sędziego Pilota na linii startu
+w wyznaczonym czasie.
+Oszustwo, względnie próba oszustwa powinna skutkować dyskwalifikacją zawodnika. Sędzia podejmując taką
+decyzję powinien opierać się o głosowanie przeprowadzone wśród pozostałych zawodników.
+Regulamin zawodów i klas modeli latających ESA (obowiązuje od sezonu 2024)                           str. 6
+5.2 Sędzia bezpieczeństwa
+    Sędzia bezpieczeństwa jest odpowiedzialny przede wszystkim za bezpieczeństwo na zawodach. Sędzia ten
+ma wyższą rangę niż sędzia główny, gdy chodzi o bezpieczeństwo. Sędzia bezpieczeństwa powinien ostrzegać
+o zagrożeniach podczas walk. Powinien zająć takie miejsce, aby móc wyraźnie widzieć przekroczenia linii
+bezpieczeństwa. Jest także odpowiedzialny za to, aby żadna osoba nie przebywała bez kasku poza strefą
+zabezpieczaną przez siatkę lub bliżej linii bezpieczeństwa niż wyznaczone odległość na danych zawodach.
+
+5.3 Sędzia pilota
+    Sędzia pilota ma zapisywać na karcie pilota zdobyte punkty i czas lotu. Jest także odpowiedzialny za
+rejestrację przekroczenia linii bezpieczeństwa (wspólnie z sędzią bezpieczeństwa), określenia braku
+zaangażowania w walce, określenie startu i lądowania w polu startu i lądowania dla modeli WWI oraz
+sprawdzenie taśmy pilota po walce.
+Sędzia pilota powinien sprawdzić model przed i bezpośrednio po locie pod kątem taśm i jej kawałków
+przyczepionych/przylepionych do modelu. Powinno to być zrobione razem z pilotem i potwierdzone jego
+podpisem po locie. Jeśli po lądowaniu sytuacja jest sporna, decyzję podejmuje sędzia główny – natychmiast.
+Sędzia pilota jest również odpowiedzialny za dostarczenie karty zawodnika do sędziego głównego oraz
+poprawność jej wypełnienia i uzupełnienie podpisów.
+
+6 Punktacja
+Czas lotu (do 300 sek.): każde 3 sek. lotu                                           + 1 pkt
+Czas lotu (po 300 sek.): każde 3 sek. lotu                                           + 2 pkt
+(Punkty za pełen czas lotu: WW I: 180 pkt, WW II: 100pkt)
+Obcięcie taśmy przeciwnika                                                          + 100 pkt
+Ochrona własnej taśmy podczas walki                                                 + 50 pkt
+Lądowanie w polu lądowania po czasie zakończenia walki                       WW I: + 50 pkt,
+                                                                             WW II: + 20 pkt
+Przekroczenie linii bezpieczeństwa                                                  - 200 pkt
+Unikanie walki                                                                      - 50 pkt
+Niestawienie się Sędziego Pilota w wyznaczonym czasie                               - 50 pkt
+Wejście do strefy lotów bez zgody Sędziego                                          - 50 pkt
+Atak na cele naziemne podczas trwania komendy „pilot w strefie”                     - 50 pkt
+Niski przelot podczas trwania komendy „pilot w strefie”                             - 50 pkt
+Lądowanie w polu lądowania po czasie zakończenia walki                       WW I: + 50 pkt
+                                                                             WW II: + 20 pkt
+Przekroczenie dopuszczalnej masy modelu                                      0 pkt za rundę
+Przekroczenie dopuszczalnych parametrów akumulatora                          0 pkt za rundę
+W klasie WWI dodatkowo:
+Start z ziemi                                          + 10 pkt
+Obcięcie słupka                                        + 50 pkt
+Uwaga: Szczegółowe zasady dotyczące cięcia słupków umieszczono w paragrafie 2.2.3
+
+
+
+
+Regulamin zawodów i klas modeli latających ESA (obowiązuje od sezonu 2024)                        str. 7
+

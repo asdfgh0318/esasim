@@ -1,93 +1,95 @@
-# ACES R/C Air Combat rules: extract for the sim
+# ESA (Electric Simple Aircombat) rules: extract for the sim
 
-**Source of truth: the PDFs in `../papers/`. Where this file and a PDF disagree, the PDF governs.**
-Note: the competition is called **ACES** (aircombat.eu), not "ESA". The word "ESA" does not appear in these documents.
+**Source of truth: `../papers/poland/Regulamin_Aircombat_ESA_2024.pdf`** ("Regulamin zawodów i klas modeli latających ESA (Electric Simple Aircombat)", 7 pp, "obowiązuje od sezonu 2024"). Where this file and the PDF disagree, the PDF governs. Polish quotes are verbatim; English is my translation.
 
-Read in full (text extracted with `pdftotext`, page images checked for Fig. 1):
+**Version caveat.** The ACES Polska forum thread (`papers/poland/esa_forum_regulamin_t21.html`) lists the 2024 document as the one for "2024 i 2025", posted 15.08.2024. I have not found or read a 2026 version. **Adam: please confirm this is still current for the competition you are targeting, or drop the newer PDF into `papers/poland/`.**
 
-| File | What | Read |
-|---|---|---|
-| `2023_ACES_int_WWII Rules.pdf` | International WWII rules 2023, 8 pp (**primary**) | yes |
-| `2016_ACES_int_WWII_Appendix_3-1_model_measurments.pdf` | Model measuring method, 4 pp | yes |
-| `2016_ACES_int Sek-point table Apendix 4-5.pdf` | Points table, 1 p | yes |
-| `2016_ACES_int_WWII Rules.pdf`, `2016_ACES-int_WWI_Rules.pdf` | Older WWII and WWI rules | downloaded, **not yet read**; WWI is a later class |
+Read in full: 2024 rules (text + page 1 image checked). Downloaded, only skimmed for differences: the 2022 rules (`Regulamin_Aircombat_ESA_2022.pdf`). The 2022 forum thread notes a landing-points change for WWI (WWII stayed +20).
+Fallback: §1.2 "Wszelkie zasady nie ujęte w tym regulaminie reguluje regulamin Aircombat ACES wraz z załącznikami." The ACES extract is in [`rules-aces.md`](rules-aces.md).
+Classes: ESA WWI (biplane-era, 1000 mm span, ground targets) and ESA WWII. **The sim starts with WWII**, single-engine.
 
-Also downloaded to `papers/` but not read: 2019 ACES-D EPA (49 pp, German, a different class), 2023 and 2016 ACES-D WWII (German), 2016 ACES-D WWI, 2011 WWII regulations. Not fetched: `2016 ACES Regulations WWI WWII History.zip`.
-The Appendix 3.1 header says "ACES Rules 2009-2010" (version 2008-12-07), and the 2023 rules cite it. Its figures are a 2008 snapshot.
-
-## Field (§2, Fig. 1 on p. 1)
+## Field (§2)
 
 | Item | Rule | Cite |
 |---|---|---|
-| Landing field | Fig. 1: "landingfield 20 x 75 m" | p.1 Fig 1 |
-| Safety line | "runs parallel to and is situated 5 – 10 meters in front of the pilot line" | §2.2.3, p.2 |
-| Start pits | "Startpits 3x 3 m"; 7 pits numbered 1-7 on the pilot line; "distance of 3 – 5 meters spacing between pilots" | Fig 1; §2.3 |
-| Readiness line | "10 m" behind the start pits | Fig 1; §2.3 |
-| Preparation zone | 10-20 m behind the readiness line; contest tent with speaker | Fig 1 |
-| Safety fence | 10-20 m behind the prep zone; spectators without helmets beyond | Fig 1 |
-| Helmet zone | "with helmet only area", 40-60 m from the safety line to the fence | Fig 1; §2.4 |
-| Flight area | "always in front of the safety line". **No width or depth is given** in the rules. | §2.2.1 |
+| Site | "Zaleca się aby teren ... był nie mniejszy niż 100 x 50 m" and free of trees/buildings "na odległość większą niż 100m" (recommendation) | §2 |
+| Zone layout | safety line 0 m, pilot line 3 m, readiness line 5-8 m, spectators 10-15 m (schematic is a text list, no drawing) | §2.1 |
+| Flight zone | "zawsze przed linią bezpieczeństwa"; size set by the organiser | §2.2.1 |
+| Landing field | "Prostokątny obszar o długość 50m i szerokości 20m (licząc od linii bezpieczeństwa) w strefie lotów" | §2.2.2 |
+| Safety line | "równolegle do linii pilotów w odległości 3 metrów"; in the air a half-plane perpendicular to the field | §2.2.4, §2.1 |
+| Start boxes | "3-5 metrów między pilotami"; readiness line "5-8 metrów" from the pilot line | §2.2.5 |
+| Audience | "przynajmniej 10m za linią bezpieczeństwa" or behind a net | §2.3 |
+| WWI ground targets | 6 foam posts 3x3x100 cm (not used in WWII) | §2.2.3 |
 
-The 20 x 75 m figure is the landing field, not the whole flight area. The flight-area size is an open design choice.
+Ambiguity: the §2.1 list reads as distances from the safety line, while §2.2.5 gives the readiness line "5-8 m" from the pilot line. The sim uses the §2.2.5 text (6.5 m behind the pilot line). Flight-zone size is not specified: design choice.
 
-## Models (§3)
+## Planes, WWII class (§3)
 
-- Warbird "built between 1935 and 1945", original engine ≥ 500 hp. Scale **1:12**; span and fuselage length ±5 %; other dimensions ±2 cm. Wing thickness ≥ 10 %. (§3.1)
-- Streamer catchers on the wing: max 297 mm from fuselage side. (§3.1)
-- Electric setups: min flight time 450 s at full throttle; energy limit per class; **PSS = max rpm × prop pitch (in) ≤ 72 000**. (§3.4 E)
-
-| E class | max Wh | max prop Ø | PSS | min weight | max weight |
-|---|---|---|---|---|---|
-| .10 | 30 | 9" | 72 000 | 500 g | 1500 g |
-| .15 | 40 | 9" | 72 000 | 700 g | 1500 g |
-| .21 | 50 | 10" | 72 000 | 900 g | 1500 g |
-| .25 | 67 | 11" | 72 000 | 1100 g | 1500 g |
-| .25 ducted fan | n/a | n/a | n/a | 700 g | 1500 g |
-| Multi-engine, original span < 16 m | setup limits above | | | 1200 g | 1700 g |
-| Multi-engine, original span ≥ 16 m | setup limits above | | | 1200 g | 1800 g |
-
-- IC classes have their own table (rpm, propsum, dry/max weight); see §3.4 in the PDF. The sim will start with the electric table.
-- "Any electronic flight stabilization systems are not allowed." (§3.9)
-- Streamer: "12 +/- 0,5 meters long one piece. It shall be 10-15mm wide." (§3.6)
-
-## Contest and scoring (§4, §6)
-
-- A fight has 2 to 7 pilots; a round is one fight per pilot; recommended 3 rounds, then a final with the top 7. (§4.1)
-- Phases: preparation (recommended 7 min), readiness, flight. Whistle signals mark the changes. (§4.2)
-- "Maximum flight-time is seven minutes. One point per three seconds airborne ... up to a maximum score of 138 (6:54 min)". (§4.5)
-- Unlimited restarts, only if the model lands in the landing zone, from the same start pit, with the judge's permission. (§4.6)
-- The same aircraft for the whole fight. (§4.7)
-- Take-off only between pilot line and safety line; no point counts if the streamer is not intact at take-off. (§4.4)
-
-| Event | Points | Cite |
+| Item | Rule | Cite |
 |---|---|---|
-| Crossing safety line (first) | −200, flight time stopped, must land; **second crossing = disqualified** | §4.9, §6.1 |
-| Non-engagement (>30 s away, warned, +30 s more) | −50 | §4.13 |
-| Engine over rpm limit by ≥100 rpm | −50 | §3.4.2 |
-| Own streamer uncut at end | +50 (needs ≥10 s airborne) | §4.10 |
-| Cut enemy streamer | +100 | §4.11 |
-| Flight time | +1 per 3 s, max +138 | §4.5 |
+| Type | "półmakieta rzeczywistego samolotu wojskowego wyprodukowanego w latach 1935 – 1945"; 3-view drawing ≥ 1:72 at the contest | §3.1.2 |
+| Wingspan | single-engine **700-860 mm**, multi-engine 860-1000 mm; other dimensions within ±3 cm of scale | §3.1.2 |
+| Mass | single-engine **min 200 g, max 450 g**; multi-engine max 600 g | §3.6.2 |
+| Battery | single-engine **max 15 Wh** (nominal V·mAh/1000), multi-engine 28 Wh; at least 2 batteries per pilot | §3.4 |
+| Material | foam only (EPP, styrofoam, styrodur, depron); no hard reinforcement of leading/trailing edges; first spar 10 mm behind the leading edge; no protrusions ahead of the leading edge | §3.1 |
+| Motor / prop | any electric motor; any factory prop; shaft must not protrude past the prop (prop saver or spinner) | §3.2, §3.5 |
+| Battery disconnect | quick, tool-free | §3.3 |
+| Streamer | crepe paper, **length 10 m, width 1 cm**, "ochrona" marked 20-30 cm at the end | §3.7 |
+| Helmet | required for everyone in front of the audience line | §3.8 |
 
-Cut and collision details:
-- Several cuts during one fly-by count as one cut. A cut together with a kill in one fly-by does not count. (§4.11)
-- Midair collision: "No kill points or consolation points will be given." The survivor may keep flying for flight points. Flight time stops when the fuselage hits the ground. (§4.12)
-- Tie-break: highest points in the final, then the best single fight. (§4.14)
+There is no stabilisation clause in ESA; ACES §3.9 (no electronic stabilisation) applies by the fallback rule. The sim flies unstabilised.
+
+## Fight (§4)
+
+- 2 to 7 pilots, everyone against everyone; a round = one fight per pilot; 3 rounds recommended; final with the top 7. (§4.1)
+- Preparation (organiser decides, "zaleca się pięć minut"), then readiness, then flight; one long signal starts and ends the flight part. (§4.2)
+- **Maximum flight time: WWII 5 minutes.** (§4.5)
+- **WWII takes off by hand**: "Start z ręki jest dozwolony w obszarze między linią pilotów i linią bezpieczeństwa a start z ziemi modeli w klasie WWI tylko poza linią bezpieczeństwa." A helper may throw the model. Pilot steps back to the pilot line after launch. (§4.4)
+- Streamer missing or shorter than required at launch: land at once and attach a new one. (§4.4)
+- Unlimited restarts; fetching a model from the flight zone needs the judge's permission ("pilot w strefie"); restart from the first launch place with the complete model. (§4.6, §4.15)
+- Landing bonus after the end signal only if the last launch was at least 10 s before the end signal. (§4.7)
+- One model per fight. (§4.8)
+- Safety line crossing: first = penalty points; second = penalty, must land at once, flight time stops, disqualified but keeps points. In the air the whole model must be clearly beyond the line; on the ground the motor counts; wing or tail over the line with the motor on the field side is not a crossing. (§4.9)
+- Streamer lost/shortened after landing = lost (no protection points); intact-streamer bonus needs ≥ 10 s in the air. (§4.10)
+- Cut: attacker gets 100 points. A stuck enemy streamer counts as a normal cut and losing it does not cost protection points. Only streamers attached to a model count (not falling ones). Several cuts in one attack = one cut. A cut plus a collision-kill in the same attack counts only if the cutting plane can keep flying; a falling or gliding model scores no cut unless the streamer wrapped into the motor (judge confirms). (§4.11)
+- Cut streamers must not be removed; the pilot may slide them toward the fuselage. (§4.12)
+- Collisions: no penalty for collisions or losing the model; flight time is measured until the fuselage hits the ground. (§4.13)
+- Non-engagement: more than 30 s away from the fight gets a warning, 30 s more gets the penalty. (§4.14)
+- Tie-break: points in the final, then best single fight. (§4.16)
+- Protests: decided by a vote of the contestants, simple majority; fee of twice the start fee. (§4.19)
+
+## Scoring (§6), WWII column
+
+| Event | Points |
+|---|---|
+| Flight time up to 300 s | +1 per 3 s |
+| Flight time after 300 s | +2 per 3 s (irrelevant for WWII, max flight is 300 s) |
+| Full flight time points | **WWII: 100** (WWI: 180) |
+| Cut enemy streamer | +100 |
+| Own streamer protected | +50 |
+| Landing in the landing field after the end signal | **WWII +20** (WWI +50) |
+| Crossing the safety line | −200 |
+| Non-engagement | −50 |
+| Entering the flight zone without permission; low pass or ground attack during "pilot w strefie" | −50 each |
+| Overweight model, battery over limit | 0 points for the round |
+
+(Source: §6. The table lists the landing bonus twice in the PDF; WWII is +20 in both places. The forum thread discusses a typo/vote about it; WWII stayed +20 in 2022.)
 
 ## Mapping to the sim (draft)
 
-| Rule | Sim implementation idea |
+| Rule | Sim idea |
 |---|---|
-| Streamer 12 m | Trailing chain of verlet points, cut test against enemy propeller or wing swept volume |
-| Safety line | Server-side plane check: crossing = −200, forced landing, second = out |
-| Flight-time points | Server timer from take-off, 1 point per 3 s, capped |
-| 7 pilots per fight | Room maxClients = 7 |
-| Prep/readiness/flight | Room state machine with the 7 min / readiness / flight phases |
-| PSS, Wh, weight limits | Validation in the workshop (plane builder) |
-| No stabilisation | No auto-leveling in the flight model |
+| 10 m streamer, 1 cm | Trailing chain; cut = segment crosses the enemy prop disc (Adam's decision) |
+| Safety line half-plane | Server check, plane position beyond z = 0 toward pilots; second crossing = disqualified |
+| Hand launch | Plane is held at the pit, launched with a throw (Space) |
+| 5 min flight, 100 points full | Server timer, 1 point per 3 s |
+| Landing bonus +20 | Land in the 50 x 20 m field after the end signal, last launch ≥ 10 s before the signal |
+| Mass ≤ 450 g, ≤ 15 Wh, span 700-860 mm | Workshop validation (later) |
+| Foam only, soft leading edge | Workshop rule; affects durability model if any |
 
-## Open points for later
+## Open points
 
-- Flight area dimensions (not in the rules).
-- How to detect a "cut" physically: needs a design decision.
-- Scale-fidelity checks (±5 % / ±2 cm) in the workshop; needs 3-view drawings.
-- Read the 2016 WWII and WWI rules and the IC tables if those classes are wanted.
+- Confirm the 2024/2025 PDF is the current rules (see top).
+- Flight-zone size and start-box size are not given: design values in `shared/rules.js`.
+- Check what ACES appendices (model measurement, points table) still apply to ESA.
+- WWI class rules (ground posts, ground launch, 1000 mm span) later.

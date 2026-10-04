@@ -1,3 +1,4 @@
+// NOT ESA-LEGAL (820 g > 450 g, §3.6.2): kept as an ACES-class reference model.
 // FW-190D "Dora" 1/12 electric, plan by Leonhard Grugl (models/plans/FockeWulfFW190D.zip, FactsInfoInstructions.pdf p.3).
 // [plan] = value stated in the plan. [wing.jpg] = read off the wing drawing: root chord 20.5 cm, tip 11.8 cm, half-span 42.8 cm.
 // [rule] = derived from ACES WWII 2023 §3.4 E. DESIGN = our estimate, to tune; not from any source.

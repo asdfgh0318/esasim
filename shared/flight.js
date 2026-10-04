@@ -3,7 +3,7 @@ import * as THREE from "three";
 // Fixed-wing flight model, shared by client and server.
 // Body axes (three.js object convention): x right, y up, z forward.
 // Sign conventions: +omega.x = nose down, +omega.z = right wing up, +omega.y = nose right.
-// No stabilisation of any kind (ACES WWII 2023 §3.9): sticks command surface deflection, not rates.
+// No stabilisation of any kind (ACES §3.9, applies to ESA by ESA §1.2): sticks command surface deflection, not rates.
 const RHO = 1.225, G = 9.81, QREF = 0.5 * RHO * 15 * 15;
 const GEAR_HEIGHT = 0.08;
 const IN = 0.0254;
@@ -17,15 +17,27 @@ export class Plane {
     this.omega = new THREE.Vector3();          // body frame, rad/s
     this.input = { throttle: 0, elevator: 0, aileron: 0, rudder: 0 }; // elevator +1 = stick back, aileron/rudder +1 = right
     this.onGround = true;
+    this.held = true;                          // in the pilot's hand until launch() (ESA §4.4: WWII is hand-launched)
     this.airspeed = 0; this.alpha = 0; this.beta = 0;
     this.wind = new THREE.Vector3();           // world frame; turbulence plugs in here
     this._v = new THREE.Vector3(); this._f = new THREE.Vector3(); this._dq = new THREE.Quaternion();
   }
 
-  // Max speed the prop can pull the air: pitch speed, from the PSS limit [rule §3.4 E].
+  // Max speed the prop can pull the air: rpm x pitch. ESA has no rpm/pitch limit (§3.5); this is a plane parameter.
   get pitchSpeed() { return this.p.maxRpm * this.p.propPitchIn * IN / 60; }
 
+  // Hand launch (ESA §4.4): released at 1.5 m, thrown forward and slightly up (speed and angle are DESIGN).
+  launch(speed = 9, pitchUp = 0.2) {
+    if (!this.held) return;
+    this.held = false; this.onGround = false;
+    this.pos.y = Math.max(this.pos.y, 1.5);
+    this.quat.multiply(this._dq.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -pitchUp)); // nose up
+    this.vel.set(0, 0, speed).applyQuaternion(this.quat);
+    this.omega.set(0, 0, 0);
+  }
+
   step(dt) {
+    if (this.held) return;
     const p = this.p, u = this.input;
     const throttle = Math.min(1, Math.max(0, u.throttle));
     // Air-relative velocity in the body frame.

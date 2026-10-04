@@ -2,7 +2,8 @@ import * as THREE from "three";
 import { Client } from "@colyseus/sdk";
 import { buildField } from "./field.js";
 import { Plane } from "../shared/flight.js";
-import { FW190D } from "../shared/planes/fw190d.js";
+import { pitX, FIELD } from "../shared/rules.js";
+import { ESA_WWII } from "../shared/planes/esa-wwii.js";
 import { RadioInput } from "./input/radio.js";
 import { mountRadioUI } from "./input/radioUI.js";
 
@@ -26,19 +27,19 @@ function makePlane(color) {   // placeholder mesh until Adam's models arrive (1:
   p.add(tail);
   return p;
 }
-const sim = new Plane(FW190D);
-sim.pos.set(0, 0.08, -1.5);                    // on start pit 4, facing the field (§Fig 1)
+const sim = new Plane(ESA_WWII);
+sim.pos.set(0, 1.4, FIELD.pilotLineZ);          // held in the pilot's hand at the pilot line, start box 4 (ESA §2.2.5, §4.4)
 const me = makePlane(0xd23b3b);
 scene.add(me);
-camera.position.set(0, 2.7, -7);
+camera.position.set(0, 1.8, FIELD.pilotLineZ - 4);
 const TOP = new URLSearchParams(location.search).has("top"); // debug: plan view of the site
-if (TOP) { camera.position.set(0, 110, -20); camera.lookAt(0, 0, -20); camera.far = 2000; camera.updateProjectionMatrix(); }
+if (TOP) { camera.position.set(0, 90, 10); camera.lookAt(0, 0, 10); camera.far = 2000; camera.updateProjectionMatrix(); }
 const others = new Map();
 
 const radio = new RadioInput();
 const updateRadioUI = mountRadioUI(radio);
 const keys = new Set();
-addEventListener("keydown", (e) => keys.add(e.code));
+addEventListener("keydown", (e) => { keys.add(e.code); if (e.code === "Space") sim.launch(); });
 addEventListener("keyup", (e) => keys.delete(e.code));
 const hud = document.getElementById("hud");
 let kbThrottle = 0;
@@ -46,6 +47,7 @@ let kbThrottle = 0;
 let room = null;
 new Client(`ws://${location.hostname}:2567`).joinOrCreate("combat").then((r) => {
   room = r;
+  r.onMessage("pit", (i) => { if (sim.held) { sim.pos.x = pitX(i); camera.position.x = pitX(i); } });
   r.onMessage("poses", (poses) => {
     for (const [id, p] of Object.entries(poses)) {
       if (id === r.sessionId) continue;
@@ -77,7 +79,7 @@ renderer.setAnimationLoop((t) => {
     const back = new THREE.Vector3(0, 1.0, -3.5).applyQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), new THREE.Euler().setFromQuaternion(sim.quat, "YXZ").y)).add(sim.pos);
     camera.position.lerp(back, 0.08); camera.lookAt(sim.pos);
   }
-  hud.textContent = `ESASIM · ${radio.connected ? "radio" : "keyboard: arrows pitch/roll, A/D yaw, W/S throttle"} · R: radio setup · ${sim.airspeed.toFixed(0)} m/s · ${sim.pos.y.toFixed(0)} m · thr ${(sim.input.throttle * 100).toFixed(0)}%`;
+  hud.textContent = `ESASIM · ${radio.connected ? "radio" : "Space: hand launch, arrows pitch/roll, A/D yaw, W/S throttle"} · R: radio setup · ${sim.airspeed.toFixed(0)} m/s · ${sim.pos.y.toFixed(0)} m · thr ${(sim.input.throttle * 100).toFixed(0)}%`;
   updateRadioUI();
   if (room && t - sent > 50) { sent = t; room.send("pose", { pos: sim.pos.toArray(), quat: sim.quat.toArray() }); }
   renderer.render(scene, camera);

@@ -1,6 +1,6 @@
 # ESASIM
 
-Multiplayer web RC-plane simulator for an ESA competition. Status: **planning, nothing built yet.**
+Multiplayer web RC-plane simulator for **ESA (Electric Simple Aircombat)**, a Polish R/C air-combat class: foam WWII-style fighters cutting each other's paper streamers. Status: early skeleton, flyable offline.
 
 ## First prompt (verbatim, 2026-10-04)
 
@@ -18,12 +18,14 @@ Multiplayer web RC-plane simulator for an ESA competition. Status: **planning, n
 
 ## Rules are in this repo: cite them for every decision
 
-The original rule documents are saved, and committed, in `papers/` (PDFs plus an `aircombat.eu_rules_index.htm` snapshot of the source page, fetched 2026-10-04).
-- The competition is **ACES R/C Air Combat** (aircombat.eu), WWII class, 1:12 warbirds, streamer cutting. The prompt said "ESA"; that word is not in any of the documents.
-- Primary: `papers/2023_ACES_int_WWII Rules.pdf`. Extract with page/§ cites: `docs/rules.md` (the PDFs govern if they disagree).
-- **Every game-rule decision (field size, scoring, limits, plane validation) must name the § it follows, in code comments and in the Changelog.** If the rules are silent, say so and log it as a design choice in `docs/rules.md` "Open points".
-- Read so far: 2023 int WWII, Appendix 3-1, points table (Appendix 4-5). Downloaded but not read: 2016 int WWII and WWI, 2011 WWII, German ACES-D WWII 2016/2023 and WWI 2016, 2019 ACES-D EPA (49 pp, a different class).
-- Field per rules: landing field 20 x 75 m, safety line 5-10 m in front of the pilot line, 7 start pits 3 x 3 m, readiness line 10 m behind. The flight area size is NOT specified.
+**CORRECTION 2026-10-04:** I first took "ESA" for ACES (the international 1:12 class at aircombat.eu) and built on the ACES rules. That was wrong. ESA = **Electric Simple Aircombat**, a Polish class with its own regulations: foam only, WWII span 700-860 mm, max 450 g, max 15 Wh, 10 m x 1 cm crepe-paper streamer, 5 min flight, hand launch. ESA §1.2 falls back to ACES for anything it does not cover.
+
+- **Primary:** `papers/poland/Regulamin_Aircombat_ESA_2024.pdf` (valid "od sezonu 2024", forum says 2024 and 2025). Extract with § cites: `docs/rules.md`. The PDF governs if they disagree.
+- **Not confirmed:** whether the 2024 PDF is still current for the competition Adam targets (no 2026 version found). Ask Adam / ask for the PDF.
+- **Fallback only:** ACES PDFs in `papers/`, extract in `docs/rules-aces.md`. Never use ACES values for ESA (1:12, 500-1500 g, 12 m streamer, 7 min are ACES).
+- Also saved: ESA 2022 rules, forum threads and event pages in `papers/poland/` (fetched 2026-10-04).
+- **Every game-rule decision (field, scoring, limits, plane validation) must name the § it follows, in code comments and the Changelog.** If the rules are silent, say so and log it as DESIGN in `docs/rules.md` "Open points".
+- Field per ESA: safety line 0 m (flight zone in front), pilot line 3 m behind, readiness line 5-8 m behind the pilot line, audience >= 10 m behind the safety line, landing field 50 x 20 m from the safety line, up to 7 pilots, WWII hand launch. Flight-zone size and start-box size are NOT specified.
 
 ## Product intent: the game is bait (Adam, 2026-10-04)
 
@@ -31,11 +33,13 @@ The game is a lure to get people flying ACES air combat in real life. The intro 
 
 ## Decisions (Adam, 2026-10-04)
 
-- **Streamer / cut detection:** simplest version. The streamer follows the recorded trace of the plane's tail, with some extra wobble for turbulence. A cut is a streamer segment intersecting the enemy **prop disc** (§4.11). Rules details: several cuts in one fly-by count once; a cut together with a kill does not count.
-- **Classes:** electric only for now (§3.4 E). IC classes, WWI and EPA come later.
+- **Streamer / cut detection:** simplest version. The 10 m streamer (ESA §3.7) follows the recorded trace of the plane's tail, with some extra wobble for turbulence. A cut is a streamer segment intersecting the enemy **prop disc**. Rule details (ESA §4.11): several cuts in one attack count once; a cut plus a collision-kill counts only if the cutting plane can keep flying.
+- **Classes:** ESA is electric by definition. WWII class first (single-engine); ESA WWI (ground posts, ground launch, 1000 mm span) later. ACES classes are out of scope unless Adam asks.
 - **Input:** Adam flies with a **RadioMaster**; the radio pipeline and calibration UI from the drone sim are ported (`client/input/`, panel on key R). Keyboard is the fallback. Not tested with real hardware yet.
 - **Physics:** the drone sim's quad physics does not transfer; new fixed-wing model in `shared/flight.js` (runs in Node and browser), params per plane in `shared/planes/`. See `docs/drone-sim-audit.md` for what else is reusable.
-- **Models:** Adam supplies them; see `docs/models.md`.
+- **Models:** Adam supplies them; see `docs/models.md`. Until then `shared/planes/esa-wwii.js` is a generic foam plane (all numbers DESIGN except the rule limits).
+- **Spawn:** one plane per start box (7), held in the pilot's hand at the pilot line, Space = hand launch (ESA §4.4, §2.2.5). (Adam: "use rules".)
+- **Research order for the intro page:** Poland first, then worldwide (Adam, 2026-10-04).
 - "Fly for real" research is tracked as GitHub issues, not done yet.
 
 ## Reference project
@@ -46,15 +50,15 @@ The game is a lure to get people flying ACES air combat in real life. The intro 
 
 Answered 2026-10-04: rules = http://aircombat.eu/rules.htm (ACES); format = shared-sky air combat, everything per ACES rules (field dimensions included) first; a workshop to build and modify planes comes later; repo = public asdfgh0318/esasim.
 Still open:
-1. Flight area size (rules silent), spectator/pilot camera positions.
+1. Is the 2024/2025 ESA PDF the current rules? Flight-zone size (rules silent).
 2. How a streamer cut is detected.
 3. First plane to ship (waiting for Adam's models).
-4. Research for the intro: shops, plans, YouTube, teams (Poland first?).
+4. Research for the intro: shops, plans, YouTube, teams (Poland first, then worldwide; issue #1).
 
 ## Plan (draft, revised after the answers above)
 
-1. DONE: rules extracted into `docs/rules.md`.
-2. Stack chosen (versions checked on npm 2026-10-04): Vite 8 + Three.js 0.186 (client), Colyseus 0.18 (server, up to 7 players per room = §4.1), custom flight model. Rapier (0.21) only if collision needs it. The old sim's Three 0.160 is outdated, so not reused as-is.
+1. DONE: ESA rules extracted into `docs/rules.md` (after the ACES mix-up, see correction above).
+2. Stack chosen (versions checked on npm 2026-10-04): Vite 8 + Three.js 0.186 (client), Colyseus 0.18 (server, up to 7 players per room = ESA §4.1), custom flight model. Rapier (0.21) only if collision needs it. The old sim's Three 0.160 is outdated, so not reused as-is.
 3. Walking skeleton: one plane flying in the browser with gamepad and keyboard.
 4. Netcode: authoritative server, client prediction, 2 players in one room.
 5. Model pipeline: glTF import for Adam's ESA models, with a per-model parameter file (mass, wing area, thrust).
@@ -69,3 +73,4 @@ Still open:
 - 2026-10-04: Added README with screenshots. Pushed first commit to github.com/asdfgh0318/esasim.
 - 2026-10-04: Flight model v0 (`shared/flight.js`, `shared/planes/fw190d.js`, `test/flight.test.js`, all 6 checks pass). Params from the FW-190D plan (span 875 mm, 820 g, 9x4.7 prop). Thrust, drag, stability numbers are DESIGN guesses to tune with real stick time. Known weak spot: power-off glide is steep (about 5 m/s sink at 21 m/s, L/D around 4).
 - 2026-10-04: Ported the radio pipeline (`client/input/radio.js`, `radioUI.js`), client now flies the new model. Audit written: `docs/drone-sim-audit.md`. Plans for FW-190D and Fiat G.55 saved in `models/plans/`.
+- 2026-10-04: **Correction:** ESA is Electric Simple Aircombat (Polish), not ACES. Found via the Polish event "XII Bitwa ESA i VIII Bitwa ACES o Płock". Downloaded ESA 2022/2024 rules and Polish pages to `papers/poland/`, rewrote `docs/rules.md` for ESA (old ACES extract kept as `docs/rules-aces.md`), `shared/rules.js` now ESA constants, field rebuilt per ESA §2, new generic ESA plane (`shared/planes/esa-wwii.js`, 400 g, 800 mm), hand launch (`Plane.launch`, Space), intro text fixed. Flight tests pass (hand launch, rates, stall). The FW-190D (820 g) is not ESA-legal, kept as reference only.

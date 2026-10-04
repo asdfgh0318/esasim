@@ -1,31 +1,26 @@
 import * as THREE from "three";
-import { FIELD } from "../shared/rules.js";
+import { FIELD, FIGHT, pitX } from "../shared/rules.js";
 
-// Builds the contest site from Fig 1. Axes: x across the field, z away from pilots (toward the flight area), y up.
-// z = 0 is the pilot line.
+// Contest site per ESA 2024 §2. x across, z away from the pilots, z = 0 is the safety line (§2.1).
 export function buildField() {
   const g = new THREE.Group();
-  const line = (z, color, w = 120) => {
-    const m = new THREE.Mesh(new THREE.PlaneGeometry(w, 0.15), new THREE.MeshBasicMaterial({ color }));
-    m.rotation.x = -Math.PI / 2; m.position.set(0, 0.02, z); g.add(m);
+  const flat = (w, d, x, z, color, y = 0.01) => {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(w, d), new THREE.MeshBasicMaterial({ color }));
+    m.rotation.x = -Math.PI / 2; m.position.set(x, y, z); g.add(m); return m;
   };
-  const grass = new THREE.Mesh(new THREE.PlaneGeometry(400, 400), new THREE.MeshLambertMaterial({ color: 0x3f7a3a }));
+  const grass = new THREE.Mesh(new THREE.PlaneGeometry(500, 500), new THREE.MeshLambertMaterial({ color: 0x3f7a3a }));
   grass.rotation.x = -Math.PI / 2; g.add(grass);
 
-  line(0, 0xffffff, FIELD.pitCount * FIELD.pitSpacing + 6);            // pilot line
-  line(FIELD.safetyLineGap, 0xff2a2a, 120);                             // safety line §2.2.3
-  line(-FIELD.readinessGap - FIELD.startPit, 0x2aa84a, 60);             // readiness line §2.3
+  const lf = FIELD.landingField;
+  flat(lf.w, lf.d, 0, FIELD.safetyLineZ + lf.d / 2, 0xb59b6a);                          // landing field 50 x 20 m, §2.2.2 (red-white tape)
+  for (const sx of [-1, 1]) flat(0.2, lf.d, sx * lf.w / 2, lf.d / 2, 0xffffff, 0.02);
+  flat(lf.w, 0.2, 0, lf.d, 0xffffff, 0.02);
 
-  for (let i = 0; i < FIELD.pitCount; i++) {                            // start pits 3x3 m, Fig 1
-    const pit = new THREE.Mesh(new THREE.PlaneGeometry(FIELD.startPit, FIELD.startPit), new THREE.MeshBasicMaterial({ color: 0x555555 }));
-    pit.rotation.x = -Math.PI / 2;
-    pit.position.set((i - (FIELD.pitCount - 1) / 2) * FIELD.pitSpacing, 0.01, -FIELD.startPit / 2);
-    g.add(pit);
-  }
-  const lf = FIELD.landingField;                                        // landing field 20 x 75 m, Fig 1
-  const land = new THREE.Mesh(new THREE.PlaneGeometry(lf.w, lf.d), new THREE.MeshBasicMaterial({ color: 0xb59b6a }));
-  land.rotation.x = -Math.PI / 2;
-  land.position.set(0, 0.01, FIELD.safetyLineGap + lf.d / 2 + 2);
-  g.add(land);
+  const width = FIELD.flightZone.w;
+  flat(width, 0.3, 0, FIELD.safetyLineZ, 0xff2a2a, 0.03);                               // safety line §2.2.4 (red-white tape)
+  flat(width, 0.15, 0, FIELD.pilotLineZ, 0xffffff);                                      // pilot line, 3 m behind
+  flat(width / 2, 0.15, 0, FIELD.pilotLineZ - FIELD.readinessGap, 0x2aa84a);             // readiness line §2.2.5
+  flat(width, 0.15, 0, FIELD.audienceZ, 0xffd166);                                       // audience zone starts §2.3
+  for (let i = 0; i < FIGHT.maxPilots; i++) flat(2, 1.5, pitX(i), FIELD.pilotLineZ - 1.2, 0x555555);  // start boxes (size DESIGN)
   return g;
 }
