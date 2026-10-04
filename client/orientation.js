@@ -1,3 +1,4 @@
+import { t } from "./i18n.js";
 import * as THREE from "three";
 import { createPlane } from "./planeModel.js";
 
@@ -31,13 +32,13 @@ export function createOrientationWidget(type, tint) {
       f.set(0, 0, 1).applyQuaternion(tmp);                                                       // nose in view space: +x screen-right, +y up, +z toward the viewer
       up.set(0, 1, 0).applyQuaternion(planeQuat);
       const parts = [];
-      if (f.z > 0.45) parts.push("toward you"); else if (f.z < -0.45) parts.push("away from you");
-      if (f.x > 0.45) parts.push("to the right"); else if (f.x < -0.45) parts.push("to the left");
-      if (f.y > 0.45) parts.push("climbing"); else if (f.y < -0.45) parts.push("diving");
-      let t = parts.length ? "Nose " + parts.join(", ") : "Nose sideways";
-      if (up.y < -0.2) t += " · upside down";
-      else if (Math.abs(up.x * 0 + (new THREE.Vector3(1, 0, 0).applyQuaternion(planeQuat).y)) > 0.45) t += new THREE.Vector3(1, 0, 0).applyQuaternion(planeQuat).y > 0 ? " · banked right" : " · banked left";
-      return t;
+      if (f.z > 0.45) parts.push(t("o.toward")); else if (f.z < -0.45) parts.push(t("o.away"));
+      if (f.x > 0.45) parts.push(t("o.right")); else if (f.x < -0.45) parts.push(t("o.left"));
+      if (f.y > 0.45) parts.push(t("o.climb")); else if (f.y < -0.45) parts.push(t("o.dive"));
+      let txt = parts.length ? t("o.nose") + " " + parts.join(", ") : t("o.side");
+      if (up.y < -0.2) txt += " · " + t("o.upside");
+      else if (Math.abs(up.x * 0 + (new THREE.Vector3(1, 0, 0).applyQuaternion(planeQuat).y)) > 0.45) txt += new THREE.Vector3(1, 0, 0).applyQuaternion(planeQuat).y > 0 ? " · " + t("o.bankR") : " · " + t("o.bankL");
+      return txt;
     },
     render(renderer) {
       const w = renderer.domElement.clientWidth, h = renderer.domElement.clientHeight;

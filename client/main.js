@@ -12,6 +12,7 @@ import { StreamerView } from "./streamerView.js";
 import { CameraRig } from "./camera.js";
 import { mountHud } from "./hud.js";
 import { t } from "./i18n.js";
+import { sound } from "./sound.js";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
@@ -56,6 +57,7 @@ const localStreamer = new Streamer({ seed: 9 }); // my own streamer, drawn local
 const rig = new CameraRig(camera);
 const radio = new RadioInput(), updateRadioUI = mountRadioUI(radio);
 const keys = new Set();
+let windOffset = 0;
 const kbStick = { aileron: 0, elevator: 0, rudder: 0 };
 const ramp = (cur, target, dt) => { const step = (target === 0 ? 6.5 : 3.3) * dt, d = target - cur; return Math.abs(d) <= step ? target : cur + Math.sign(d) * step; };
 const expo = (v) => Math.sign(v) * (0.4 * Math.abs(v) + 0.6 * Math.abs(v) ** 3);                  // 0.5 stick -> 0.275, full stick -> 1
@@ -65,7 +67,7 @@ const feedB = new THREE.WebGLRenderTarget(640, 360), camB = new THREE.Perspectiv
 let rec = [], recT0 = 0, replay = null, recPhase = "";
 
 const hud = mountHud({
-  ready: (v) => room?.send("ready", v), addBot: () => room?.send("addBot"), removeBots: () => room?.send("removeBots"), start: () => room?.send("start"),
+  ready: (v) => room?.send("ready", v), addBot: (level) => room?.send("addBot", { level }), removeBots: () => room?.send("removeBots"), start: () => room?.send("start"),
   plane: (t) => { saveBuild({ ...build, plane: t }); const u = new URLSearchParams(location.search); u.set("plane", t); location.search = u.toString(); },
   workshop: () => workshop.toggle(),
   invite: () => {                                                                   // private room: first click opens a new code, in a room the click copies the invite link
@@ -145,6 +147,7 @@ const nm = (id) => snapNames.get(id) || "?";
 function onEvent(e, fromReplay = false) {
   if (replay && !fromReplay) return;
   const mine = e.id === me.id;
+  if (e.type === "cut") sound.cut(); else if (e.type === "safety") sound.buzzer(); else if (e.type === "phase" && (e.phase === "flight" || e.phase === "ended")) sound.whistle();
   if (e.type === "cut") hud.toast(t("ev.cut", { a: nm(e.id), b: nm(e.victim), p: e.pts }), mine ? "good" : e.victim === me.id ? "bad" : "");
   else if (e.type === "safety") hud.toast(t("ev.safety", { a: nm(e.id), p: e.pts }), "bad");
   else if (e.type === "disqualified") hud.toast(t("ev.dq", { a: nm(e.id) }), "bad");
@@ -159,6 +162,7 @@ function onSnap(snap, fromReplay = false) {
   if (replay && !fromReplay) return;
   if (!fromReplay) record(snap);
   phase = snap.fight.phase;
+  if (!fromReplay && snap.t !== undefined) windOffset = snap.t - performance.now() / 1000;   // same wind as the server and the bots (N9)
   meDq = !!snap.fight.pilots.find((p) => p.id === me.id)?.disqualified;
   snapNames = new Map(snap.fight.pilots.map((p) => [p.id, p.name]));
   hud.update(snap, me.id);
@@ -255,13 +259,14 @@ renderer.setAnimationLoop((t) => {
     kbStick.rudder = ramp(kbStick.rudder, k("KeyE") - k("KeyQ"), frame);
     sim.input.elevator = expo(kbStick.elevator); sim.input.aileron = expo(kbStick.aileron); sim.input.rudder = expo(kbStick.rudder);
   }
-  sim.wind.set(...windAt(t / 1000, sim.pos.x, sim.pos.z));
+  sim.wind.set(...windAt(t / 1000 + windOffset, sim.pos.x, sim.pos.z));
   while (acc >= STEP) { sim.step(STEP); acc -= STEP; }
   const airborne = !sim.held && !sim.onGround && sim.pos.y > 0.2;
   if (!sim.held && !airborne && landedAt < 0) landedAt = t;                          // touchdown: fetch the model after a moment
   if (landedAt >= 0 && t - landedAt > 4000) home();
   myMesh.position.copy(sim.pos); myMesh.quaternion.copy(sim.quat);
   spinProp(myMesh, sim.held ? 0 : 60 + sim.input.throttle * 500, frame);
+  sound.motor(sim.input.throttle, !sim.held && airborne && sim.energyWh > 0);
   if (!replay && online) { const pl = interpolated(performance.now()); if (pl) applyPlanes(pl); }
   for (const o of others.values()) {
     if (replay) { o.mesh.position.lerp(o.pos, 1 - Math.exp(-14 * frame)); o.mesh.quaternion.slerp(o.quat, 1 - Math.exp(-14 * frame)); }   // replay snapshots are sparse: smooth them

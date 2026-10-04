@@ -101,5 +101,11 @@ There is no stabilisation clause in ESA; ACES §3.9 (no electronic stabilisation
 ## Open points
 
 - Flight-zone size and start-box size are not given: design values in `shared/rules.js`.
+- Landing bonus (§4.7, §6): any touchdown in the 50 x 20 m field after the end signal counts, crashes included (the rule says "lądowanie", the judge's call). DESIGN.
+- A mass under 200 g or a span outside 700-860 mm scores 0 in the sim; §6 only zeroes a round for exceeding mass or battery, the rest is scrutineering (the plane would not be admitted). DESIGN.
+- A disqualified pilot (§4.9) can still earn the +50 protection bonus at the end of that fight if the streamer stayed intact; the rule only stops the flight-time points. DESIGN.
+- Non-engagement (§4.14) means "within 30 m of an airborne opponent"; the technical-problem exception is not modelled. DESIGN.
+- The wing/tail tolerance at the safety line (§4.9) is stated for the ground ("motor counts"); in the air the sim judges the centre of the model. Ambiguous, open question for KG ESA.
+- Not modelled: pilot in zone (§2.2.1, §4.6, §4.15, §6), stuck streamers (§4.11), collisions, flight-zone limits (size is the organiser's choice, §2.2.1).
 - Check what ACES appendices (model measurement, points table) still apply to ESA.
 - WWI class rules (ground posts, ground launch, 1000 mm span) later.

@@ -10,7 +10,7 @@ const css = `
 #fh .toast{background:#121c30ee;border-left:4px solid #ffd166;border-radius:6px;padding:5px 12px;font-size:15px}
 #fh .toast.bad{border-color:#ff5a5a} #fh .toast.good{border-color:#2ad47a}
 #fh .lobby{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);display:flex;gap:8px;pointer-events:auto}
-#fh .lobby button{padding:9px 16px;font-size:14px;border:0;border-radius:8px;background:#2b3d5e;color:#fff;cursor:pointer}
+#fh .lobby button{white-space:nowrap;padding:9px 14px;font-size:14px;border:0;border-radius:8px;background:#2b3d5e;color:#fff;cursor:pointer}
 #fh .lobby select{padding:8px;font-size:14px;border-radius:8px;border:0;background:#2b3d5e;color:#fff}
 #fh .lobby button.go{background:#d23b3b} #fh .lobby button.on{background:#2a8a56}
 #fh .batt{position:absolute;left:12px;bottom:12px;width:150px;height:18px;background:#0b1220cc;border:1px solid #2b3d5e;border-radius:6px;overflow:hidden}
@@ -22,6 +22,8 @@ const css = `
 #fh .vtx{position:absolute;left:50%;bottom:62px;transform:translateX(-50%);font:600 14px monospace;color:#9dff9d;text-shadow:0 0 4px #000;letter-spacing:1px}
 #fh .cta{position:absolute;left:50%;bottom:80px;transform:translateX(-50%);max-width:520px;text-align:center;background:#121c30ee;border:1px solid #2b3d5e;border-radius:10px;padding:10px 16px;pointer-events:auto}
 #fh .cta p{margin:6px 0;font-size:13px;color:#cfe0f5} #fh .cta a{color:#ffd166}
+#fh .tips{position:absolute;left:12px;top:250px;max-width:300px;background:#121c30ee;border:1px solid #2b3d5e;border-radius:10px;padding:10px 14px;font-size:13px;pointer-events:auto}
+#fh .tips ol{margin:6px 0 8px;padding-left:20px} #fh .tips li{margin:3px 0} #fh .tips button{padding:5px 12px;border:0;border-radius:6px;background:#2b3d5e;color:#fff;cursor:pointer}
 #fh .help{position:absolute;right:12px;bottom:12px;font-size:11px;color:#9aa8bf;text-align:right}`;
 
 import { VTX_POWERS, CHANNELS } from "../shared/vtx.js";
@@ -36,14 +38,15 @@ export function mountHud(actions, planes) {
   const el = document.createElement("div"); el.id = "fh";
   el.innerHTML = `<div class="banner"><b id="fh-t">ESASIM</b><span id="fh-s"></span></div>
     <div class="score" id="fh-score"></div><div class="toasts" id="fh-toasts"></div>
-    <div class="lobby" id="fh-lobby"><select id="b-plane" title="${t("planeTip")}"></select><button id="b-ws">${t("workshop")}</button><button id="b-ready">${t("ready")}</button><button id="b-invite" title="${t("inviteTip")}">${t("invite")}</button><button id="b-bot">${t("addBot")}</button><button id="b-nobot">${t("rmBots")}</button><button id="b-start" class="go">${t("start")}</button></div>
+    <div class="lobby" id="fh-lobby"><select id="b-plane" title="${t("planeTip")}"></select><button id="b-ws">${t("workshop")}</button><button id="b-ready">${t("ready")}</button><button id="b-invite" title="${t("inviteTip")}">${t("invite")}</button><select id="b-level" title="${t("levelTip")}"><option value="easy">${t("easy")}</option><option value="club" selected>${t("club")}</option><option value="ace">${t("ace")}</option></select><button id="b-bot">${t("addBot")}</button><button id="b-nobot">${t("rmBots")}</button><button id="b-start" class="go">${t("start")}</button></div>
     <div class="lobby" id="fh-replay" style="display:none"><button id="b-replay">${t("watch")}</button><button id="b-save">${t("saveReplay")}</button></div>
     <div class="batt" id="fh-batt"><div id="fh-batt-bar"></div><span id="fh-batt-t">${t("battery")}</span></div>
     <div class="orient" id="fh-orient"></div>
     <div class="vtxset" id="fh-vtxset"><span>VTX</span><select id="v-pow"></select><select id="v-ch"></select></div>
     <div class="vtx" id="fh-vtx" style="display:none"></div>
     <div class="help"><button id="b-lang" style="pointer-events:auto;font-size:11px;padding:1px 6px;margin-right:8px;border:0;border-radius:4px;background:#2b3d5e;color:#fff;cursor:pointer">${t("lang")}</button>${t("help")}</div>
-    <div class="cta" id="fh-cta" style="display:none"></div>`;
+    <div class="cta" id="fh-cta" style="display:none"></div>
+    <div class="tips" id="fh-tips" style="display:none"><b>${t("tipsT")}</b><ol>${["tip1", "tip2", "tip3", "tip4", "tip5"].map((k) => `<li>${t(k)}</li>`).join("")}</ol><button id="b-tips">${t("tipsOk")}</button></div>`;
   document.body.append(el);
   const $ = (id) => el.querySelector("#" + id);
   let ready = false;
@@ -58,9 +61,11 @@ export function mountHud(actions, planes) {
   $("b-ws").onclick = () => actions.workshop();
   $("b-replay").onclick = () => actions.replay(); $("b-save").onclick = () => actions.saveReplay();
   $("b-ready").onclick = () => { ready = !ready; $("b-ready").classList.toggle("on", ready); actions.ready(ready); };
+  let tipsSeen = false; try { tipsSeen = localStorage.getItem("esasim-tips") === "1"; } catch { /* no storage */ }
+  $("b-tips").onclick = () => { tipsSeen = true; $("fh-tips").style.display = "none"; try { localStorage.setItem("esasim-tips", "1"); } catch { /* ignore */ } };
   $("b-lang").onclick = toggleLang;
   $("fh-cta").innerHTML = `<b>${t("ctaT")}</b><p>${t("ctaP")}</p>` + CTA.map(([k, u]) => `<a href="${u}" target="_blank" rel="noopener">${t(k)}</a>`).join(" · ");
-  $("b-invite").onclick = actions.invite; $("b-bot").onclick = actions.addBot; $("b-nobot").onclick = actions.removeBots; $("b-start").onclick = actions.start;
+  $("b-invite").onclick = actions.invite; $("b-bot").onclick = () => actions.addBot($("b-level").value); $("b-nobot").onclick = actions.removeBots; $("b-start").onclick = actions.start;
 
   return {
     offline() { $("fh-t").textContent = t("offlineT"); $("fh-s").textContent = t("offlineS"); $("fh-lobby").style.display = "none"; $("fh-score").style.display = "none"; },
@@ -69,9 +74,10 @@ export function mountHud(actions, planes) {
       $("fh-t").textContent = `${sr.label ? sr.label.replace(/^Round/, t("round")).replace(/^Final/, t("final")) + " · " : ""}${f.left > 0 ? `${title}  ${fmt(f.left)}` : title}`;
       $("fh-s").textContent = f.phase === "results" && sr.winner ? t("contestOver", { name: sr.winner.name, pts: sr.winner.total }) : sub;
       $("fh-lobby").style.display = f.phase === "lobby" || f.phase === "prep" ? "flex" : "none";
+      $("fh-tips").style.display = !tipsSeen && (f.phase === "lobby" || f.phase === "prep") ? "block" : "none";   // first-flight guide until dismissed
       $("fh-cta").style.display = f.phase === "results" ? "block" : "none";
       const isHost = !snap.host || snap.host === meId;                              // only the host (the longest-present human) starts the fight and manages bots
-      $("b-bot").style.display = $("b-nobot").style.display = $("b-start").style.display = f.phase === "lobby" && isHost ? "" : "none";
+      $("b-bot").style.display = $("b-level").style.display = $("b-nobot").style.display = $("b-start").style.display = f.phase === "lobby" && isHost ? "" : "none";
       if (f.phase === "lobby" && !isHost) $("fh-s").textContent = t("waitHost", { name: f.pilots.find((p) => p.id === snap.host)?.name || t("theHost") });
       if (f.phase === "lobby" || f.phase === "results") { ready = false; $("b-ready").classList.remove("on"); }
       const rows = [...f.pilots].sort((a, b) => ((sr.prior[b.id] || 0) + b.score) - ((sr.prior[a.id] || 0) + a.score)).map((p) =>

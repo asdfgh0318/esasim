@@ -96,6 +96,18 @@ const toResults = (h) => { h.run(40, () => { h.pose("a", 20, false); h.pose("b",
   h.run(3, () => { h.a.setPose("a", { pos: [0, 12, 20], quat: [0, 0, 0, 1], airborne: true, held: true, vel: [0, 0, 15] }); h.pose("b", 20); });
   check("held while flying is not honoured (no free streamer reset or invulnerability)", h.a.slots.get("a").wasHeld === false && h.a.fight.pilots.get("a").airSeconds > 2, `wasHeld=${h.a.slots.get("a").wasHeld}, air=${h.a.fight.pilots.get("a").airSeconds.toFixed(1)}`); }
 
+// R7 (§4.11): only streamers of models in the air can be cut. R4 (§4.9): a model moving on the ground can cross the line too (motor counts).
+{ const h = human(7); toFlight(h);
+  h.run(1, () => { h.pose("a", 20); h.pose("b", 20); });
+  h.run(1, () => { h.pose("a", 20); h.a.setPose("b", { pos: [0, 0.05, 20], quat: [0, 0, 0, 1], airborne: false, held: false, vel: [0, 0, 0] }); });
+  const v = h.a.slots.get("b"), len0 = v.streamer.length;
+  const hit = h.a.step(1 / 30) && v.airborne === false;
+  check("a grounded model's streamer is not cuttable (§4.11)", hit && h.a.fight.pilots.get("b").cuts === 0, `airborne=${v.airborne} len=${len0.toFixed(1)}`); }
+{ const h = human(8); toFlight(h);
+  const gz = (z, sp) => h.a.setPose("a", { pos: [0, 0.1, z], quat: [0, 0, 0, 1], airborne: false, held: false, vel: [0, 0, sp] });
+  h.run(0.5, () => { gz(8, 3); h.pose("b", 20); }); h.run(0.5, () => { gz(2, -3); h.pose("b", 20); }); h.run(0.5, () => { gz(-0.8, -3); h.pose("b", 20); });
+  check("a model sliding over the line on the ground is a crossing (§4.9)", h.a.fight.pilots.get("a").crossings === 1, `crossings=${h.a.fight.pilots.get("a").crossings}`); }
+
 // Seeded arena: same seed, same bot VTX and channels.
 { const mk = (seed) => { const a = new Arena({ params: ESA_WWII, seed }); for (let i = 0; i < 4; i++) a.addBot(); return [...a.slots.values()].map((s) => `${s.vtx.mw}/${s.vtx.ch}`).join(","); };
   check("seeded arena is repeatable", mk(7) === mk(7) && mk(7) !== mk(8), mk(7)); }

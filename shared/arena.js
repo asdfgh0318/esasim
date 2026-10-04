@@ -55,7 +55,7 @@ export class Arena {
     this.events = [];
   }
 
-  _freeChannel() {                                                       // random channel not used by anyone yet (frequency control, ESA §1.2/§4.17)
+  _freeChannel() {                                                       // random channel not used by anyone yet (VISUAL/DESIGN: ESA has no FPV rules; §1.2/§4.17 are about radio transmitter frequencies)
     const used = new Set([...this.slots.values()].map((x) => x.vtx.ch));
     const free = [0, 1, 2, 3, 4, 5, 6, 7].filter((c) => !used.has(c));
     return free.length ? free[Math.floor(this.rand() * free.length)] : Math.floor(this.rand() * 8);
@@ -63,7 +63,7 @@ export class Arena {
 
   _geom(pr) { return { noseZ: pr.noseZ, wingLeZ: pr.wingLeZ, span: pr.span, propRadius: pr.propDiaIn * 0.0254 / 2 }; }
 
-  _slot(id, name, bot, type, build) {
+  _slot(id, name, bot, type, build, skill = 0.7) {
     let s_illegal = false;
     const p = this.fight.addPilot(id, { name, bot });
     if (!p) return null;
@@ -74,11 +74,11 @@ export class Arena {
     const mw = bot ? randomPower(this.rand()) : (build?.vtxMw ?? 25), ch = !bot && build && build.vtxCh >= 0 ? build.vtxCh : this._freeChannel();
     p.illegal = !ok; s_illegal = !ok;                                    // workshop check (ESA §3.4, §3.6.2, §6)
     const s = { id, name, bot, type, params, vtx: { mw, ch }, geom: this._geom(params), pit: p.pit, streamer: new Streamer({ seed: p.pit + 1 }), prev: null, cur: null, airborne: false, downT: -1, launchAt: 0, tail: [0, 0, 0], illegal: s_illegal, crossingsTotal: 0, dq: false, poseT: 0, rtt: 0, hist: [] };
-    if (bot) { s.plane = createPlane(params); s.ai = new BotPilot({ skill: 0.7, seed: p.pit + 3 }); this._home(s); }
+    if (bot) { s.plane = createPlane(params); s.ai = new BotPilot({ skill, seed: p.pit + 3 }); this._home(s); }
     this.slots.set(id, s); return s;
   }
   addHuman(id, name, type, build) { return this._slot(id, name, false, type, build); }
-  addBot(name, type) { return this._slot("bot-" + (this.slots.size + 1) + "-" + Math.floor(this.rand() * 1e4), name || "Bot", true, type || PLANE_IDS[this.slots.size % PLANE_IDS.length]); }
+  addBot(name, type, skill = 0.7) { return this._slot("bot-" + (this.slots.size + 1) + "-" + Math.floor(this.rand() * 1e4), name || "Bot", true, type || PLANE_IDS[this.slots.size % PLANE_IDS.length], undefined, skill); }   // skill: easy 0.3, club 0.7, ace 0.95
   remove(id) { this.fight.removePilot(id); this.slots.delete(id); }
 
   _home(s) {                                                   // plane back in the pilot's hand at the pit, new streamer (§4.4)
@@ -184,7 +184,7 @@ export class Arena {
       while (s.hist.length > 1 && s.hist[1].t <= this.t - LAG.HISTORY) s.hist.shift();
     }
     const reports = {};
-    for (const s of this.slots.values()) if (s.cur) reports[s.id] = { airborne: s.airborne, flying: s.airborne || !!s.flying, pos: s.cur.pos, streamerIntact: s.streamer.intact };
+    for (const s of this.slots.values()) if (s.cur) reports[s.id] = { airborne: s.airborne, flying: s.airborne || !!s.flying, pos: s.cur.pos, motor: s.cur.pos.map((v, k) => v + s.cur.fwd[k] * s.geom.noseZ), moving: !s.wasHeld && Math.hypot(...(s.vel || [0, 0, 0])) > 1, streamerIntact: s.streamer.intact };
     // Cuts: every airborne attacker against every other streamer (ESA §4.11), swept between the two last frames. Lag-compensated: a human
     // attacker's path is tested against the victim's streamer as that attacker saw it (now - viewDelay); a hit cuts the LIVE streamer at
     // the same distance from the tail. Only the still-attached part counts (§4.11): a hit beyond the live length (already cut off) is ignored.
@@ -194,7 +194,7 @@ export class Arena {
         if (!a.airborne || !a.cur || !a.prev || fl.pilots.get(a.id)?.disqualified) continue;
         const delay = this.lagComp ? this.viewDelay(a) : 0;
         for (const v of this.slots.values()) {
-          if (v === a || !v.streamer.head || v.streamer.length < 0.3) continue;
+          if (v === a || !v.airborne || !v.streamer.head || v.streamer.length < 0.3) continue;   // §4.11: only streamers of models in the air
           const poly = delay > 0 ? this._rewound(v, this.t - delay) : v.streamer.points(this.t);
           const hit = findCut(a.prev, a.cur, a.geom, poly);
           if (!hit) continue;
@@ -248,6 +248,7 @@ export class Arena {
 
   snapshot() {
     return {
+      t: +this.t.toFixed(2),                                                  // arena clock: the client uses it to fly in the same wind as the server (N9)
       fight: this.fight.snapshot(),
       series: { label: this.label(), fightNo: this.fightNo, rounds: this.rounds, prior: this.prior(), winner: this.winner() },
       planes: [...this.slots.values()].filter((s) => s.cur).map((s) => ({

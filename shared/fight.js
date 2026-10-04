@@ -89,8 +89,10 @@ export class Fight {
       if (this.phase === "ended" && !p.disqualified) this._landingBonus(p, r.pos);
       this.events.push({ type: "land", id: p.id });
     }
-    if (lineActive && (p.airborne || r.flying) && !p.disqualified && r.pos) {                                 // §4.9 safety line: whole model beyond z = 0 toward the pilots
-      if (r.pos[2] >= FIELD.safetyLineZ) p.crossedField = true;
+    const grounded = !(p.airborne || r.flying) && r.moving && r.motor;       // §4.9: on the ground the position of the motor counts (a model moving on the ground can cross too)
+    if (lineActive && ((p.airborne || r.flying) || grounded) && !p.disqualified && r.pos) {                                 // §4.9 safety line: whole model beyond z = 0 toward the pilots
+      const lz = grounded ? r.motor[2] : r.pos[2];
+      if (lz >= FIELD.safetyLineZ) p.crossedField = true;
       else if (p.crossedField) {                                             // field side -> pilot side
         p.crossedField = false; p.crossings++;
         const total = p.priorCrossings + p.crossings;                        // §4.9: first crossing during the contest = penalty, second = penalty + disqualified

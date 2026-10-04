@@ -36,7 +36,8 @@ class CombatRoom extends Room {
     });
     this.onMessage("vtx", (c, m) => this.arena.setVtx(pid(c), m));
     this.onMessage("ready", (c, v) => this.arena.fight.setReady(pid(c), v !== false));
-    this.onMessage("addBot", (c) => { if (isHost(c) && this.arena.fight.phase === "lobby") this.arena.addBot("Bot " + (this.arena.slots.size + 1)); });
+    const LEVELS = { easy: 0.3, club: 0.7, ace: 0.95 };                              // bot skill: stick noise and lead aim
+    this.onMessage("addBot", (c, m) => { if (isHost(c) && this.arena.fight.phase === "lobby") this.arena.addBot("Bot " + (this.arena.slots.size + 1), undefined, LEVELS[m?.level] ?? 0.7); });
     this.onMessage("removeBots", (c) => { if (isHost(c) && this.arena.fight.phase === "lobby") for (const s of [...this.arena.slots.values()]) if (s.bot) this.arena.remove(s.id); });
     this.onMessage("start", (c) => { if (isHost(c)) this.arena.fight.start(); });
     this.setSimulationInterval(() => this.update(), 1000 * TICK);

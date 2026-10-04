@@ -27,7 +27,7 @@ export class BotPilot {
     const goAround = landing && (pos.z < 28 || (plane.vel.z < 0 && pos.z < 38));     // too close to the line while landing: power on, turn away
     if (goAround) _aim.set(0, 14, 52);
     else if (landing) _aim.set(0, 0, 42);                                          // bots land beyond the landing field, away from the safety line; the +20 landing bonus (§4.7) is for humans
-    else if (target && !out) _aim.copy(target.pos).addScaledVector(target.vel, clamp(best / speed, 0, 1.0));
+    else if (target && !out) _aim.copy(target.pos).addScaledVector(target.vel, clamp(best / speed, 0, 1.0) * Math.min(1, 0.4 + 0.86 * this.skill))   // club and ace bots lead fully, easy bots aim behind the target;
     else _aim.copy(CENTER);
     if (!landing) { _aim.y = clamp(_aim.y, 7, 16); if (_aim.z < 30 && !out) _aim.z = 30; }                                  // never aim near the safety line
     const takeoff = pos.y < 7 && plane.airspeed < 13;                      // just thrown: level wings, gentle climb, full power
