@@ -59,6 +59,8 @@ npm start        # game server (:2567) and client (http://localhost:5173) togeth
 - **Same network (one port):** run `npm run play` (builds the client, then the game server serves it). Find your address (`hostname -I`) and your friend opens `http://<your-address>:2567`. Both of you land in the same room (up to 7 pilots, bots included). Open port 2567 in your firewall if needed. Tested: the page loads and connects through `localhost` and through the LAN address.
 - **Developing:** `npm start` runs the game server (:2567) and the Vite dev client (:5173) together; the dev client accepts any host name.
 - **Over the internet (not tested yet):** with `npm run play` only one port is needed, so one tunnel should be enough, for example `cloudflared tunnel --url http://localhost:2567`; your friend opens the https address it prints. I have not run a tunnel yet.
+- **Private rooms:** the lobby button "Private room" opens `?room=CODE` and then copies the invite link; the longest-present human is the host and is the only one who can start the fight or add bots. A pilot whose connection drops keeps the box and the contest score for 30 s and reconnects by itself.
+- **Contest room:** add `&strict=1` to the room link (before anyone joins): the advanced physics editor is switched off, so everybody flies the ESA-checked workshop builds only.
 - Pilot names: add `&name=Alice`. The friend flies with the keyboard (WASD, Q/E, Shift/Ctrl, Space) or a USB radio (press R).
 
 Short phases for testing: `ESASIM_PREP=5 ESASIM_READY=2 ESASIM_FLIGHT=60 ESASIM_ROUNDS=1 npm run server`.

@@ -20,7 +20,7 @@ class CombatRoom extends Room {
   onCreate(options) {
     this.code = String(options?.code || "");
     this.sockets = new Map(); this.pending = new Map(); this.buildKeys = new Map(); this.emptyFor = 0;
-    this.arena = new Arena({ rounds: env("ESASIM_ROUNDS", 3), params: ESA_WWII, fight: { prep: env("ESASIM_PREP", FIGHT.prepSeconds), ready: env("ESASIM_READY", 10), flight: env("ESASIM_FLIGHT", FIGHT.flightSeconds) } });
+    this.arena = new Arena({ strict: !!options?.strict, rounds: env("ESASIM_ROUNDS", 3), params: ESA_WWII, fight: { prep: env("ESASIM_PREP", FIGHT.prepSeconds), ready: env("ESASIM_READY", 10), flight: env("ESASIM_FLIGHT", FIGHT.flightSeconds) } });
     this.tick = 0; this.resultsAt = null;
     const pid = (c) => c.userData?.pid;
     const isHost = (c) => pid(c) === this.hostId();                                // only the host starts the fight and manages bots

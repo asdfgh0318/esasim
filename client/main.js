@@ -37,7 +37,9 @@ composer.addPass(new RenderPass(scene, camera)); composer.addPass(fpvPass); comp
 addEventListener("resize", () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); composer.setSize(innerWidth, innerHeight); });
 
 const COLORS = [0xd23b3b, 0x3b6bd2, 0x2aa84a, 0xe0b000, 0x9b4bd0, 0x22b8c4, 0xe07a30];   // pilot colours by start box (tail and spinner)
+const strict = params.has("strict");                       // contest room (?strict): no advanced physics edits
 const build = loadBuild();
+if (strict) delete build.paramOverrides;
 if (PLANE_TYPES.includes(params.get("plane"))) build.plane = params.get("plane");
 const planeType = build.plane;
 const simParams = toParams(build);                       // the pilot's workshop build; the server validates it (ESA §3, §6)
@@ -71,7 +73,8 @@ const hud = mountHud({
   replay: () => (replay ? stopReplay() : startReplay()), saveReplay: () => saveReplay(),
 }, { types: PLANE_TYPES, names: PLANE_NAMES, current: planeType });
 const workshop = mountWorkshop(PLANE_TYPES, PLANE_NAMES, build);
-mountPhysicsPanel(build, (b) => { saveBuild(b); location.reload(); });          // advanced physics editor (PicaSim-style parameters)
+if (strict) { const adv = document.getElementById("ws-adv"); if (adv) adv.style.display = "none"; }
+if (!strict) mountPhysicsPanel(build, (b) => { saveBuild(b); location.reload(); });          // advanced physics editor (PicaSim-style parameters)
 
 function home() {                                  // plane back in the pilot's hand at the start box (ESA §4.4, §4.6)
   sim.pos.set(pitX(me.pit), 1.4, FIELD.pilotLineZ); sim.vel.set(0, 0, 0); sim.quat.identity(); sim.omega.set(0, 0, 0);
@@ -202,7 +205,7 @@ function applyPlanes(planes, fromReplay = false) {
 const pid = (() => { try { let v = sessionStorage.getItem("esasim-pid"); if (!v) { v = Math.random().toString(36).slice(2, 12); sessionStorage.setItem("esasim-pid", v); } return v; } catch { return Math.random().toString(36).slice(2, 12); } })();
 const roomCode = (params.get("room") || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8);
 { const bi = document.getElementById("b-invite"); if (bi) bi.textContent = roomCode ? "Copy invite link" : "Private room"; }
-const joinOptions = () => ({ name: params.get("name") || "Pilot", plane: planeType, build, pid, code: roomCode });
+const joinOptions = () => ({ name: params.get("name") || "Pilot", plane: planeType, build, pid, code: roomCode, strict });
 function attach(r) {
   room = r; online = true;
   r.onMessage("you", (y) => { me = y; rig.setPit(y.pit); setTint(myMesh, COLORS[y.pit % 7]); if (sim.held) home(); });

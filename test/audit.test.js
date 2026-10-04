@@ -73,6 +73,11 @@ const toResults = (h) => { h.run(40, () => { h.pose("a", 20, false); h.pose("b",
   const pa = h.a.fight.pilots.get("a");
   check("silent human is no longer airborne (N4)", !pa.airborne && pa.airSeconds - before < 2, `airborne=${pa.airborne} extra=${(pa.airSeconds - before).toFixed(1)} s`); }
 
+// Contest room (strict): the advanced physics overrides are dropped on the server, a normal room keeps them.
+{ const b = { ...DEFAULT_BUILD, paramOverrides: { "settings.dragScale": 1.5 } };
+  const ov = (strict) => new Arena({ params: ESA_WWII, strict, seed: 1 }).addHuman("a", "A", "spitfire", b).params.build.paramOverrides;
+  check("strict room drops physics overrides, normal room keeps them", ov(true) === undefined && ov(false)?.["settings.dragScale"] === 1.5, `strict=${JSON.stringify(ov(true))} normal=${JSON.stringify(ov(false))}`); }
+
 // Seeded arena: same seed, same bot VTX and channels.
 { const mk = (seed) => { const a = new Arena({ params: ESA_WWII, seed }); for (let i = 0; i < 4; i++) a.addBot(); return [...a.slots.values()].map((s) => `${s.vtx.mw}/${s.vtx.ch}`).join(","); };
   check("seeded arena is repeatable", mk(7) === mk(7) && mk(7) !== mk(8), mk(7)); }

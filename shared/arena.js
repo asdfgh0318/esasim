@@ -24,8 +24,9 @@ function makeRng(seed) { let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5)
 const POSE_TIMEOUT = 1;                  // DESIGN: no pose for 1 s = the model is treated as down (closed tab, lost connection)
 
 export class Arena {
-  constructor({ params, fight = {}, rounds = 3, seed = (Date.now() ^ 0x5bd1e995) >>> 0 }) {
+  constructor({ params, fight = {}, rounds = 3, strict = false, seed = (Date.now() ^ 0x5bd1e995) >>> 0 }) {
     this.rand = makeRng(seed);
+    this.strict = strict;                                                // contest room: the advanced physics editor is off, builds are limited to the workshop's ESA-checked options
     this.params = params;
     // Contest series (ESA §4.1): `rounds` fights, then a final; points of all fights add up (§4.1), ties by the final, then the best single fight (§4.16).
     this.rounds = rounds; this.fightNo = 0; this.done = []; this.recorded = false;
@@ -50,6 +51,7 @@ export class Arena {
     if (!p) return null;
     type = PLANES[type] ? type : null;                                  // no valid type: the arena's default params
     let params = type ? PLANES[type] : this.params, ok = true;
+    if (build && this.strict) { build = { ...build }; delete build.paramOverrides; }
     if (build) { params = toParams({ ...build, plane: type || build.plane }); ok = validate(params.build).ok; }
     const mw = bot ? randomPower(this.rand()) : (build?.vtxMw ?? 25), ch = !bot && build && build.vtxCh >= 0 ? build.vtxCh : this._freeChannel();
     p.illegal = !ok; s_illegal = !ok;                                    // workshop check (ESA §3.4, §3.6.2, §6)
