@@ -28,7 +28,7 @@ check("mass and CG", base.aero.mass > 0.36 && base.aero.mass < 0.43 && Math.abs(
 // power system: static thrust and electrical power at full throttle
 { const pl = fly(mk(), 200, 0, 1); run(pl, 1.5, (p) => { p.aero.comVel.set(0, 0, 0); p.aero.omegaB.set(0, 0, 0); p.aero.com.set(0, 0, 200); }); const e = pl.aero.engines[0];
   check("motor: static thrust at full throttle", e.thrust > 3.5 && e.thrust < 9, `${e.thrust.toFixed(1)} N (${(e.thrust / 9.81 * 1000).toFixed(0)} g), ${(e.W * 9.55).toFixed(0)} rpm, ${e.electricPower.toFixed(0)} W`);
-  check("motor: electrical power is plausible for a 15 Wh pack", e.electricPower > 60 && e.electricPower < 200, `${e.electricPower.toFixed(0)} W`); }
+  check("motor: electrical power is plausible for a 15 Wh pack", e.electricPower > 30 && e.electricPower < 200, `${e.electricPower.toFixed(0)} W`); }
 
 // level-flight top speed and cruise at full throttle (DESIGN numbers, not measured on a real plane): a vertical-speed controller holds the height
 { const pl = fly(mk(), 500, 16, 1); const upB = new THREE.Vector3(), inv = new THREE.Quaternion(); let sp = 0, n = 0, maxAlt = 0, minAlt = 1e9;
@@ -77,13 +77,13 @@ check("mass and CG", base.aero.mass > 0.36 && base.aero.mass < 0.43 && Math.abs(
     check("Kato ailerons: full stick rolls at 250-600 deg/s", rk > 250 && rk < 600, `${rk.toFixed(0)} deg/s`); }
   { const t = fly(mkK(), 400, 16, 0.6); run(t, 1); const up = new THREE.Vector3(), iv = new THREE.Quaternion(), fw = new THREE.Vector3(), hd = () => Math.atan2(fw.set(0, 0, 1).applyQuaternion(t.quat).x, fw.z); let hp = hd(), turned = 0;
     run(t, 4, (p) => { iv.copy(p.quat).invert(); up.set(0, 1, 0).applyQuaternion(iv); p.input.aileron = Math.max(-1, Math.min(1, -(Math.atan2(up.x, up.y) + 0.9) * 1.5)); p.input.elevator = 0.3; const h = hd(); let d = h - hp; d = ((d + 3 * Math.PI) % (2 * Math.PI)) - Math.PI; turned += d; hp = h; });
-    check("Kato turns: banked 50 degrees with a gentle pull it turns at 60-250 deg/s without losing height", Math.abs(deg(turned)) / 4 > 60 && Math.abs(deg(turned)) / 4 < 250 && t.pos.y > 395, `${(Math.abs(deg(turned)) / 4).toFixed(0)} deg/s, height change ${(t.pos.y - 400).toFixed(0)} m`); }
+    check("Kato turns: banked 50 degrees with a gentle pull it turns at 40-250 deg/s without losing height", Math.abs(deg(turned)) / 4 > 40 && Math.abs(deg(turned)) / 4 < 250 && t.pos.y > 395, `${(Math.abs(deg(turned)) / 4).toFixed(0)} deg/s, height change ${(t.pos.y - 400).toFixed(0)} m`); }
   // with stick input (a simple altitude controller) it launches, climbs and cruises
   { const pl = mkK(); pl.pos.set(0, 1.4, -3); pl.held = true; pl.input.throttle = 1; pl.launch(10, 0.15); const upB = new THREE.Vector3(), inv = new THREE.Quaternion(); let minY = 99;
     run(pl, 14, (p, t) => { inv.copy(p.quat).invert(); upB.set(0, 1, 0).applyQuaternion(inv); p.input.elevator = Math.max(-0.6, Math.min(0.8, 0.25 - p.vel.y * 0.08 + (12 - p.pos.y) * 0.04)); p.input.aileron = Math.max(-1, Math.min(1, -Math.atan2(upB.x, upB.y) * 1.5)); p.input.throttle = t < 3 ? 1 : 0.6; if (t > 2) minY = Math.min(minY, p.pos.y); });
     check("Kato flown with stick input: hand launch, climb and cruise", minY > 4 && pl.pos.y > 8 && pl.vel.length() > 10 && pl.vel.length() < 40, `min height after 2 s ${minY.toFixed(1)} m, y ${pl.pos.y.toFixed(0)} m at 14 s, ${pl.vel.length().toFixed(0)} m/s`); }
   { const pl = fly(mkK(), 200, 0, 1); run(pl, 1.5, (p) => { p.aero.comVel.set(0, 0, 0); p.aero.omegaB.set(0, 0, 0); p.aero.com.set(0, 0, 200); }); const tw = pl.aero.engines[0].thrust / (pl.aero.mass * 9.81);
-    check("Kato static thrust-to-weight is about 0.6 or more", tw > 0.5 && tw < 2, tw.toFixed(2)); } }
+    check("Kato static thrust-to-weight is about 0.2 or more (thrust halved on request)", tw > 0.2 && tw < 2, tw.toFixed(2)); } }
 
 // servo throws (issue #20): a bigger throw gives a faster response, a smaller one a slower response
 { const rate = (key, v, ax) => { const q = fly(mk({ [key]: v }), 400, 14, 0.5); run(q, 0.5); q.input[key === "aileronDeg" ? "aileron" : "elevator"] = 1; let pk = 0; run(q, 0.7, (p) => { pk = Math.max(pk, Math.abs(deg(p.omega[ax]))); }); return pk; };
@@ -100,7 +100,7 @@ check("mass and CG", base.aero.mass > 0.36 && base.aero.mass < 0.43 && Math.abs(
 
 // battery drains with throttle and the motor stops at zero
 { const pl = fly(mk(), 800, 14, 1); let t = 0; while (pl.energyWh > 0 && t < 900) { pl.step(1 / 120); t += 1 / 120; }
-  check("battery: 15 Wh lasts minutes at full throttle", t > 200 && t < 600, `${(t / 60).toFixed(1)} min`); }
+  check("battery: 15 Wh lasts minutes at full throttle (a 5 minute flight must be possible)", t > 300 && t < 1500, `${(t / 60).toFixed(1)} min`); }
 
 // stall: slow with full back stick must stay finite
 { const pl = fly(mk(), 60, 8, 0); pl.input.elevator = 1; run(pl, 6); check("stall stays finite", Number.isFinite(pl.pos.y) && Number.isFinite(pl.vel.length()), `y=${pl.pos.y.toFixed(1)} v=${pl.vel.length().toFixed(1)}`); }

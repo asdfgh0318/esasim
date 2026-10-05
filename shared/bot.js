@@ -4,7 +4,9 @@ import * as THREE from "three";
 import { FIELD } from "./rules.js";
 
 // Kato profile (see docs/physics.md): its turn diameter at the conventional cruise speed is longer than the 44 m deep flight zone, so it cruises slower.
-const KATO_TUNE = { cruise: 0.4, minSpeed: 11, stallSpeed: 9, farBoost: 0.8, elevBias: 0.2, look: 1.5 };   // found by sweeps: 0 crashes and 0 line slips in 5 minutes with 3 Kato bots
+// Conventional planes: speeds below which the bot adds full throttle (minSpeed) or starts the stall recovery (stallSpeed), and its cruise throttle.
+const ESA_TUNE = { cruise: 0.85, minSpeed: 11, stallSpeed: 9.5, farBoost: 1, elevBias: 0, look: 1.5 };
+const KATO_TUNE = { cruise: 0.7, minSpeed: 11, stallSpeed: 9, farBoost: 0.8, elevBias: 0.2, look: 1.5 };   // found by sweeps: 0 crashes and 0 line slips in 5 minutes with 3 Kato bots
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 const MAX_BANK = 1.0;                                                       // rad, about 57 degrees
 const CENTER = new THREE.Vector3(0, 10, 34);                                // the fight happens over the landing field and just beyond it
@@ -13,7 +15,7 @@ const _fwd = new THREE.Vector3(), _inv = new THREE.Quaternion(), _d = new THREE.
 export class BotPilot {
   constructor({ skill = 0.7, seed = 1, plane = null, tune = {} } = {}) {
     this.kato = plane === "kato";                                   // the flying wing: slower, wider turns, other speed thresholds
-    this.tune = { ...KATO_TUNE, ...tune };
+    this.tune = { ...(this.kato ? KATO_TUNE : ESA_TUNE), ...tune };
     this.skill = skill; this.breakSide = seed % 2 ? 1 : -1; this.n1 = 0; this.n2 = 0; this.t = 0; this.rng = seed * 9301 + 49297;
   }
   _rand() { this.rng = (this.rng * 9301 + 49297) % 233280; return this.rng / 233280 - 0.5; }
@@ -33,7 +35,7 @@ export class BotPilot {
     }
     const zone = FIELD.flightZone;
     // Predictive boundary: where will I be in 1.5 s? Turn radius is about 13 m and stalls throw the plane around, so keep a wide margin from the safety line (z = 0).
-    const look = this.kato ? this.tune.look : 1.5, fx = pos.x + plane.vel.x * look, fz = pos.z + plane.vel.z * look, fy = pos.y + plane.vel.y * 1.4;
+    const look = this.tune.look, fx = pos.x + plane.vel.x * look, fz = pos.z + plane.vel.z * look, fy = pos.y + plane.vel.y * 1.4;
     const out = Math.abs(fx) > zone.w * 0.3 || fz < 30 || pos.z < 24 || fz > zone.d * 0.92 || pos.y > 20;
     const goAround = landing && (pos.z < 28 || (plane.vel.z < 0 && pos.z < 38));     // too close to the line while landing: power on, turn away
     if (goAround) _aim.set(0, 14, 52);
@@ -61,7 +63,7 @@ export class BotPilot {
     _fwd.set(0, 0, 1).applyQuaternion(plane.quat);
     if (elev > 0) elev = Math.min(elev, clamp((0.19 - plane.alpha) * 7, 0, 1));    // angle-of-attack limiter: never pull into the stall
     if (_fwd.y > 0.6) elev = Math.min(elev, 0.2);                           // no steep climbs: they end in a stall
-    if (!takeoff && !low && (plane.airspeed < (landing && !goAround ? 8 : this.kato ? this.tune.stallSpeed : 11) || Math.abs(plane.alpha) > 0.3)) {   // stall recovery: wings level, then nose slightly down
+    if (!takeoff && !low && (plane.airspeed < (landing && !goAround ? 8 : this.tune.stallSpeed) || Math.abs(plane.alpha) > 0.3)) {   // stall recovery: wings level, then nose slightly down
       _up.set(0, 1, 0).applyQuaternion(_inv); rollErr = Math.atan2(_up.x, _up.y);
       elev = Math.abs(rollErr) < 1.0 ? clamp(2.5 * (-0.1 - _fwd.y), -1, 1) : 0;
       if (Math.abs(rollErr) < 0.8 && _d.z > -0.5) rollErr += clamp(_d.x * 1.5, -0.5, 0.5);   // keep turning away from the boundary, gently banked
@@ -73,9 +75,9 @@ export class BotPilot {
     const k = 0.15 * (1 - this.skill);                                      // less skilled = noisier sticks
     this.n1 += (this._rand() * 2 - this.n1) * Math.min(1, 2 * dt);
     this.n2 += (this._rand() * 2 - this.n2) * Math.min(1, 2 * dt);
-    plane.input.elevator = clamp(elev + (this.kato ? this.tune.elevBias : 0) + this.n1 * k, -1, 1);
+    plane.input.elevator = clamp(elev + this.tune.elevBias + this.n1 * k, -1, 1);
     plane.input.aileron = clamp(-(rollErr * 1.5) + this.n2 * k, -1, 1);       // +x is the plane's left, aileron + rolls right
     plane.input.rudder = clamp(-plane.beta * 3, -0.5, 0.5);
-    plane.input.throttle = goAround ? 1 : landing ? (pos.y < 12 ? 0 : 0.3) : this.kato ? (takeoff || plane.airspeed < this.tune.minSpeed ? 1 : best > 25 ? this.tune.farBoost : this.tune.cruise) : takeoff || plane.airspeed < 13.5 || best > 15 ? 1 : 0.85;
+    plane.input.throttle = goAround ? 1 : landing ? (pos.y < 12 ? 0 : 0.3) : takeoff || plane.airspeed < this.tune.minSpeed ? 1 : best > (this.kato ? 25 : 15) ? this.tune.farBoost : this.tune.cruise;
   }
 }

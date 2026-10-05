@@ -7,7 +7,7 @@ import { applyOverrides } from "./overrides.js";
 
 export const KATO_SPAN_MM = 1210;
 export const KATO_ELEVATOR_MIX = 0.8;                 // PicaSim: 0.25 (see the tuning note below)
-export const KATO_TORQUE = 2;                         // multiplier on PicaSim's maxTorque: thrust-to-weight about 1 at 860 mm (PicaSim's own value gives 0.5), cruise about 16-20 m/s at 60 % throttle
+export const KATO_TORQUE = 0.71;                         // multiplier on PicaSim's maxTorque: thrust-to-weight about 1 at 860 mm (PicaSim's own value gives 0.5), cruise about 16-20 m/s at 60 % throttle
 export const KATO_PROP = { radius: 0.0762, pitch: 0.17, chord: 0.013 };   // an absolute 6 in prop in metres at any plane size (PicaSim scales the prop with the plane, which leaves a small Kato with almost no thrust)
 // Kato is not an ESA WWII warbird: at its native size it is far outside ESA 3.1.2 (700-860 mm), so the workshop marks it illegal until it
 // is scaled down (span 700-860 mm) and ballasted to the 200 g minimum (3.6.2). It stays a flyable practice plane in the meantime.

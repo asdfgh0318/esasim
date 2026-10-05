@@ -22,7 +22,7 @@ import { applyOverrides } from "./overrides.js";
 // Foamy indoor-aerobat character (Adam, issue #19): 20 % more mass than the first estimates and the motor torque (so thrust) scaled by the same
 // factor, thrust-to-weight stays high; control surfaces are generous and their throws are adjustable per plane (issue #20, degrees of deflection at full stick).
 // (prop thrust grows about with torque^(2/3), so +20 % thrust needs 1.2^1.5 times the torque.)
-export const FOAMY_MASS_PERCENT = 20, FOAMY_THRUST_FACTOR = 1.2;
+export const FOAMY_MASS_PERCENT = 20, FOAMY_THRUST_FACTOR = 0.6;   // was 1.2; halved on Adam's request (2026-10-05: "planes are too fast"): static thrust 6.3 N -> about 3.2 N
 export const DEFAULT_THROWS = { aileronDeg: 30, elevatorDeg: 30, rudderDeg: 30 };
 export const DEFAULT_BUILD = { plane: "spitfire", spanMm: 800, batteryWh: 15, propDiaIn: 9, propPitchIn: 5, ballastG: 20, ...DEFAULT_THROWS };
 
@@ -48,7 +48,7 @@ export function buildEsaDef(b0 = {}) {
       wing("Left1", pf.ci, y1, innerLen, -0.010, { mass: 0.022 * k }),
       wing("Left2", pf.co, y2, outerLen, zOuter, aileron),
       { name: "Right1", copy: "Left1", mirror: true }, { name: "Right2", copy: "Left2", mirror: true },
-      { name: "Tail", aerofoil: "Flat", numSections: 2, mass: 0.008, position: [-0.2925, -0.14, 0.008], rotation: [0, 2.5, 0], extents: [0.085, 0.28, 0.006],   // 2.5 degrees of tail incidence: steady full-throttle hand launch
+      { name: "Tail", aerofoil: "Flat", numSections: 2, mass: 0.008, position: [-0.2925, -0.14, 0.008], rotation: [0, 4.5, 0], extents: [0.085, 0.28, 0.006],   // 4.5 degrees of tail incidence (was 2.5 with twice the thrust): with the halved thrust a hands-off hand launch still climbs away
          wingAspectRatio: 3.3,
         wingSpanEfficiency: 0.8, groundEffect: true, washFromWing: [{ name: "Left1", fraction: 0.3 }, { name: "Right1", fraction: 0.3 }], washFromEngine: { name: "Engine", fraction: 0.1 },
         CLPerDegree: 0.02, CDPerDegree: 0.05, CMPerDegree: -0.01, flapFraction: 0.4, degreesPerControl: b.elevatorDeg, controlRate: 12, controlPerChannel: { 1: 1 } },

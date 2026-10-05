@@ -56,7 +56,7 @@ export function mountRadioUI(radio) {
     if (el.style.display !== "block") return;
     if (!radio.connected) { $("r-status").textContent = "No radio found. Plug it in USB (joystick mode) and move a stick."; nAxes = -1; return; }
     if (radio.raw.length !== nAxes) buildAxes();
-    $("r-status").textContent = radio.id;
+    $("r-status").textContent = `pad ${radio.index}: ${radio.id}` + (new URLSearchParams(location.search).get("pad") !== null ? "  (this window only uses its own pad)" : "");
     radio.raw.forEach((v, i) => { setBar("ra" + i, v, true); $("rv" + i).textContent = v.toFixed(2); });
     CHANNELS.forEach((ch, i) => { const v = radio.channels[ch]; setBar("rc" + i, v, ch !== "throttle"); $("rcv" + i).textContent = v.toFixed(2); });
   };

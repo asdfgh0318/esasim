@@ -3,13 +3,17 @@
 // Differences from the drone sim: plane channels (AETR), no FPV rate curves (the radio does its own rates and expo),
 // and the stick centre is captured at rest instead of from the last samples.
 export const CHANNELS = ["aileron", "elevator", "throttle", "rudder"];
-const KEY = "esasim_radio_config";
+// Several windows on one machine (two pilots, two controllers): ?pad=N makes a window use gamepad number N only (or the first gamepad whose name contains N
+// when it is not a number), ?preset=radiomaster|gamepad applies a mapping preset when that window has no saved config yet. Each ?pad window keeps its own
+// calibration and mapping in localStorage, so two controllers never overwrite each other. Without ?pad the first gamepad with 4 axes is used as before.
+const Q = new URLSearchParams(location.search), PAD = Q.get("pad");
+const KEY = "esasim_radio_config" + (PAD !== null ? "_pad" + PAD : "");
 
 const defaults = () => ({
   mapping: [0, 1, 2, 3],                 // gamepad axis index per channel (AETR, change in the panel)
   inverted: [false, false, false, false],
   calibration: {},                       // axisIdx -> { min, max, center }
-  deadband: 0.02,
+  deadband: 0,                           // no deadband on the sticks (Adam, 2026-10-05); the radio's own centre calibration is still applied
 });
 
 // Mapping presets. "radiomaster": AETR on axes 0-3 (the radio in joystick mode). "gamepad": Xbox/PlayStation style pad, mode 2 sticks:
@@ -34,9 +38,10 @@ export class RadioInput {
   get connected() { return this.id !== null; }
 
   poll() {
-    const pad = [...(navigator.getGamepads?.() ?? [])].find((g) => g && g.axes.length >= 4);
+    const pads = [...(navigator.getGamepads?.() ?? [])].filter((g) => g && g.axes.length >= 4);
+    const pad = PAD === null ? pads[0] : /^\d+$/.test(PAD) ? pads.find((g) => g.index === Number(PAD)) : pads.find((g) => g.id.toLowerCase().includes(PAD.toLowerCase()));
     if (!pad) { this.id = null; this.raw = []; return false; }
-    this.id = pad.id;
+    this.id = pad.id; this.index = pad.index;
     this.raw = [...pad.axes];
     if (this.calibrating) this._track();
     CHANNELS.forEach((ch, i) => { this.channels[ch] = this._channel(i); });
@@ -88,7 +93,9 @@ export class RadioInput {
 
   save() { try { localStorage.setItem(KEY, JSON.stringify(this.config)); return true; } catch { return false; } }
   load() {
-    try { const s = localStorage.getItem(KEY); if (s) this.config = { ...defaults(), ...JSON.parse(s) }; } catch { /* no storage */ }
+    try { const s = localStorage.getItem(KEY); this._hadSaved = !!s; if (s) this.config = { ...defaults(), ...JSON.parse(s) }; } catch { /* no storage */ }
+    if (!this._hadSaved && Q.get("preset")) this.applyPreset(Q.get("preset"));
+    this.config.deadband = 0;               // an older saved config may still carry the former 0.02: it is ignored
   }
   reset() { this.config = defaults(); }
   applyPreset(name) { const p = PRESETS[name]; if (p) { this.config.mapping = [...p.mapping]; this.config.inverted = [...p.inverted]; this.config.calibration = {}; } }

@@ -24,7 +24,7 @@ check("bigger battery is heavier, bigger span has more wing", massKg({ ...DEFAUL
 // Battery: drains at full throttle, motor stops at zero, refuel restores it.
 const base2 = toParams(DEFAULT_BUILD), pl = createPlane(base2); pl.held = false; pl.pos.set(0, 800, 0); pl.vel.set(0, 0, 15); pl.input.throttle = 1; pl._push();
 let t = 0; while (pl.energyWh > 0 && t < 900) { pl.step(1 / 60); t += 1 / 60; if (pl.pos.y < 100) { pl.aero.com.z = 800; pl.aero.comVel.z = 0; } }
-check("15 Wh at full throttle lasts several minutes", t > 300 && t < 660, `${(t / 60).toFixed(1)} min`);
+check("15 Wh at full throttle lasts several minutes (a 5 minute flight must be possible)", t > 300 && t < 1200, `${(t / 60).toFixed(1)} min`);
 check("empty battery: no thrust", (() => { const x = pl.vel.length(); for (let i = 0; i < 120; i++) pl.step(1 / 60); return pl.vel.length() < x + 0.5; })(), "dead stick");
 pl.refuel(); check("refuel restores the battery", pl.battery01 === 1, "100%");
 
