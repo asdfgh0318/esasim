@@ -1,0 +1,5 @@
+# Optional: remove the Linux joystick dead zone of RadioMaster radios every time they are plugged in (see tools/joystick-nodeadzone.py).
+# Install once:  sudo cp tools/99-esasim-joystick.rules /etc/udev/rules.d/ && sudo udevadm control --reload && (re-plug the radio)
+# Remove again:  sudo rm /etc/udev/rules.d/99-esasim-joystick.rules && sudo udevadm control --reload
+# Edit the path below if the repository lives somewhere else. The script rewrites only the in-kernel joystick correction of that device.
+ACTION=="add|change", SUBSYSTEM=="input", KERNEL=="js[0-9]*", ATTRS{name}=="*Radiomaster*", RUN+="/usr/bin/python3 /home/adam/ŻYCIE/VIBECODING/ESASIM/tools/joystick-nodeadzone.py /dev/%k"

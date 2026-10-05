@@ -74,6 +74,16 @@ npm start        # game server (:2567) and client (http://localhost:5173) togeth
 
 Short phases for testing: `ESASIM_PREP=5 ESASIM_READY=2 ESASIM_FLIGHT=60 ESASIM_ROUNDS=1 npm run server`.
 
+## Stick dead zone on Linux
+
+ESASIM itself applies no dead zone to the sticks. On Linux the kernel's joystick layer does: its HID driver advertises a "flat" of range/16 for every axis and the legacy joystick interface (`/dev/input/js*`, which browsers read gamepads through) turns that into a built-in dead zone of about **+-12.5 % of the stick travel** around the centre, on both RadioMasters I measured. A page cannot see inside it. Remove it with
+
+```bash
+python3 tools/joystick-nodeadzone.py            # all /dev/input/js* devices, no root; --dry-run only prints the current dead zones
+```
+
+The change lasts until the radio is re-plugged or the machine reboots; `tools/99-esasim-joystick.rules` re-applies it automatically (install instructions inside, needs `sudo`). Windows and macOS do not add this dead zone.
+
 ## Voice chat
 
 In a private room (`?room=CODE`) there is a "Voice: off" button. Click it once to allow the microphone: you are then in push-to-talk mode (hold **T**); click again for an open microphone, once more to switch voice off. Audio goes directly between the pilots (WebRTC); the game server only relays the connection handshake. Nobody is heard or connected until they switch voice on, and the public shared room has no voice. A 🔊 marks who is speaking in the score table.
