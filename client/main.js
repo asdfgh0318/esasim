@@ -208,9 +208,11 @@ function applyPlanes(planes, fromReplay = false) {
     if (p.id === me.id && !fromReplay) { if (others.has(me.id)) { scene.remove(others.get(me.id).mesh); others.delete(me.id); } continue; }
     let v = views.get(p.id);
     if (!v) { v = new StreamerView(scene, COLORS[p.pit % 7]); views.set(p.id, v); }
+    v.setColor(COLORS[p.pit % 7]);                                                  // a pilot who got another start box keeps matching colours in every window
     v.update(p.streamer);
     let o = others.get(p.id);
     if (!o) { o = { mesh: createPlane(p.plane, COLORS[p.pit % 7], { spanMm: p.spanMm }), pos: new THREE.Vector3(...p.pos), quat: new THREE.Quaternion(), air: false, vtx: { mw: 25, ch: 0 } }; o.mesh.position.copy(o.pos); scene.add(o.mesh); others.set(p.id, o); }
+    if (o.pit !== p.pit) { setTint(o.mesh, COLORS[p.pit % 7]); o.pit = p.pit; }
     o.pos.set(...p.pos); o.air = p.airborne; o.vtx = { mw: p.vtxMw || 25, ch: p.vtxCh ?? 0 };
     const z = new THREE.Vector3(...p.fwd), x = new THREE.Vector3(...p.right), y = new THREE.Vector3().crossVectors(z, x);
     o.quat.setFromRotationMatrix(new THREE.Matrix4().makeBasis(x, y, z));
@@ -227,10 +229,11 @@ const joinOptions = () => ({ name: params.get("name") || "Pilot", plane: planeTy
 let humanIds = [];
 const voice = roomCode ? createVoice({ send: (m) => room?.send("rtc", m), myId: () => me.id, humans: () => humanIds, onSpeaking: (s) => hud.setSpeaking(s), onMode: (m, e) => { hud.voiceMode(m); if (e) console.warn("voice:", e); }, stun: params.has("stun") }) : null;
 if (voice) hud.voiceAvailable(true);
-window.__voice = voice;                                                                 // for tests
+window.__voice = voice;
+window.__esasim = { views, others, getMe: () => me, COLORS };                         // for tests                                                                 // for tests
 function attach(r) {
   room = r; online = true;
-  r.onMessage("you", (y) => { me = y; rig.setPit(y.pit); setTint(myMesh, COLORS[y.pit % 7]); if (sim.held) home(); });
+  r.onMessage("you", (y) => { me = y; rig.setPit(y.pit); setTint(myMesh, COLORS[y.pit % 7]); orient.setTint(COLORS[y.pit % 7]); views.get("local")?.setColor(COLORS[y.pit % 7]); if (sim.held) home(); });   // same colour as the other pilots see
   r.onMessage("snap", (sn) => onSnap(sn)); r.onMessage("events", (ev) => { if (!replay) pendingEvents.push(...ev); ev.forEach((e) => onEvent(e)); });
   r.onMessage("restart", () => { home(); hud.toast(t("toast.newFight")); });
   r.onMessage("ping", (n) => r.send("pong", n));
@@ -291,7 +294,7 @@ renderer.setAnimationLoop((t) => {
   if (!replay) {                                                                     // my own streamer is always drawn locally
     const f = new THREE.Vector3(0, 0, 1).applyQuaternion(sim.quat);
     localStreamer.push([sim.pos.x + f.x * simParams.tailZ, sim.pos.y + f.y * simParams.tailZ, sim.pos.z + f.z * simParams.tailZ]);
-    let v = views.get("local"); if (!v) { v = new StreamerView(scene, COLORS[me.pit]); views.set("local", v); }
+    let v = views.get("local"); if (!v) { v = new StreamerView(scene, COLORS[me.pit % 7]); views.set("local", v); } v.setColor(COLORS[me.pit % 7]);
     v.update(localStreamer.points(t / 1000).flat());
   } else if (views.get("local")) views.get("local").mesh.visible = false;
   if (params.has("top")) { camera.position.set(0, 90, 15); camera.lookAt(0, 0, 15); camera.fov = 55; camera.updateProjectionMatrix(); } else {

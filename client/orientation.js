@@ -1,6 +1,6 @@
 import { t } from "./i18n.js";
 import * as THREE from "three";
-import { createPlane } from "./planeModel.js";
+import { createPlane, setTint } from "./planeModel.js";
 
 // Beginner orientation widget (top-right corner): a small copy of your plane shown the way the pilot sees it from the start box,
 // so "nose toward me / away / left / right / upside down" is obvious. Orange sphere = left wing tip, blue cube = right wing tip (colour and shape differ for colour-blind players),
@@ -26,6 +26,7 @@ export function createOrientationWidget(type, tint) {
   const f = new THREE.Vector3(), up = new THREE.Vector3(), ref = new THREE.Quaternion(), m4 = new THREE.Matrix4(), tmp = new THREE.Quaternion();
 
   return {
+    setTint(color) { setTint(plane, color); },                                   // the pilot's colour is known only after the server assigned the start box
     // eye = the pilot's eyes (start box), target = the plane, planeQuat = its orientation. Returns the label text.
     update(eye, target, planeQuat) {
       m4.lookAt(eye, target, up.set(0, 1, 0)); ref.setFromRotationMatrix(m4);                  // the view from the pilot's eyes

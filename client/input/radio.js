@@ -7,7 +7,8 @@ export const CHANNELS = ["aileron", "elevator", "throttle", "rudder"];
 // when it is not a number), ?preset=radiomaster|gamepad applies a mapping preset when that window has no saved config yet. Each ?pad window keeps its own
 // calibration and mapping in localStorage, so two controllers never overwrite each other. Without ?pad the first gamepad with 4 axes is used as before.
 const Q = new URLSearchParams(location.search), PAD = Q.get("pad");
-const KEY = "esasim_radio_config" + (PAD !== null ? "_pad" + PAD : "");
+const CHOICE_KEY = "esasim_radio_choice";                    // the radio picked in the panel (its full gamepad name), kept in this browser profile
+const slug = (s) => s.replace(/[^a-z0-9]+/gi, "_").slice(0, 60);
 
 const defaults = () => ({
   mapping: [0, 1, 2, 3],                 // gamepad axis index per channel (AETR, change in the panel)
@@ -26,6 +27,8 @@ export const PRESETS = {
 export class RadioInput {
   constructor() {
     this.config = defaults();
+    this.choice = null;                       // a radio picked from the list in the panel; ignored when the window has ?pad=
+    try { if (PAD === null) this.choice = localStorage.getItem(CHOICE_KEY) || null; } catch { /* no storage */ }
     this.raw = [];
     this.id = null;
     this.channels = { aileron: 0, elevator: 0, throttle: 0, rudder: 0 }; // aileron/rudder/elevator -1..1, throttle 0..1
@@ -36,10 +39,20 @@ export class RadioInput {
   }
 
   get connected() { return this.id !== null; }
+  // each radio keeps its own calibration and mapping: a ?pad window by its number, a picked radio by its name, otherwise the shared default
+  get key() { return "esasim_radio_config" + (PAD !== null ? "_pad" + PAD : this.choice ? "_" + slug(this.choice) : ""); }
+  get pinned() { return PAD !== null; }
+  listPads() { return [...(navigator.getGamepads?.() ?? [])].filter((g) => g && g.axes.length >= 4).map((g) => ({ index: g.index, id: g.id })); }
+  selectPad(id) {                                  // null = automatic (the first radio)
+    if (PAD !== null) return;
+    this.choice = id || null;
+    try { if (id) localStorage.setItem(CHOICE_KEY, id); else localStorage.removeItem(CHOICE_KEY); } catch { /* no storage */ }
+    this.config = defaults(); this.calibrating = false; this.load();
+  }
 
   poll() {
     const pads = [...(navigator.getGamepads?.() ?? [])].filter((g) => g && g.axes.length >= 4);
-    const pad = PAD === null ? pads[0] : /^\d+$/.test(PAD) ? pads.find((g) => g.index === Number(PAD)) : pads.find((g) => g.id.toLowerCase().includes(PAD.toLowerCase()));
+    const pad = PAD === null ? (this.choice ? pads.find((g) => g.id === this.choice) : pads[0]) : /^\d+$/.test(PAD) ? pads.find((g) => g.index === Number(PAD)) : pads.find((g) => g.id.toLowerCase().includes(PAD.toLowerCase()));
     if (!pad) { this.id = null; this.raw = []; return false; }
     this.id = pad.id; this.index = pad.index;
     this.raw = [...pad.axes];
@@ -91,9 +104,9 @@ export class RadioInput {
     }
   }
 
-  save() { try { localStorage.setItem(KEY, JSON.stringify(this.config)); return true; } catch { return false; } }
+  save() { try { localStorage.setItem(this.key, JSON.stringify(this.config)); return true; } catch { return false; } }
   load() {
-    try { const s = localStorage.getItem(KEY); this._hadSaved = !!s; if (s) this.config = { ...defaults(), ...JSON.parse(s) }; } catch { /* no storage */ }
+    try { const s = localStorage.getItem(this.key); this._hadSaved = !!s; if (s) this.config = { ...defaults(), ...JSON.parse(s) }; } catch { /* no storage */ }
     if (!this._hadSaved && Q.get("preset")) this.applyPreset(Q.get("preset"));
     this.config.deadband = 0;               // an older saved config may still carry the former 0.02: it is ignored
   }

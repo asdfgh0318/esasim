@@ -13,7 +13,7 @@ const css = `
 export function mountRadioUI(radio) {
   document.head.append(Object.assign(document.createElement("style"), { textContent: css }));
   const el = document.createElement("div"); el.id = "radio";
-  el.innerHTML = `<h3>Radio</h3><div id="r-status" class="hint"></div>
+  el.innerHTML = `<h3>Radio</h3><div class="row"><span class="lbl">Controller</span><select id="r-pad"></select></div><div id="r-status" class="hint"></div>
   <h4>Raw axes</h4><div id="r-raw"></div>
   <h4>Channels</h4><div id="r-map"></div>
   <div class="row"><span class="lbl">Preset</span><select id="r-preset"><option value="">choose...</option>${Object.entries(PRESETS).map(([k, p]) => `<option value="${k}">${p.label}</option>`).join("")}</select></div>
@@ -52,8 +52,20 @@ export function mountRadioUI(radio) {
   $("r-preset").onchange = () => { if ($("r-preset").value) { radio.applyPreset($("r-preset").value); nAxes = -1; $("r-status").textContent = "Preset applied (press Save to keep it). Calibrate for best results."; } };
   $("r-reset").onclick = () => { radio.reset(); nAxes = -1; };
 
+  // Controller list: every connected gamepad with 4 or more axes; the choice is remembered and each radio keeps its own calibration.
+  let padsKey = "";
+  const fillPads = () => {
+    const list = radio.listPads(), key = list.map((p) => p.index + p.id).join("|") + "|" + radio.choice + "|" + radio.pinned;
+    if (key === padsKey) return; padsKey = key;
+    const sel = $("r-pad");
+    sel.innerHTML = `<option value="">Automatic (first radio)</option>` + list.map((p) => `<option value="${p.id.replace(/"/g, "&quot;")}" ${radio.choice === p.id ? "selected" : ""}>pad ${p.index}: ${p.id.replace(/</g, "")}</option>`).join("");
+    sel.disabled = radio.pinned; sel.title = radio.pinned ? "This window is pinned to one controller by ?pad=" : "";
+  };
+  $("r-pad").onchange = () => { radio.selectPad($("r-pad").value); nAxes = -1; padsKey = ""; };
+
   return function update() {
     if (el.style.display !== "block") return;
+    fillPads();
     if (!radio.connected) { $("r-status").textContent = "No radio found. Plug it in USB (joystick mode) and move a stick."; nAxes = -1; return; }
     if (radio.raw.length !== nAxes) buildAxes();
     $("r-status").textContent = `pad ${radio.index}: ${radio.id}` + (new URLSearchParams(location.search).get("pad") !== null ? "  (this window only uses its own pad)" : "");
